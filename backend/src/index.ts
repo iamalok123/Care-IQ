@@ -1,19 +1,80 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+
+import patientRoutes from './routes/patientRoutes';
+import policyRoutes from './routes/policyRoutes';
+import hospitalRoutes from './routes/hospitalRoutes';
+import journeyRoutes from './routes/journeyRoutes';
+import verificationRoutes from './routes/verificationRoutes';
+import costRoutes from './routes/costRoutes';
+import aiRoutes from './routes/aiRoutes';
+import scenarioRoutes from './routes/scenarioRoutes';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'CareIQ Backend API is running' });
+// Request logging middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
+// Health check endpoint
+app.get('/api/health', (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    data: {
+      status: 'ok',
+      service: 'CareIQ Decision-Support Backend API',
+      timestamp: new Date().toISOString()
+    }
+  });
+});
+
+// Mount modular API routes
+app.use('/api/patients', patientRoutes);
+app.use('/api/policies', policyRoutes);
+app.use('/api/hospitals', hospitalRoutes);
+app.use('/api/journeys', journeyRoutes);
+app.use('/api/verification-items', verificationRoutes);
+app.use('/api/cost', costRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/scenarios', scenarioRoutes);
+
+// 404 Handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    error: {
+      code: 'ROUTE_NOT_FOUND',
+      message: `Cannot ${req.method} ${req.originalUrl}`
+    }
+  });
+});
+
+// Global Error Handler
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error('Unhandled Server Error:', err);
+  res.status(500).json({
+    success: false,
+    error: {
+      code: 'INTERNAL_SERVER_ERROR',
+      message: err.message || 'An unexpected internal error occurred'
+    }
+  });
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`CareIQ Backend Server is listening on http://localhost:${port}`);
 });
+
+export default app;
