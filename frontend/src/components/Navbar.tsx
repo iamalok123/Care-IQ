@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, UserCheck, PlayCircle, AlertCircle, Sparkles, Building2, Activity, IndianRupee } from 'lucide-react';
+import { ShieldCheck, UserCheck, PlayCircle, AlertCircle, Sparkles, Building2, Activity, IndianRupee, Globe } from 'lucide-react';
 
 interface NavbarProps {
   patients: any[];
@@ -11,6 +11,8 @@ interface NavbarProps {
   onSelectTab: (tab: string) => void;
   pendingVerificationCount: number;
   loadingScenario?: boolean;
+  language?: string;
+  onSelectLanguage?: (lang: string) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -22,7 +24,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   onSelectTab,
   pendingVerificationCount,
-  loadingScenario
+  loadingScenario,
+  language,
+  onSelectLanguage
 }) => {
   return (
     <header className="sticky top-3 z-50 mx-3 md:mx-6 my-3 p-4 bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl shadow-md">
@@ -95,6 +99,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             </select>
           </div>
 
+          {/* Language Switcher (Section 58) */}
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-xl shadow-xs">
+            <Globe size={15} className="text-slate-500 shrink-0" />
+            <select
+              value={language || 'en'}
+              onChange={(e) => onSelectLanguage && onSelectLanguage(e.target.value)}
+              className="bg-transparent text-xs font-bold text-slate-700 outline-hidden cursor-pointer"
+            >
+              <option value="en">English</option>
+              <option value="hi">हिन्दी</option>
+              <option value="kn">ಕನ್ನಡ</option>
+            </select>
+          </div>
+
         </div>
 
       </div>
@@ -102,14 +120,34 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Navigation Tabs Bar */}
       <nav className="flex items-center gap-2 mt-3.5 pt-3 border-t border-slate-100 overflow-x-auto pb-0.5">
         {[
-          { id: 'dashboard', label: 'Dashboard', icon: Activity },
-          { id: 'hospitals', label: 'Hospital Matcher', icon: Building2 },
-          { id: 'insurance', label: 'Insurance & Policies', icon: ShieldCheck },
-          { id: 'journey', label: 'Care Journey', icon: Sparkles },
-          { id: 'cost', label: 'Cost Breakdown', icon: IndianRupee },
+          {
+            id: 'dashboard',
+            label: language === 'hi' ? 'डैशबोर्ड' : language === 'kn' ? 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್' : 'Dashboard',
+            icon: Activity
+          },
+          {
+            id: 'hospitals',
+            label: language === 'hi' ? 'अस्पताल खोज' : language === 'kn' ? 'ಆಸ್ಪತ್ರೆ ಹೊಂದಾಣಿಕೆ' : 'Hospital Matcher',
+            icon: Building2
+          },
+          {
+            id: 'insurance',
+            label: language === 'hi' ? 'बीमा पॉलिसी' : language === 'kn' ? 'ವಿಮಾ ಪಾಲಿಸಿಗಳು' : 'Insurance & Policies',
+            icon: ShieldCheck
+          },
+          {
+            id: 'journey',
+            label: language === 'hi' ? 'उपचार यात्रा' : language === 'kn' ? 'ಆರೈಕೆ ಪಯಣ' : 'Care Journey',
+            icon: Sparkles
+          },
+          {
+            id: 'cost',
+            label: language === 'hi' ? 'लागत विवरण' : language === 'kn' ? 'ವೆಚ್ಚದ ವಿವರ' : 'Cost Breakdown',
+            icon: IndianRupee
+          },
           {
             id: 'verification',
-            label: 'Verification Center',
+            label: language === 'hi' ? 'सत्यापन केंद्र' : language === 'kn' ? 'ಪರಿಶೀಲನಾ ಕೇಂದ್ರ' : 'Verification Center',
             icon: AlertCircle,
             badge: pendingVerificationCount > 0 ? pendingVerificationCount : undefined
           }

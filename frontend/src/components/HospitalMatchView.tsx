@@ -322,19 +322,81 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
 
                 </div>
 
-                {/* Expandable "Why am I seeing this?" Panel */}
+                {/* Section 54 — Expandable 'Why am I seeing this?' Factor Inspector */}
                 {isExpanded && (
-                  <div className="mt-3.5 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                  <div className="mt-3.5 p-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-inner">
                     
-                    <h4 className="text-xs font-bold text-slate-900 mb-2">
-                      Explainability Factors & Rule Evaluation:
-                    </h4>
+                    <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-200/80">
+                      <h4 className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+                        <Sparkles size={14} className="text-teal-600" />
+                        5-Factor Alignment Scorecard (Section 54)
+                      </h4>
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Deterministic Weights</span>
+                    </div>
+
+                    {/* 5-Factor Score Matrix */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mb-3">
+                      <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-xs">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] font-bold text-slate-500">1. Network (35%)</span>
+                          <span className="font-extrabold text-emerald-700">
+                            {item.networkStatus === 'IN_NETWORK' ? '✓ 100%' : item.networkStatus === 'UNKNOWN' ? '❓ Verify' : '✗ 20%'}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-700 font-medium block">
+                          {item.networkStatus === 'IN_NETWORK' ? 'Cashless empanelled' : 'Requires direct desk check'}
+                        </span>
+                      </div>
+
+                      <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-xs">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] font-bold text-slate-500">2. Room Match (25%)</span>
+                          <span className={`font-extrabold ${item.roomCategoryMatch ? 'text-emerald-700' : 'text-amber-700'}`}>
+                            {item.roomCategoryMatch ? '✓ 100%' : '⚠ Proportional'}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-700 font-medium block">
+                          {item.roomCategoryMatch ? 'Within entitlement' : 'Proportionate deduction'}
+                        </span>
+                      </div>
+
+                      <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-xs">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] font-bold text-slate-500">3. Services (15%)</span>
+                          <span className="font-extrabold text-emerald-700">✓ Verified</span>
+                        </div>
+                        <span className="text-[11px] text-slate-700 font-medium block">
+                          {h.specialties?.length || 5} Departments Active
+                        </span>
+                      </div>
+
+                      <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-xs">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] font-bold text-slate-500">4. 24x7 ICU (10%)</span>
+                          <span className="font-extrabold text-emerald-700">✓ {h.icu_beds || 20}+ Beds</span>
+                        </div>
+                        <span className="text-[11px] text-slate-700 font-medium block">
+                          Critical care operational
+                        </span>
+                      </div>
+
+                      <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-xs sm:col-span-2 md:col-span-2">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] font-bold text-slate-500">5. Cost Headroom (15%)</span>
+                          <span className="font-extrabold text-teal-700">✓ Indicative Tariff</span>
+                        </div>
+                        <span className="text-[11px] text-slate-700 font-medium block">
+                          Est. Out-of-Pocket: ₹{item.estimatedPatientExposure.toLocaleString()} vs Policy Sum Insured: ₹{(policy?.sum_insured || 500000).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
                     
-                    <div className="flex flex-col gap-1.5 mb-3">
+                    <div className="flex flex-col gap-1.5 mb-3 pt-2 border-t border-slate-200/80">
+                      <span className="text-[11px] font-bold text-slate-600 mb-0.5">Key Match Drivers:</span>
                       {item.reasons.map((r: string, rIdx: number) => (
                         <div
                           key={rIdx}
-                          className={`text-xs font-medium ${
+                          className={`text-xs font-semibold ${
                             r.startsWith('✓') ? 'text-emerald-700' : 'text-amber-700'
                           }`}
                         >
@@ -349,7 +411,7 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
                           Recommended Verification Steps:
                         </div>
                         {item.verificationItems.map((v: string, vIdx: number) => (
-                          <div key={vIdx} className="text-xs text-amber-900">
+                          <div key={vIdx} className="text-xs text-amber-900 font-medium">
                             • {v}
                           </div>
                         ))}

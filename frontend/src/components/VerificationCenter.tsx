@@ -18,6 +18,7 @@ export const VerificationCenter: React.FC<VerificationCenterProps> = ({
 }) => {
   const [filterCategory, setFilterCategory] = useState<string>('ALL');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [selectedItemForGuidance, setSelectedItemForGuidance] = useState<any | null>(null);
 
   const filteredItems = verificationItems.filter((item) => {
     if (filterCategory !== 'ALL' && item.category !== filterCategory) return false;
@@ -160,13 +161,21 @@ export const VerificationCenter: React.FC<VerificationCenterProps> = ({
                 </p>
 
                 {/* Action Buttons */}
-                <div className="flex justify-end items-center gap-2 pt-2.5 border-t border-slate-100">
+                <div className="flex flex-wrap justify-end items-center gap-2 pt-2.5 border-t border-slate-100">
+                  <button
+                    onClick={() => setSelectedItemForGuidance(item)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 cursor-pointer transition-colors"
+                  >
+                    <HelpCircle size={14} />
+                    Verify Guidance
+                  </button>
+
                   <button
                     onClick={() => handleCopyQuestion(item.id, item.question)}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 cursor-pointer transition-colors"
                   >
                     {copiedId === item.id ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-                    {copiedId === item.id ? 'Copied to Clipboard!' : 'Copy Question for Desk'}
+                    {copiedId === item.id ? 'Copied!' : 'Copy Question'}
                   </button>
 
                   {!isResolved && (
@@ -184,6 +193,74 @@ export const VerificationCenter: React.FC<VerificationCenterProps> = ({
           })
         )}
       </div>
+
+      {/* Section 55 — 'Verify Before You Rely' Detailed Modal */}
+      {selectedItemForGuidance && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="p-2 bg-amber-100 text-amber-800 rounded-xl">
+                  <HelpCircle size={20} />
+                </span>
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900">Verify Before You Rely</h3>
+                  <span className="text-[11px] font-bold text-amber-700">Section 55 Decision Support</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedItemForGuidance(null)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg text-xs font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-3.5 text-xs">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <span className="font-bold text-slate-500 uppercase text-[10px] tracking-wider block mb-0.5">What to Verify</span>
+                <p className="font-bold text-slate-900">{selectedItemForGuidance.title}</p>
+              </div>
+
+              <div className="bg-amber-50/60 p-3 rounded-xl border border-amber-200">
+                <span className="font-bold text-amber-800 uppercase text-[10px] tracking-wider block mb-0.5">Why It Matters</span>
+                <p className="text-amber-900 leading-relaxed">{selectedItemForGuidance.reason}</p>
+              </div>
+
+              <div className="bg-teal-50/60 p-3 rounded-xl border border-teal-200">
+                <span className="font-bold text-teal-800 uppercase text-[10px] tracking-wider block mb-0.5">Who to Ask & Verbatim Question</span>
+                <p className="text-slate-800 font-semibold mb-2">"{selectedItemForGuidance.question}"</p>
+                <div className="text-[11px] text-teal-700 font-bold">
+                  Recommended Desk: Hospital TPA / Insurance Billing Counter
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100">
+                <span>Data Provenance: Public Reference & Policy Rules</span>
+                <span>Freshness: Verified Recently</span>
+              </div>
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => handleCopyQuestion(selectedItemForGuidance.id, selectedItemForGuidance.question)}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700"
+              >
+                {copiedId === selectedItemForGuidance.id ? 'Copied!' : 'Copy Question'}
+              </button>
+              <button
+                onClick={() => {
+                  handleResolve(selectedItemForGuidance.id);
+                  setSelectedItemForGuidance(null);
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-xs"
+              >
+                Mark Verified
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

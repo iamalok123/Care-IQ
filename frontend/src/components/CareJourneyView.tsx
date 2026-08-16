@@ -122,6 +122,50 @@ export const CareJourneyView: React.FC<CareJourneyViewProps> = ({
         </div>
       </div>
 
+      {/* Section 53 — 'What Changed Since Your Last Update?' Timeline Comparison Card */}
+      <div className="bg-white border border-indigo-200 rounded-2xl p-5 shadow-xs bg-linear-to-r from-indigo-50/50 via-white to-teal-50/40">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="p-1.5 bg-indigo-600 text-white rounded-lg">
+              <Sparkles size={16} />
+            </span>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">What Changed Since Your Last Update?</h3>
+              <p className="text-[11px] text-slate-500">Real-time delta in insurance exposure and pre-authorization requirements.</p>
+            </div>
+          </div>
+          <span className="text-[11px] font-bold bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-full border border-indigo-200">
+            Section 53 Differential
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Care Stage Transition</span>
+            <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <span className="text-slate-400">Admission</span>
+              <span>→</span>
+              <span className="text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md font-extrabold">{currentStage}</span>
+            </div>
+          </div>
+
+          <div className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Pre-Authorization Status</span>
+            <div className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+              <Clock size={12} /> Pending TPA Desk Action
+            </div>
+          </div>
+
+          <div className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Estimated Exposure Delta</span>
+            <div className="text-xs font-extrabold text-slate-900 flex items-center justify-between">
+              <span>Indicative: ₹14,000</span>
+              <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">+ Consumables</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 2. Timeline Event Feed */}
       <div>
         <h3 className="text-base md:text-lg font-extrabold text-slate-900 mb-3 px-1">

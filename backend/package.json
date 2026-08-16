@@ -10,7 +10,8 @@
     "seed:demo": "tsx src/scripts/seedSyntheticData.ts",
     "start": "node dist/index.js",
     "test": "tsx src/scripts/testApi.ts",
-    "test:eval": "tsx src/scripts/runAiEvaluation.ts"
+    "test:eval": "tsx src/scripts/runAiEvaluation.ts",
+    "test:matrix": "tsx src/scripts/testScenarioMatrix.ts"
   },
   "keywords": [],
   "type": "commonjs",
