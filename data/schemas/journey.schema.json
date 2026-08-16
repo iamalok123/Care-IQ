@@ -4,36 +4,92 @@
   "description": "Schema defining a care journey and events in CareIQ",
   "type": "object",
   "properties": {
-    "id": { "type": "string", "format": "uuid" },
-    "patient_id": { "type": "string" },
-    "hospital_id": { "type": "string" },
-    "policy_id": { "type": ["string", "null"] },
-    "scheme_id": { "type": ["string", "null"] },
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "hospital_id": {
+      "type": "string"
+    },
+    "policy_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "scheme_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "current_stage": {
       "type": "string",
-      "enum": ["ADMISSION", "INVESTIGATION", "PROCEDURE", "RECOVERY", "DISCHARGE", "CLAIM_SUPPORT", "COMPLETED"]
+      "enum": [
+        "ADMISSION",
+        "INVESTIGATION",
+        "PROCEDURE",
+        "RECOVERY",
+        "DISCHARGE",
+        "CLAIM_SUPPORT",
+        "COMPLETED"
+      ]
     },
     "journey_status": {
       "type": "string",
-      "enum": ["ACTIVE", "PAUSED", "COMPLETED", "CANCELLED"]
+      "enum": [
+        "ACTIVE",
+        "PAUSED",
+        "COMPLETED",
+        "CANCELLED"
+      ]
     },
     "events": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "stage": { "type": "string" },
-          "event_type": { "type": "string" },
-          "title": { "type": "string" },
-          "description": { "type": "string" },
-          "status": { "type": "string" },
-          "insurance_relevance": { "type": "string" },
-          "requires_verification": { "type": "boolean" }
+          "id": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string"
+          },
+          "event_type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "insurance_relevance": {
+            "type": "string"
+          },
+          "requires_verification": {
+            "type": "boolean"
+          }
         },
-        "required": ["stage", "event_type", "title", "description"]
+        "required": [
+          "stage",
+          "event_type",
+          "title",
+          "description"
+        ]
       }
     }
   },
-  "required": ["patient_id", "hospital_id", "current_stage", "journey_status"]
+  "required": [
+    "patient_id",
+    "hospital_id",
+    "current_stage",
+    "journey_status"
+  ]
 }

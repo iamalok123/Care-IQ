@@ -67,7 +67,7 @@
       "copay_percentage": 10
     },
     "result_json": {
-      "patient_responsibility_ratio": 0.10,
+      "patient_responsibility_ratio": 0.1,
       "warning": "Patient must pay 10% of admissible claim amount directly at hospital billing counter."
     },
     "priority": 2,

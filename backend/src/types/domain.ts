@@ -452,6 +452,7 @@ export interface CareJourney {
   journey_status: JourneyStatus;
   started_at: string;
   updated_at: string;
+  events?: JourneyEvent[];
 }
 
 export interface JourneyEvent {

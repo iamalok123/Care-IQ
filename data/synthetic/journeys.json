@@ -6,47 +6,47 @@
     "policy_id": "pol-syn-ananya",
     "current_stage": "PROCEDURE",
     "journey_status": "ACTIVE",
-    "started_at": "2026-08-14T08:30:00Z",
+    "started_at": "2026-08-16T08:30:00Z",
     "updated_at": "2026-08-16T11:00:00Z",
     "events": [
       {
         "id": "evt-01-adm",
         "journey_id": "jrn-01-ananya",
         "stage": "ADMISSION",
-        "event_type": "ROOM_CHECK_IN",
-        "title": "Admission Desk Check-in Completed",
-        "description": "Patient checked into Room 402 (Single Private AC Room). Hospital verified Star Health insurance card.",
+        "event_type": "ADMISSION_FORM_SUBMITTED",
+        "title": "Admission Form & Cashless Pre-Auth Requested",
+        "description": "Patient admitted for Planned Total Knee Replacement. TPA desk initialized cashless preauthorization with Star Health.",
         "status": "COMPLETED",
-        "occurred_at": "2026-08-14T09:00:00Z",
-        "insurance_relevance": "Room category aligns with policy entitlement (Private AC). No proportionate room rent penalty expected.",
-        "requires_verification": false,
-        "created_at": "2026-08-14T09:00:00Z"
+        "occurred_at": "2026-08-16T08:45:00Z",
+        "insurance_relevance": "Initiates the initial TPA cashless sanction process.",
+        "requires_verification": true,
+        "created_at": "2026-08-16T08:45:00Z"
       },
       {
-        "id": "evt-01-preauth",
+        "id": "evt-01-inv",
         "journey_id": "jrn-01-ananya",
-        "stage": "ADMISSION",
-        "event_type": "PREAUTH_SUBMITTED",
-        "title": "Initial Preauthorization Request Submitted",
-        "description": "Hospital TPA desk submitted initial estimate of ₹1,80,000 to Star Health.",
+        "stage": "INVESTIGATION",
+        "event_type": "PRE_OP_DIAGNOSTICS_COMPLETED",
+        "title": "Pre-Operative Blood Panels & Cardiac Clearance",
+        "description": "Complete blood count, ECG, and Knee X-Rays completed.",
         "status": "COMPLETED",
-        "occurred_at": "2026-08-14T11:30:00Z",
-        "insurance_relevance": "Initial cashless authorization received for ₹1,50,000. Final settlement to occur upon discharge summary.",
-        "requires_verification": true,
-        "created_at": "2026-08-14T11:30:00Z"
+        "occurred_at": "2026-08-16T09:30:00Z",
+        "insurance_relevance": "Covered under pre-hospitalization / inpatient diagnostics.",
+        "requires_verification": false,
+        "created_at": "2026-08-16T09:30:00Z"
       },
       {
         "id": "evt-01-proc",
         "journey_id": "jrn-01-ananya",
         "stage": "PROCEDURE",
-        "event_type": "SURGICAL_PROCEDURE",
-        "title": "Total Knee Replacement Scheduled",
-        "description": "Patient wheeled to Operation Theatre 3 for planned unilateral knee replacement.",
+        "event_type": "SURGERY_IN_PROGRESS",
+        "title": "Unilateral Knee Arthroplasty (Surgery)",
+        "description": "Patient transferred to OT 3. Implant verified: Stryker Triathlon Single Radius.",
         "status": "CURRENT",
-        "occurred_at": "2026-08-16T08:00:00Z",
-        "insurance_relevance": "Implant cost capped per national ceiling. Non-payable consumable charges (PPE kits, gloves) estimated at ₹14,000 out-of-pocket.",
+        "occurred_at": "2026-08-16T10:15:00Z",
+        "insurance_relevance": "Primary surgical procedure covered under policy. Consumables and surgical pack capped as per empanelled tariff.",
         "requires_verification": true,
-        "created_at": "2026-08-16T08:00:00Z"
+        "created_at": "2026-08-16T10:15:00Z"
       }
     ]
   },
@@ -58,7 +58,7 @@
     "current_stage": "ADMISSION",
     "journey_status": "ACTIVE",
     "started_at": "2026-08-15T14:00:00Z",
-    "updated_at": "2026-08-16T09:30:00Z",
+    "updated_at": "2026-08-15T15:30:00Z",
     "events": [
       {
         "id": "evt-02-adm",

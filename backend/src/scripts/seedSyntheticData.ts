@@ -33,9 +33,9 @@ const SCENARIOS_DIR = path.join(ROOT_DATA_DIR, 'scenarios');
   }
 });
 
-console.log('Generating deterministic synthetic datasets for CareIQ (Phases 05-08)...');
+console.log('Generating deterministic synthetic datasets for CareIQ (Bengaluru Region)...');
 
-// 1. Synthetic Patients
+// 1. Synthetic Patients — Exclusively Bengaluru Based
 const syntheticPatients: Patient[] = [
   {
     id: "pat-01-ananya",
@@ -59,7 +59,7 @@ const syntheticPatients: Patient[] = [
     city: "Bengaluru",
     state: "Karnataka",
     pincode: "560076",
-    preferred_language: "Hindi",
+    preferred_language: "English",
     created_at: "2026-08-02T10:00:00Z",
     updated_at: "2026-08-16T10:00:00Z"
   },
@@ -85,7 +85,7 @@ const syntheticPatients: Patient[] = [
     city: "Bengaluru",
     state: "Karnataka",
     pincode: "560017",
-    preferred_language: "Kannada",
+    preferred_language: "English",
     created_at: "2026-08-04T10:00:00Z",
     updated_at: "2026-08-16T10:00:00Z"
   },
@@ -95,10 +95,10 @@ const syntheticPatients: Patient[] = [
     display_name: "Sunita Patel",
     age_band: "50-60",
     gender: "Female",
-    city: "Mumbai",
-    state: "Maharashtra",
-    pincode: "400050",
-    preferred_language: "Gujarati",
+    city: "Bengaluru",
+    state: "Karnataka",
+    pincode: "560041",
+    preferred_language: "English",
     created_at: "2026-08-05T10:00:00Z",
     updated_at: "2026-08-16T10:00:00Z"
   },
@@ -111,7 +111,7 @@ const syntheticPatients: Patient[] = [
     city: "Bengaluru",
     state: "Karnataka",
     pincode: "560099",
-    preferred_language: "Telugu",
+    preferred_language: "English",
     created_at: "2026-08-06T10:00:00Z",
     updated_at: "2026-08-16T10:00:00Z"
   },
@@ -121,10 +121,10 @@ const syntheticPatients: Patient[] = [
     display_name: "Kavita Deshmukh",
     age_band: "32-40",
     gender: "Female",
-    city: "Mumbai",
-    state: "Maharashtra",
-    pincode: "400016",
-    preferred_language: "Marathi",
+    city: "Bengaluru",
+    state: "Karnataka",
+    pincode: "560034",
+    preferred_language: "English",
     created_at: "2026-08-07T10:00:00Z",
     updated_at: "2026-08-16T10:00:00Z"
   },
@@ -137,7 +137,7 @@ const syntheticPatients: Patient[] = [
     city: "Bengaluru",
     state: "Karnataka",
     pincode: "560099",
-    preferred_language: "Kannada",
+    preferred_language: "English",
     created_at: "2026-08-08T10:00:00Z",
     updated_at: "2026-08-16T10:00:00Z"
   }
@@ -200,7 +200,7 @@ const syntheticPolicies: InsurancePolicy[] = [
     remaining_sum_insured: 120000,
     room_eligibility: RoomCategoryCode.SEMI_PRIVATE,
     copay_percentage: 10,
-    deductible_amount: 5000,
+    deductible_amount: 0,
     cashless_supported: true,
     preauthorization_supported: true,
     pre_hospitalization_days: 30,
@@ -212,31 +212,31 @@ const syntheticPolicies: InsurancePolicy[] = [
     updated_at: "2026-08-16T10:00:00Z"
   },
   {
-    id: "pol-syn-ramesh",
-    patient_id: "pat-08-ramesh",
-    insurer_id: "sch-pmjay",
-    policy_name: "Ayushman Bharat PM-JAY Golden Card",
-    policy_type: PolicyType.GOVERNMENT_SCHEME,
-    policy_number_masked: "AB-PMJAY-XXXX-7701",
-    sum_insured: 500000,
-    remaining_sum_insured: 500000,
-    room_eligibility: RoomCategoryCode.GENERAL,
+    id: "pol-syn-vikram",
+    patient_id: "pat-06-vikram",
+    insurer_id: "ins-care-health",
+    policy_name: "Care Supreme Health Plan",
+    policy_type: PolicyType.INDIVIDUAL,
+    policy_number_masked: "CARE-SUP-XXXX-8821",
+    sum_insured: 700000,
+    remaining_sum_insured: 700000,
+    room_eligibility: RoomCategoryCode.PRIVATE_AC,
     copay_percentage: 0,
     deductible_amount: 0,
     cashless_supported: true,
     preauthorization_supported: true,
-    pre_hospitalization_days: 3,
-    post_hospitalization_days: 15,
-    data_status: DataStatus.PUBLIC_REFERENCE,
+    pre_hospitalization_days: 60,
+    post_hospitalization_days: 90,
+    data_status: DataStatus.SYNTHETIC,
     verification_status: VerificationStatus.VERIFIED,
     confidence: ConfidenceLevel.HIGH,
-    created_at: "2026-08-08T10:00:00Z",
+    created_at: "2026-08-06T10:00:00Z",
     updated_at: "2026-08-16T10:00:00Z"
   }
 ];
 
-// 3. Synthetic Care Journeys & Events
-const syntheticJourneys: (CareJourney & { events: JourneyEvent[] })[] = [
+// 3. Synthetic Journeys
+const syntheticJourneys: CareJourney[] = [
   {
     id: "jrn-01-ananya",
     patient_id: "pat-01-ananya",
@@ -244,47 +244,47 @@ const syntheticJourneys: (CareJourney & { events: JourneyEvent[] })[] = [
     policy_id: "pol-syn-ananya",
     current_stage: JourneyStage.PROCEDURE,
     journey_status: JourneyStatus.ACTIVE,
-    started_at: "2026-08-14T08:30:00Z",
+    started_at: "2026-08-16T08:30:00Z",
     updated_at: "2026-08-16T11:00:00Z",
     events: [
       {
         id: "evt-01-adm",
         journey_id: "jrn-01-ananya",
         stage: JourneyStage.ADMISSION,
-        event_type: "ROOM_CHECK_IN",
-        title: "Admission Desk Check-in Completed",
-        description: "Patient checked into Room 402 (Single Private AC Room). Hospital verified Star Health insurance card.",
+        event_type: "ADMISSION_FORM_SUBMITTED",
+        title: "Admission Form & Cashless Pre-Auth Requested",
+        description: "Patient admitted for Planned Total Knee Replacement. TPA desk initialized cashless preauthorization with Star Health.",
         status: EventStatus.COMPLETED,
-        occurred_at: "2026-08-14T09:00:00Z",
-        insurance_relevance: "Room category aligns with policy entitlement (Private AC). No proportionate room rent penalty expected.",
-        requires_verification: false,
-        created_at: "2026-08-14T09:00:00Z"
+        occurred_at: "2026-08-16T08:45:00Z",
+        insurance_relevance: "Initiates the initial TPA cashless sanction process.",
+        requires_verification: true,
+        created_at: "2026-08-16T08:45:00Z"
       },
       {
-        id: "evt-01-preauth",
+        id: "evt-01-inv",
         journey_id: "jrn-01-ananya",
-        stage: JourneyStage.ADMISSION,
-        event_type: "PREAUTH_SUBMITTED",
-        title: "Initial Preauthorization Request Submitted",
-        description: "Hospital TPA desk submitted initial estimate of ₹1,80,000 to Star Health.",
+        stage: JourneyStage.INVESTIGATION,
+        event_type: "PRE_OP_DIAGNOSTICS_COMPLETED",
+        title: "Pre-Operative Blood Panels & Cardiac Clearance",
+        description: "Complete blood count, ECG, and Knee X-Rays completed.",
         status: EventStatus.COMPLETED,
-        occurred_at: "2026-08-14T11:30:00Z",
-        insurance_relevance: "Initial cashless authorization received for ₹1,50,000. Final settlement to occur upon discharge summary.",
-        requires_verification: true,
-        created_at: "2026-08-14T11:30:00Z"
+        occurred_at: "2026-08-16T09:30:00Z",
+        insurance_relevance: "Covered under pre-hospitalization / inpatient diagnostics.",
+        requires_verification: false,
+        created_at: "2026-08-16T09:30:00Z"
       },
       {
         id: "evt-01-proc",
         journey_id: "jrn-01-ananya",
         stage: JourneyStage.PROCEDURE,
-        event_type: "SURGICAL_PROCEDURE",
-        title: "Total Knee Replacement Scheduled",
-        description: "Patient wheeled to Operation Theatre 3 for planned unilateral knee replacement.",
+        event_type: "SURGERY_IN_PROGRESS",
+        title: "Unilateral Knee Arthroplasty (Surgery)",
+        description: "Patient transferred to OT 3. Implant verified: Stryker Triathlon Single Radius.",
         status: EventStatus.CURRENT,
-        occurred_at: "2026-08-16T08:00:00Z",
-        insurance_relevance: "Implant cost capped per national ceiling. Non-payable consumable charges (PPE kits, gloves) estimated at ₹14,000 out-of-pocket.",
+        occurred_at: "2026-08-16T10:15:00Z",
+        insurance_relevance: "Primary surgical procedure covered under policy. Consumables and surgical pack capped as per empanelled tariff.",
         requires_verification: true,
-        created_at: "2026-08-16T08:00:00Z"
+        created_at: "2026-08-16T10:15:00Z"
       }
     ]
   },
@@ -296,7 +296,7 @@ const syntheticJourneys: (CareJourney & { events: JourneyEvent[] })[] = [
     current_stage: JourneyStage.ADMISSION,
     journey_status: JourneyStatus.ACTIVE,
     started_at: "2026-08-15T14:00:00Z",
-    updated_at: "2026-08-16T09:30:00Z",
+    updated_at: "2026-08-15T15:30:00Z",
     events: [
       {
         id: "evt-02-adm",
@@ -361,7 +361,7 @@ fs.writeFileSync(path.join(SYNTHETIC_DIR, 'policies.json'), JSON.stringify(synth
 fs.writeFileSync(path.join(SYNTHETIC_DIR, 'journeys.json'), JSON.stringify(syntheticJourneys, null, 2));
 fs.writeFileSync(path.join(SYNTHETIC_DIR, 'verification_items.json'), JSON.stringify(syntheticVerificationItems, null, 2));
 
-// 5. Generate all 15 Scenarios into data/scenarios/
+// 5. Generate all 11 Scenarios into data/scenarios/ (All Bengaluru Region)
 const scenarios = [
   {
     id: "01_simple_match",
@@ -426,7 +426,7 @@ const scenarios = [
     id: "05_cost_exposure",
     name: "Persona 05 — Low Remaining Sum Insured Gap",
     patientId: "pat-05-sunita",
-    hospitalId: "hosp-lilavati-mumbai",
+    hospitalId: "hosp-aster-cmi",
     procedureId: "proc-knee-replacement",
     expectedResult: {
       status: "HIGH_EXPOSURE",
@@ -504,4 +504,4 @@ scenarios.forEach((sc) => {
   fs.writeFileSync(path.join(SCENARIOS_DIR, `${sc.id}.json`), JSON.stringify(sc, null, 2));
 });
 
-console.log(`Successfully generated synthetic patients, policies, journeys, verification items, and ${scenarios.length} scenarios.`);
+console.log(`Successfully generated synthetic patients, policies, journeys, verification items, and ${scenarios.length} scenarios for Bengaluru region.`);

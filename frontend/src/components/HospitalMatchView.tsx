@@ -96,11 +96,7 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
               value={city}
               onChange={(e) => setCity(e.target.value)}
             >
-              <option value="Bengaluru">Bengaluru</option>
-              <option value="Mumbai">Mumbai</option>
-              <option value="Delhi">Delhi-NCR</option>
-              <option value="Chennai">Chennai</option>
-              <option value="Hyderabad">Hyderabad</option>
+              <option value="Bengaluru">Bengaluru (Karnataka)</option>
             </select>
           </div>
 

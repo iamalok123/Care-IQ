@@ -1,38 +1,233 @@
 [
-  { "hospital_id": "hosp-manipal-old-airport", "service_id": "srv-icu", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-manipal-old-airport", "service_id": "srv-mri", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-manipal-old-airport", "service_id": "srv-ct", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-manipal-old-airport", "service_id": "srv-dialysis", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-manipal-old-airport", "service_id": "srv-emergency", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-manipal-old-airport", "service_id": "srv-ambulance", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-manipal-old-airport", "service_id": "srv-cathlab", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-
-  { "hospital_id": "hosp-apollo-bannerghatta", "service_id": "srv-icu", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-apollo-bannerghatta", "service_id": "srv-mri", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-apollo-bannerghatta", "service_id": "srv-ct", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-apollo-bannerghatta", "service_id": "srv-emergency", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-apollo-bannerghatta", "service_id": "srv-cathlab", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-
-  { "hospital_id": "hosp-fortis-cunningham", "service_id": "srv-icu", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-fortis-cunningham", "service_id": "srv-ct", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-fortis-cunningham", "service_id": "srv-emergency", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-
-  { "hospital_id": "hosp-narayana-health-city", "service_id": "srv-icu", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-narayana-health-city", "service_id": "srv-mri", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-narayana-health-city", "service_id": "srv-ct", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-narayana-health-city", "service_id": "srv-dialysis", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-narayana-health-city", "service_id": "srv-cathlab", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-narayana-health-city", "service_id": "srv-emergency", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-
-  { "hospital_id": "hosp-victoria-government", "service_id": "srv-icu", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-victoria-government", "service_id": "srv-emergency", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-victoria-government", "service_id": "srv-ct", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-
-  { "hospital_id": "hosp-lilavati-mumbai", "service_id": "srv-icu", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-lilavati-mumbai", "service_id": "srv-mri", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-lilavati-mumbai", "service_id": "srv-cathlab", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-
-  { "hospital_id": "hosp-max-saket-delhi", "service_id": "srv-icu", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-max-saket-delhi", "service_id": "srv-mri", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" },
-  { "hospital_id": "hosp-max-saket-delhi", "service_id": "srv-cathlab", "availability_status": true, "operating_hours": "24x7", "confidence": "HIGH" }
+  {
+    "hospital_id": "hosp-manipal-old-airport",
+    "service_id": "srv-icu",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-manipal-old-airport",
+    "service_id": "srv-mri",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-manipal-old-airport",
+    "service_id": "srv-ct",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-manipal-old-airport",
+    "service_id": "srv-dialysis",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-manipal-old-airport",
+    "service_id": "srv-emergency",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-manipal-old-airport",
+    "service_id": "srv-ambulance",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-manipal-old-airport",
+    "service_id": "srv-cathlab",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-apollo-bannerghatta",
+    "service_id": "srv-icu",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-apollo-bannerghatta",
+    "service_id": "srv-mri",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-apollo-bannerghatta",
+    "service_id": "srv-ct",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-apollo-bannerghatta",
+    "service_id": "srv-emergency",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-apollo-bannerghatta",
+    "service_id": "srv-cathlab",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-fortis-cunningham",
+    "service_id": "srv-icu",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-fortis-cunningham",
+    "service_id": "srv-ct",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-fortis-cunningham",
+    "service_id": "srv-emergency",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-narayana-health-city",
+    "service_id": "srv-icu",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-narayana-health-city",
+    "service_id": "srv-mri",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-narayana-health-city",
+    "service_id": "srv-ct",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-narayana-health-city",
+    "service_id": "srv-dialysis",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-narayana-health-city",
+    "service_id": "srv-cathlab",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-narayana-health-city",
+    "service_id": "srv-emergency",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-victoria-government",
+    "service_id": "srv-icu",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-victoria-government",
+    "service_id": "srv-emergency",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-victoria-government",
+    "service_id": "srv-ct",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-aster-cmi",
+    "service_id": "srv-icu",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-aster-cmi",
+    "service_id": "srv-mri",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-aster-cmi",
+    "service_id": "srv-emergency",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-sakra-world",
+    "service_id": "srv-icu",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-sakra-world",
+    "service_id": "srv-mri",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-sakra-world",
+    "service_id": "srv-emergency",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-st-johns",
+    "service_id": "srv-icu",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-st-johns",
+    "service_id": "srv-mri",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-st-johns",
+    "service_id": "srv-emergency",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  }
 ]

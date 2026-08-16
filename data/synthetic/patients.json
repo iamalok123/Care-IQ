@@ -21,7 +21,7 @@
     "city": "Bengaluru",
     "state": "Karnataka",
     "pincode": "560076",
-    "preferred_language": "Hindi",
+    "preferred_language": "English",
     "created_at": "2026-08-02T10:00:00Z",
     "updated_at": "2026-08-16T10:00:00Z"
   },
@@ -47,7 +47,7 @@
     "city": "Bengaluru",
     "state": "Karnataka",
     "pincode": "560017",
-    "preferred_language": "Kannada",
+    "preferred_language": "English",
     "created_at": "2026-08-04T10:00:00Z",
     "updated_at": "2026-08-16T10:00:00Z"
   },
@@ -57,10 +57,10 @@
     "display_name": "Sunita Patel",
     "age_band": "50-60",
     "gender": "Female",
-    "city": "Mumbai",
-    "state": "Maharashtra",
-    "pincode": "400050",
-    "preferred_language": "Gujarati",
+    "city": "Bengaluru",
+    "state": "Karnataka",
+    "pincode": "560041",
+    "preferred_language": "English",
     "created_at": "2026-08-05T10:00:00Z",
     "updated_at": "2026-08-16T10:00:00Z"
   },
@@ -73,7 +73,7 @@
     "city": "Bengaluru",
     "state": "Karnataka",
     "pincode": "560099",
-    "preferred_language": "Telugu",
+    "preferred_language": "English",
     "created_at": "2026-08-06T10:00:00Z",
     "updated_at": "2026-08-16T10:00:00Z"
   },
@@ -83,10 +83,10 @@
     "display_name": "Kavita Deshmukh",
     "age_band": "32-40",
     "gender": "Female",
-    "city": "Mumbai",
-    "state": "Maharashtra",
-    "pincode": "400016",
-    "preferred_language": "Marathi",
+    "city": "Bengaluru",
+    "state": "Karnataka",
+    "pincode": "560034",
+    "preferred_language": "English",
     "created_at": "2026-08-07T10:00:00Z",
     "updated_at": "2026-08-16T10:00:00Z"
   },
@@ -99,7 +99,7 @@
     "city": "Bengaluru",
     "state": "Karnataka",
     "pincode": "560099",
-    "preferred_language": "Kannada",
+    "preferred_language": "English",
     "created_at": "2026-08-08T10:00:00Z",
     "updated_at": "2026-08-16T10:00:00Z"
   }

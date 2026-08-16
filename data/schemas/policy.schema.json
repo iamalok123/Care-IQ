@@ -4,39 +4,115 @@
   "description": "Schema defining a normalized health insurance policy in CareIQ",
   "type": "object",
   "properties": {
-    "id": { "type": "string", "format": "uuid" },
-    "patient_id": { "type": ["string", "null"] },
-    "insurer_id": { "type": "string" },
-    "policy_name": { "type": "string" },
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "patient_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "insurer_id": {
+      "type": "string"
+    },
+    "policy_name": {
+      "type": "string"
+    },
     "policy_type": {
       "type": "string",
-      "enum": ["INDIVIDUAL", "FAMILY_FLOATER", "EMPLOYER_GROUP", "GOVERNMENT_SCHEME", "CRITICAL_ILLNESS"]
+      "enum": [
+        "INDIVIDUAL",
+        "FAMILY_FLOATER",
+        "EMPLOYER_GROUP",
+        "GOVERNMENT_SCHEME",
+        "CRITICAL_ILLNESS"
+      ]
     },
-    "policy_number_masked": { "type": ["string", "null"] },
-    "sum_insured": { "type": "number", "minimum": 0 },
-    "remaining_sum_insured": { "type": ["number", "null"] },
+    "policy_number_masked": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sum_insured": {
+      "type": "number",
+      "minimum": 0
+    },
+    "remaining_sum_insured": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
     "room_eligibility": {
       "type": "string",
-      "enum": ["GENERAL", "SEMI_PRIVATE", "PRIVATE_AC", "DELUXE", "SUITE", "ANY_ROOM"]
+      "enum": [
+        "GENERAL",
+        "SEMI_PRIVATE",
+        "PRIVATE_AC",
+        "DELUXE",
+        "SUITE",
+        "ANY_ROOM"
+      ]
     },
-    "copay_percentage": { "type": "number", "minimum": 0, "maximum": 100 },
-    "deductible_amount": { "type": "number", "minimum": 0 },
-    "cashless_supported": { "type": "boolean" },
-    "preauthorization_supported": { "type": "boolean" },
-    "pre_hospitalization_days": { "type": "integer" },
-    "post_hospitalization_days": { "type": "integer" },
+    "copay_percentage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "deductible_amount": {
+      "type": "number",
+      "minimum": 0
+    },
+    "cashless_supported": {
+      "type": "boolean"
+    },
+    "preauthorization_supported": {
+      "type": "boolean"
+    },
+    "pre_hospitalization_days": {
+      "type": "integer"
+    },
+    "post_hospitalization_days": {
+      "type": "integer"
+    },
     "data_status": {
       "type": "string",
-      "enum": ["PUBLIC_REFERENCE", "USER_PROVIDED", "SYNTHETIC", "DERIVED", "AI_GENERATED"]
+      "enum": [
+        "PUBLIC_REFERENCE",
+        "USER_PROVIDED",
+        "SYNTHETIC",
+        "DERIVED",
+        "AI_GENERATED"
+      ]
     },
     "verification_status": {
       "type": "string",
-      "enum": ["VERIFIED", "PARTIALLY_VERIFIED", "UNVERIFIED", "NEEDS_VERIFICATION", "EXPIRED"]
+      "enum": [
+        "VERIFIED",
+        "PARTIALLY_VERIFIED",
+        "UNVERIFIED",
+        "NEEDS_VERIFICATION",
+        "EXPIRED"
+      ]
     },
     "confidence": {
       "type": "string",
-      "enum": ["HIGH", "MEDIUM", "LOW", "UNKNOWN"]
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "UNKNOWN"
+      ]
     }
   },
-  "required": ["insurer_id", "policy_name", "policy_type", "sum_insured", "room_eligibility"]
+  "required": [
+    "insurer_id",
+    "policy_name",
+    "policy_type",
+    "sum_insured",
+    "room_eligibility"
+  ]
 }
