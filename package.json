@@ -1,0 +1,27 @@
+{
+  "name": "careiq-root",
+  "version": "1.0.0",
+  "description": "CareIQ — Insurance-Aware Hospital Care Navigation Platform",
+  "private": true,
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "build": "npm run build:backend && npm run build:frontend",
+    "test": "npm --prefix backend test",
+    "test:eval": "npm --prefix backend run test:eval",
+    "test:matrix": "npm --prefix backend run test:matrix",
+    "test:criteria": "npm --prefix backend run test:criteria",
+    "seed": "npm --prefix backend run seed"
+  },
+  "keywords": [
+    "healthcare",
+    "insurance",
+    "care-navigation",
+    "precision-care-2026",
+    "decision-support"
+  ],
+  "author": "CareIQ Team",
+  "license": "UNLICENSED"
+}
