@@ -1,0 +1,37 @@
+[
+  { "hospital_id": "hosp-manipal-old-airport", "specialty_id": "spec-cardiology", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-manipal-old-airport", "specialty_id": "spec-orthopedics", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-manipal-old-airport", "specialty_id": "spec-neurology", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-manipal-old-airport", "specialty_id": "spec-oncology", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-manipal-old-airport", "specialty_id": "spec-nephrology", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-manipal-old-airport", "specialty_id": "spec-general-surgery", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-manipal-old-airport", "specialty_id": "spec-emergency-medicine", "availability_status": true, "confidence": "HIGH" },
+
+  { "hospital_id": "hosp-apollo-bannerghatta", "specialty_id": "spec-cardiology", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-apollo-bannerghatta", "specialty_id": "spec-orthopedics", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-apollo-bannerghatta", "specialty_id": "spec-neurology", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-apollo-bannerghatta", "specialty_id": "spec-oncology", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-apollo-bannerghatta", "specialty_id": "spec-gastroenterology", "availability_status": true, "confidence": "HIGH" },
+
+  { "hospital_id": "hosp-fortis-cunningham", "specialty_id": "spec-cardiology", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-fortis-cunningham", "specialty_id": "spec-orthopedics", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-fortis-cunningham", "specialty_id": "spec-general-surgery", "availability_status": true, "confidence": "HIGH" },
+
+  { "hospital_id": "hosp-narayana-health-city", "specialty_id": "spec-cardiology", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-narayana-health-city", "specialty_id": "spec-orthopedics", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-narayana-health-city", "specialty_id": "spec-nephrology", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-narayana-health-city", "specialty_id": "spec-oncology", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-narayana-health-city", "specialty_id": "spec-neurology", "availability_status": true, "confidence": "HIGH" },
+
+  { "hospital_id": "hosp-victoria-government", "specialty_id": "spec-general-surgery", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-victoria-government", "specialty_id": "spec-orthopedics", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-victoria-government", "specialty_id": "spec-emergency-medicine", "availability_status": true, "confidence": "HIGH" },
+
+  { "hospital_id": "hosp-lilavati-mumbai", "specialty_id": "spec-cardiology", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-lilavati-mumbai", "specialty_id": "spec-orthopedics", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-lilavati-mumbai", "specialty_id": "spec-neurology", "availability_status": true, "confidence": "HIGH" },
+
+  { "hospital_id": "hosp-max-saket-delhi", "specialty_id": "spec-cardiology", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-max-saket-delhi", "specialty_id": "spec-orthopedics", "availability_status": true, "confidence": "HIGH" },
+  { "hospital_id": "hosp-max-saket-delhi", "specialty_id": "spec-oncology", "availability_status": true, "confidence": "HIGH" }
+]

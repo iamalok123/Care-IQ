@@ -1,0 +1,21 @@
+[
+  { "id": "cc-man-knee-room", "procedure_cost_id": "pc-manipal-knee", "component_code": "ROOM", "component_name": "Room Rent & Nursing (4 Days Private AC)", "estimated_amount": 26000, "coverage_candidate": true, "data_status": "SYNTHETIC" },
+  { "id": "cc-man-knee-fee", "procedure_cost_id": "pc-manipal-knee", "component_code": "PROFESSIONAL_FEE", "component_name": "Surgeon & Anesthetist Professional Fee", "estimated_amount": 75000, "coverage_candidate": true, "data_status": "SYNTHETIC" },
+  { "id": "cc-man-knee-proc", "procedure_cost_id": "pc-manipal-knee", "component_code": "PROCEDURE", "component_name": "Operation Theatre & Implant (FDA Approved Prosthesis)", "estimated_amount": 95000, "coverage_candidate": true, "data_status": "SYNTHETIC" },
+  { "id": "cc-man-knee-diag", "procedure_cost_id": "pc-manipal-knee", "component_code": "DIAGNOSTICS", "component_name": "Pre-Op Pathology & Digital X-Ray", "estimated_amount": 12000, "coverage_candidate": true, "data_status": "SYNTHETIC" },
+  { "id": "cc-man-knee-med", "procedure_cost_id": "pc-manipal-knee", "component_code": "MEDICINES", "component_name": "Inpatient Antibiotics & Pain Management", "estimated_amount": 18000, "coverage_candidate": true, "data_status": "SYNTHETIC" },
+  { "id": "cc-man-knee-con", "procedure_cost_id": "pc-manipal-knee", "component_code": "CONSUMABLES", "component_name": "Surgical PPE, Drapes, Disposables & Gloves", "estimated_amount": 14000, "coverage_candidate": false, "data_status": "SYNTHETIC" },
+
+  { "id": "cc-nar-knee-room", "procedure_cost_id": "pc-narayana-knee", "component_code": "ROOM", "component_name": "Room Rent & Nursing (4 Days Semi-Private)", "estimated_amount": 10000, "coverage_candidate": true, "data_status": "SYNTHETIC" },
+  { "id": "cc-nar-knee-fee", "procedure_cost_id": "pc-narayana-knee", "component_code": "PROFESSIONAL_FEE", "component_name": "Surgeon & Clinical Team Fee", "estimated_amount": 55000, "coverage_candidate": true, "data_status": "SYNTHETIC" },
+  { "id": "cc-nar-knee-proc", "procedure_cost_id": "pc-narayana-knee", "component_code": "PROCEDURE", "component_name": "OT Charges & Knee Implant", "estimated_amount": 80000, "coverage_candidate": true, "data_status": "SYNTHETIC" },
+  { "id": "cc-nar-knee-diag", "procedure_cost_id": "pc-narayana-knee", "component_code": "DIAGNOSTICS", "component_name": "Diagnostics & Lab", "estimated_amount": 9000, "coverage_candidate": true, "data_status": "SYNTHETIC" },
+  { "id": "cc-nar-knee-med", "procedure_cost_id": "pc-narayana-knee", "component_code": "MEDICINES", "component_name": "Medicines & IV Fluids", "estimated_amount": 14000, "coverage_candidate": true, "data_status": "SYNTHETIC" },
+  { "id": "cc-nar-knee-con", "procedure_cost_id": "pc-narayana-knee", "component_code": "CONSUMABLES", "component_name": "Non-payable Consumables & Admin Fees", "estimated_amount": 12000, "coverage_candidate": false, "data_status": "SYNTHETIC" },
+
+  { "id": "cc-man-app-room", "procedure_cost_id": "pc-manipal-appendectomy", "component_code": "ROOM", "component_name": "Room Rent (2 Days Private AC)", "estimated_amount": 13000, "coverage_candidate": true, "data_status": "SYNTHETIC" },
+  { "id": "cc-man-app-fee", "procedure_cost_id": "pc-manipal-appendectomy", "component_code": "PROFESSIONAL_FEE", "component_name": "Surgeon & Anesthesia Fee", "estimated_amount": 35000, "coverage_candidate": true, "data_status": "SYNTHETIC" },
+  { "id": "cc-man-app-proc", "procedure_cost_id": "pc-manipal-appendectomy", "component_code": "PROCEDURE", "component_name": "Laparoscopic OT & Instrument Charges", "estimated_amount": 25000, "coverage_candidate": true, "data_status": "SYNTHETIC" },
+  { "id": "cc-man-app-med", "procedure_cost_id": "pc-manipal-appendectomy", "component_code": "MEDICINES", "component_name": "Inpatient Pharmacy", "estimated_amount": 9000, "coverage_candidate": true, "data_status": "SYNTHETIC" },
+  { "id": "cc-man-app-con", "procedure_cost_id": "pc-manipal-appendectomy", "component_code": "CONSUMABLES", "component_name": "Excluded Consumables & Bio-waste Kit", "estimated_amount": 8000, "coverage_candidate": false, "data_status": "SYNTHETIC" }
+]

@@ -1,0 +1,78 @@
+[
+  {
+    "id": "jrn-01-ananya",
+    "patient_id": "pat-01-ananya",
+    "hospital_id": "hosp-manipal-old-airport",
+    "policy_id": "pol-syn-ananya",
+    "current_stage": "PROCEDURE",
+    "journey_status": "ACTIVE",
+    "started_at": "2026-08-14T08:30:00Z",
+    "updated_at": "2026-08-16T11:00:00Z",
+    "events": [
+      {
+        "id": "evt-01-adm",
+        "journey_id": "jrn-01-ananya",
+        "stage": "ADMISSION",
+        "event_type": "ROOM_CHECK_IN",
+        "title": "Admission Desk Check-in Completed",
+        "description": "Patient checked into Room 402 (Single Private AC Room). Hospital verified Star Health insurance card.",
+        "status": "COMPLETED",
+        "occurred_at": "2026-08-14T09:00:00Z",
+        "insurance_relevance": "Room category aligns with policy entitlement (Private AC). No proportionate room rent penalty expected.",
+        "requires_verification": false,
+        "created_at": "2026-08-14T09:00:00Z"
+      },
+      {
+        "id": "evt-01-preauth",
+        "journey_id": "jrn-01-ananya",
+        "stage": "ADMISSION",
+        "event_type": "PREAUTH_SUBMITTED",
+        "title": "Initial Preauthorization Request Submitted",
+        "description": "Hospital TPA desk submitted initial estimate of ₹1,80,000 to Star Health.",
+        "status": "COMPLETED",
+        "occurred_at": "2026-08-14T11:30:00Z",
+        "insurance_relevance": "Initial cashless authorization received for ₹1,50,000. Final settlement to occur upon discharge summary.",
+        "requires_verification": true,
+        "created_at": "2026-08-14T11:30:00Z"
+      },
+      {
+        "id": "evt-01-proc",
+        "journey_id": "jrn-01-ananya",
+        "stage": "PROCEDURE",
+        "event_type": "SURGICAL_PROCEDURE",
+        "title": "Total Knee Replacement Scheduled",
+        "description": "Patient wheeled to Operation Theatre 3 for planned unilateral knee replacement.",
+        "status": "CURRENT",
+        "occurred_at": "2026-08-16T08:00:00Z",
+        "insurance_relevance": "Implant cost capped per national ceiling. Non-payable consumable charges (PPE kits, gloves) estimated at ₹14,000 out-of-pocket.",
+        "requires_verification": true,
+        "created_at": "2026-08-16T08:00:00Z"
+      }
+    ]
+  },
+  {
+    "id": "jrn-02-rahul",
+    "patient_id": "pat-02-rahul",
+    "hospital_id": "hosp-apollo-bannerghatta",
+    "policy_id": "pol-syn-rahul",
+    "current_stage": "ADMISSION",
+    "journey_status": "ACTIVE",
+    "started_at": "2026-08-15T14:00:00Z",
+    "updated_at": "2026-08-16T09:30:00Z",
+    "events": [
+      {
+        "id": "evt-02-adm",
+        "journey_id": "jrn-02-rahul",
+        "stage": "ADMISSION",
+        "event_type": "ROOM_UPGRADE_SELECTED",
+        "title": "Deluxe Suite Selected by Patient",
+        "description": "Patient opted for Deluxe Room (₹12,500/day) while policy eligibility is Single Private AC (₹7,000/day).",
+        "status": "CURRENT",
+        "occurred_at": "2026-08-15T15:00:00Z",
+        "insurance_relevance": "WARNING: Upgrading above policy entitlement will trigger proportionate deduction across doctor fees and OT charges, resulting in substantial out-of-pocket expenses.",
+        "requires_verification": true,
+        "created_at": "2026-08-15T15:00:00Z"
+      }
+    ]
+  }
+]
