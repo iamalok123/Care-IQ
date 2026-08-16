@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Hospital",
+  "description": "Schema defining a hospital facility in CareIQ",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "facility_id": { "type": ["string", "null"] },
+    "name": { "type": "string" },
+    "hospital_type": {
+      "type": "string",
+      "enum": ["MULTISPECIALTY", "SPECIALTY", "GENERAL", "DIAGNOSTIC", "PUBLIC", "PRIVATE", "TEACHING", "OTHER"]
+    },
+    "ownership_type": {
+      "type": "string",
+      "enum": ["PRIVATE", "PUBLIC", "TRUST", "CORPORATE"]
+    },
+    "address": { "type": "string" },
+    "city": { "type": "string" },
+    "district": { "type": ["string", "null"] },
+    "state": { "type": "string" },
+    "pincode": { "type": ["string", "null"] },
+    "latitude": { "type": ["number", "null"] },
+    "longitude": { "type": ["number", "null"] },
+    "beds": { "type": ["integer", "null"] },
+    "icu_beds": { "type": ["integer", "null"] },
+    "emergency_available": { "type": "boolean" },
+    "ambulance_available": { "type": "boolean" },
+    "open_24x7": { "type": "boolean" },
+    "website": { "type": ["string", "null"] },
+    "data_status": {
+      "type": "string",
+      "enum": ["PUBLIC_REFERENCE", "USER_PROVIDED", "SYNTHETIC", "DERIVED", "AI_GENERATED"]
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": ["VERIFIED", "PARTIALLY_VERIFIED", "UNVERIFIED", "NEEDS_VERIFICATION", "EXPIRED"]
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["HIGH", "MEDIUM", "LOW", "UNKNOWN"]
+    }
+  },
+  "required": ["name", "hospital_type", "city", "state", "emergency_available", "open_24x7"]
+}

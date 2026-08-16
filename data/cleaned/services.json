@@ -1,0 +1,12 @@
+[
+  { "id": "srv-icu", "code": "ICU", "name": "Intensive Care Unit (ICU / CCU)", "category": "CRITICAL_CARE", "description": "24x7 intensive cardiac and medical care" },
+  { "id": "srv-mri", "code": "MRI", "name": "MRI Scan (3T / 1.5T)", "category": "DIAGNOSTICS", "description": "High resolution magnetic resonance imaging" },
+  { "id": "srv-ct", "code": "CT", "name": "CT Scan (128-slice / 64-slice)", "category": "DIAGNOSTICS", "description": "Computed tomography imaging" },
+  { "id": "srv-dialysis", "code": "DIALYSIS", "name": "Hemodialysis Unit", "category": "PROCEDURE", "description": "Renal replacement therapy" },
+  { "id": "srv-emergency", "code": "EMERGENCY", "name": "24x7 Emergency Desk", "category": "EMERGENCY", "description": "Round-the-clock emergency casualty care" },
+  { "id": "srv-ambulance", "code": "AMBULANCE", "name": "Advanced Life Support Ambulance", "category": "TRANSPORT", "description": "ICU on wheels transfer service" },
+  { "id": "srv-lab", "code": "LAB", "name": "NABL Accredited Pathology Lab", "category": "DIAGNOSTICS", "description": "Comprehensive blood, tissue & pathology analysis" },
+  { "id": "srv-pharmacy", "code": "PHARMACY", "name": "24x7 In-House Pharmacy", "category": "MEDICINE", "description": "Inpatient and outpatient medication dispensation" },
+  { "id": "srv-cathlab", "code": "CARDIAC_CATH", "name": "Cath Lab (Angiography / Angioplasty)", "category": "CARDIAC", "description": "Interventional cardiology procedures" },
+  { "id": "srv-endoscopy", "code": "ENDOSCOPY", "name": "Endoscopy & Colonoscopy Suite", "category": "PROCEDURE", "description": "GI endoscopic diagnostics and interventions" }
+]

@@ -2,16 +2,22 @@
 node_modules/
 **/node_modules/
 
-# Build outputs
+# Build & Output Directories
 dist/
 **/dist/
 build/
 **/build/
+.vite/
+**/.vite/
+out/
+**/out/
 
-# Environment variables & secrets
+# Environment Variables & Secrets
 .env
 .env.local
 .env.*.local
+*.pem
+*.key
 !**/.env.example
 
 # Logs
@@ -19,10 +25,26 @@ build/
 npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
+lerna-debug.log*
 
-# Editor & OS files
+# Testing & Coverage
+coverage/
+**/coverage/
+.nyc_output/
+
+# Caches & Temp Files
+.eslintcache
+.turbo/
+.cache/
+*.tsbuildinfo
+tmp/
+temp/
+
+# OS & IDE Files
 .DS_Store
-.vscode/
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
 .idea/
 *.suo
 *.ntvs*
@@ -32,3 +54,4 @@ pnpm-debug.log*
 
 # Documentation / Internal guides
 build.md
+ps.md
