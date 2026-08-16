@@ -10,6 +10,7 @@ import {
   BedDouble,
   HelpCircle
 } from 'lucide-react';
+import { PolicyRagAssistant } from './PolicyRagAssistant';
 
 interface DashboardProps {
   patient: any;
@@ -208,6 +209,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
       </div>
+
+      {/* Policy Document RAG Assistant Widget (Phase 24) */}
+      <PolicyRagAssistant
+        selectedPolicyId={policy?.id}
+        policyName={policy?.policy_name}
+      />
 
       {/* 3. Quick Action Shortcuts Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

@@ -20,6 +20,9 @@ import {
   CareJourney,
   JourneyEvent,
   VerificationItem,
+  Document,
+  DocumentExtraction,
+  ExtractionEvidence,
   DataStatus,
   VerificationStatus,
   ConfidenceLevel
@@ -49,6 +52,9 @@ class DataRepository {
   public patients: Patient[] = [];
   public journeys: (CareJourney & { events: JourneyEvent[] })[] = [];
   public verificationItems: VerificationItem[] = [];
+  public documents: Document[] = [];
+  public extractions: DocumentExtraction[] = [];
+  public extractionEvidence: ExtractionEvidence[] = [];
 
   constructor() {
     this.baseDataDir = path.resolve(__dirname, '../../../../data');
@@ -230,6 +236,61 @@ class DataRepository {
     return item;
   }
 
+  public addPolicyRules(rules: PolicyRule[]): PolicyRule[] {
+    this.policyRules.push(...rules);
+    return rules;
+  }
+
+  public addPolicyExclusions(exclusions: PolicyExclusion[]): PolicyExclusion[] {
+    this.policyExclusions.push(...exclusions);
+    return exclusions;
+  }
+
+  // Documents
+  public getDocuments(): Document[] {
+    return this.documents;
+  }
+
+  public getDocumentById(id: string): Document | undefined {
+    return this.documents.find((d) => d.id === id);
+  }
+
+  public addDocument(doc: Document): Document {
+    this.documents.push(doc);
+    return doc;
+  }
+
+  public updateDocumentExtractionStatus(
+    id: string,
+    status: 'PENDING' | 'EXTRACTED' | 'FAILED' | 'CONFIRMED'
+  ): Document | undefined {
+    const doc = this.getDocumentById(id);
+    if (doc) {
+      doc.extraction_status = status;
+      doc.updated_at = new Date().toISOString();
+    }
+    return doc;
+  }
+
+  // Extractions & Evidence
+  public addExtraction(extraction: DocumentExtraction): DocumentExtraction {
+    this.extractions.push(extraction);
+    return extraction;
+  }
+
+  public getExtractionByDocumentId(documentId: string): DocumentExtraction | undefined {
+    return this.extractions.find((e) => e.document_id === documentId);
+  }
+
+  public addExtractionEvidence(evidence: ExtractionEvidence[]): ExtractionEvidence[] {
+    this.extractionEvidence.push(...evidence);
+    return evidence;
+  }
+
+  public getEvidenceByExtractionId(extractionId: string): ExtractionEvidence[] {
+    return this.extractionEvidence.filter((ev) => ev.extraction_id === extractionId);
+  }
+
   // Scenarios
   public listScenarios(): any[] {
     const files = fs.readdirSync(this.scenariosDir).filter((f) => f.endsWith('.json'));
@@ -246,3 +307,4 @@ class DataRepository {
 }
 
 export const dataRepository = new DataRepository();
+

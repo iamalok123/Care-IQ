@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 
 import patientRoutes from './routes/patientRoutes';
 import policyRoutes from './routes/policyRoutes';
+import documentRoutes from './routes/documentRoutes';
 import hospitalRoutes from './routes/hospitalRoutes';
 import journeyRoutes from './routes/journeyRoutes';
 import verificationRoutes from './routes/verificationRoutes';
@@ -43,6 +44,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 // Mount modular API routes
 app.use('/api/patients', patientRoutes);
 app.use('/api/policies', policyRoutes);
+app.use('/api/documents', documentRoutes);
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/journeys', journeyRoutes);
 app.use('/api/verification-items', verificationRoutes);

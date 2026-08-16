@@ -4,9 +4,14 @@ import {
   BedDouble,
   CheckCircle2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  UploadCloud,
+  Loader2,
+  ShieldCheck
 } from 'lucide-react';
 import { api } from '../services/api';
+import { ExtractionReviewModal } from './ExtractionReviewModal';
+import { PolicyRagAssistant } from './PolicyRagAssistant';
 
 interface InsuranceViewProps {
   policies: any[];
@@ -22,6 +27,13 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [expandedPolicyId, setExpandedPolicyId] = useState<string | null>(null);
 
+  // Document Upload & Extraction Review State (Phases 12 & 13)
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [selectedDoc, setSelectedDoc] = useState<any | null>(null);
+  const [extractionData, setExtractionData] = useState<any | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   // Form State for Manual Entry
   const [insurerId, setInsurerId] = useState<string>('ins-star-health');
   const [policyName, setPolicyName] = useState<string>('');
@@ -30,6 +42,29 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
   const [copay, setCopay] = useState<number>(0);
   const [deductible, setDeductible] = useState<number>(0);
   const [submitting, setSubmitting] = useState<boolean>(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadError(null);
+
+    try {
+      // 1. Upload Document
+      const doc = await api.uploadDocument(file, 'POLICY', activePatient?.id);
+      setSelectedDoc(doc);
+
+      // 2. Run Deterministic AI Extraction with Citations
+      const extractionRes = await api.extractDocument(doc.id);
+      setExtractionData(extractionRes);
+      setShowReviewModal(true);
+    } catch (err: any) {
+      setUploadError(err.message || 'Document upload/extraction failed');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleAddPolicy = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,14 +111,48 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-xs shadow-teal-600/30 transition-all cursor-pointer"
-        >
-          <Plus size={16} />
-          Add / Upload Policy
-        </button>
+        <div className="flex items-center gap-2">
+          <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-all cursor-pointer">
+            {uploading ? (
+              <>
+                <Loader2 size={16} className="animate-spin" /> Uploading & Extracting...
+              </>
+            ) : (
+              <>
+                <UploadCloud size={16} /> Upload Policy PDF (Phase 12/13)
+              </>
+            )}
+            <input
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg,.txt"
+              onChange={handleFileUpload}
+              className="hidden"
+              disabled={uploading}
+            />
+          </label>
+
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-xs shadow-teal-600/30 transition-all cursor-pointer"
+          >
+            <Plus size={16} />
+            Manual Entry
+          </button>
+        </div>
       </div>
+
+      {uploadError && (
+        <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-red-500 shrink-0" />
+          <span>{uploadError}</span>
+        </div>
+      )}
+
+      {/* Policy Document RAG Assistant (Phase 24) */}
+      <PolicyRagAssistant
+        selectedPolicyId={policies[0]?.id}
+        policyName={policies[0]?.policy_name}
+      />
 
       {/* Policies List */}
       <div className="flex flex-col gap-4">
@@ -340,6 +409,19 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
         </div>
       )}
 
+      {/* AI Extraction Human Verification Modal (Phase 13) */}
+      <ExtractionReviewModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        document={selectedDoc}
+        extractionData={extractionData}
+        onExtractionConfirmed={() => {
+          onPolicyAdded();
+          setShowReviewModal(false);
+        }}
+      />
+
     </div>
   );
 };
+

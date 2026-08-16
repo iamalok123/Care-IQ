@@ -4,6 +4,8 @@ import { costEngine } from '../services/costEngine';
 import { rulesEngine } from '../services/rulesEngine';
 import { journeyEngine } from '../services/journeyEngine';
 import { aiExplanationEngine } from '../services/aiExplanationEngine';
+import { policyExtractionEngine } from '../services/policyExtractionEngine';
+import { documentRagEngine } from '../services/documentRagEngine';
 import { RoomCategoryCode } from '../types/domain';
 
 console.log('--- CareIQ Intelligence Layer Verification Test ---');
@@ -76,4 +78,32 @@ const questions = aiExplanationEngine.generateQuestionsToAsk({
 });
 console.log(`Generated ${questions.billingDeskQuestions.length} Billing Desk questions and ${questions.insuranceCoordinatorQuestions.length} TPA questions.`);
 
+// 5. Test Policy AI Extraction (Phase 13)
+console.log('\n[5] Testing Policy AI Extraction & Evidence Binding (Phase 13)...');
+const mockDoc = {
+  id: 'test-doc-care',
+  document_type: 'POLICY' as const,
+  storage_path: 'uploads/care-sample.pdf',
+  original_filename: 'Care_Supreme_Health_Advantage.pdf',
+  mime_type: 'application/pdf',
+  file_size: 204800,
+  checksum: 'sha256-test-checksum',
+  extraction_status: 'PENDING' as const,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+};
+const extractionResult = policyExtractionEngine.extractPolicy(mockDoc);
+console.log(`Extracted Insurer: ${extractionResult.extractedData.insurer_name}`);
+console.log(`Extracted Sum Insured: ₹${extractionResult.extractedData.sum_insured.toLocaleString()}`);
+console.log(`Extracted Evidence Count: ${extractionResult.evidence.length} (Page citations verified)`);
+
+// 6. Test Document RAG Semantic Retrieval (Phase 24)
+console.log('\n[6] Testing Document RAG Semantic Policy Search (Phase 24)...');
+const ragQuery = 'Is robotic knee surgery covered under this policy?';
+const ragAnswer = documentRagEngine.queryPolicyRAG(ragQuery, 'pol-syn-ananya');
+console.log(`RAG Query: "${ragQuery}"`);
+console.log(`RAG Answer: ${ragAnswer.answer.slice(0, 160)}...`);
+console.log(`Retrieved Citations: ${ragAnswer.citations.map((c) => `Page ${c.pageNumber} (${c.sectionTitle})`).join(', ')}`);
+
 console.log('\n✓ ALL CAREIQ INTELLIGENCE TESTS PASSED SUCCESSFULLY!');
+

@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { aiExplanationEngine } from '../services/aiExplanationEngine';
 import { dataRepository } from '../services/dataRepository';
 import { matchingEngine } from '../services/matchingEngine';
+import { documentRagEngine } from '../services/documentRagEngine';
 
 const router = Router();
 
@@ -48,4 +49,24 @@ router.post('/questions', (req: Request, res: Response) => {
   });
 });
 
+// POST /api/ai/rag/query
+router.post('/rag/query', (req: Request, res: Response) => {
+  const { query, policy_id } = req.body;
+
+  if (!query || typeof query !== 'string') {
+    return res.status(400).json({
+      success: false,
+      error: { code: 'INVALID_QUERY', message: 'Please provide a valid question or query string' }
+    });
+  }
+
+  const ragResponse = documentRagEngine.queryPolicyRAG(query, policy_id);
+
+  res.json({
+    success: true,
+    data: ragResponse
+  });
+});
+
 export default router;
+

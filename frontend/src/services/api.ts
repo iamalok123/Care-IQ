@@ -82,7 +82,35 @@ export const api = {
     is_room_exceeded?: boolean;
   }) => fetchApi<any>('/ai/questions', { method: 'POST', body: JSON.stringify(params) }),
 
+  // Documents & Extraction (Phases 12 & 13)
+  getDocuments: () => fetchApi<any[]>('/documents'),
+  getDocumentById: (id: string) => fetchApi<any>(`/documents/${id}`),
+  uploadDocument: async (file: File, documentType: string = 'POLICY', ownerId: string = 'caregiver-primary') => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('document_type', documentType);
+    formData.append('owner_user_id', ownerId);
+
+    const response = await fetch(`${API_BASE}/documents/upload`, {
+      method: 'POST',
+      body: formData
+    });
+    const json = await response.json();
+    if (!response.ok || json.success === false) {
+      throw new Error(json.error?.message || 'Document upload failed');
+    }
+    return json.data;
+  },
+  extractDocument: (id: string) => fetchApi<any>(`/documents/${id}/extract`, { method: 'POST' }),
+  confirmExtraction: (id: string, confirmedData: any) =>
+    fetchApi<any>(`/documents/${id}/confirm`, { method: 'POST', body: JSON.stringify(confirmedData) }),
+
+  // Document RAG (Phase 24)
+  queryPolicyRag: (query: string, policyId?: string) =>
+    fetchApi<any>('/ai/rag/query', { method: 'POST', body: JSON.stringify({ query, policy_id: policyId }) }),
+
   // Scenarios
   getScenarios: () => fetchApi<any[]>('/scenarios'),
   loadScenario: (id: string) => fetchApi<any>(`/scenarios/${id}/load`, { method: 'POST' })
 };
+
