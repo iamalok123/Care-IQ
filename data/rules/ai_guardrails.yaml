@@ -1,0 +1,20 @@
+# CareIQ AI Safety & Operational Guardrails
+# Section 22, 33 & Appendix A
+
+version: "1.0.0"
+
+non_clinical_boundaries:
+  medical_diagnosis_permitted: false
+  prescription_recommendations_permitted: false
+  claim_approval_guarantees_permitted: false
+
+hallucination_prevention:
+  strict_citation_required: true
+  grounding_policy_documents_only: true
+  refusal_on_missing_clause: true
+  refusal_message_template: "No specific policy clauses directly matching your query were found in the uploaded documents. Please verify this item directly with your hospital TPA or insurer desk."
+
+uncertainty_handling:
+  unknown_is_not_false: true
+  surface_desk_questions_on_unknown: true
+  indicative_cost_caveat: "All calculations are indicative estimates based on public reference data and standard policy schedules, not binding hospital quotations."

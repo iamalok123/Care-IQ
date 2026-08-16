@@ -1,0 +1,56 @@
+# CareIQ Care Journey Trigger Rules Configuration
+# Section 20 & Appendix A
+
+version: "1.0.0"
+stages:
+  - stage: ADMISSION
+    required_checks:
+      - check_id: "chk-preauth-initial"
+        title: "TPA Preauthorization Submission"
+        category: "PREAUTH"
+        priority: "HIGH"
+        timing: "48 hours prior to planned admission"
+        prompt: "Has the hospital TPA desk submitted the preauthorization form with the treating doctor's diagnosis?"
+
+      - check_id: "chk-room-tariff"
+        title: "Room Entitlement Check"
+        category: "ROOM"
+        priority: "HIGH"
+        timing: "At admission counter before bed allotment"
+        prompt: "Does the allotted room category match your policy eligibility to avoid proportionate deductions?"
+
+  - stage: INVESTIGATION
+    required_checks:
+      - check_id: "chk-diagnostics-coverage"
+        title: "Diagnostic Investigation Inclusion"
+        category: "COST"
+        priority: "MEDIUM"
+        timing: "Before pre-op MRI / CT imaging"
+        prompt: "Are preoperative diagnostic tests covered under pre-hospitalization benefits?"
+
+  - stage: PROCEDURE
+    required_checks:
+      - check_id: "chk-implants-consumables"
+        title: "Implants & Consumables Capping"
+        category: "COST"
+        priority: "HIGH"
+        timing: "Prior to OT entry"
+        prompt: "What is the estimated out-of-pocket cost for non-payable consumables and implants?"
+
+  - stage: RECOVERY
+    required_checks:
+      - check_id: "chk-mid-stay-limit"
+        title: "Interim Bill & Sum Insured Utilization"
+        category: "COST"
+        priority: "MEDIUM"
+        timing: "Day 2 of hospital stay"
+        prompt: "Request an interim itemized bill from the billing desk to track against remaining cover."
+
+  - stage: DISCHARGE
+    required_checks:
+      - check_id: "chk-final-tpa-settlement"
+        title: "Final TPA Settlement & Discharge Summary"
+        category: "DOCUMENT"
+        priority: "HIGH"
+        timing: "Discharge day"
+        prompt: "Collect final signed discharge summary, itemized pharmacy bills, and TPA approval letter."
