@@ -1,0 +1,370 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Building2,
+  Filter,
+  CheckCircle2,
+  AlertTriangle,
+  HelpCircle,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  BedDouble,
+  Activity,
+  MapPin
+} from 'lucide-react';
+import { api } from '../services/api';
+
+interface HospitalMatchViewProps {
+  policy: any;
+  activePatient: any;
+  onStartJourney: (hospitalId: string) => void;
+  onOpenQuestions: (hospitalName: string, isRoomExceeded: boolean) => void;
+}
+
+export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
+  policy,
+  activePatient,
+  onStartJourney,
+  onOpenQuestions
+}) => {
+  const [city, setCity] = useState<string>(activePatient?.city || 'Bengaluru');
+  const [specialty, setSpecialty] = useState<string>('ORTHOPEDICS');
+  const [procedureId, setProcedureId] = useState<string>('proc-knee-replacement');
+  const [roomCategory, setRoomCategory] = useState<string>(policy?.room_eligibility || 'PRIVATE_AC');
+  const [networkOnly, setNetworkOnly] = useState<boolean>(false);
+
+  const [matches, setMatches] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [expandedHospitalId, setExpandedHospitalId] = useState<string | null>(null);
+
+  const fetchMatches = async () => {
+    setLoading(true);
+    try {
+      const data = await api.matchHospitals({
+        city,
+        policy_id: policy?.id,
+        specialty_code: specialty || undefined,
+        procedure_id: procedureId || undefined,
+        preferred_room_category: roomCategory || undefined,
+        network_only: networkOnly
+      });
+      setMatches(data);
+    } catch (err) {
+      console.error('Error fetching hospital matches:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMatches();
+  }, [city, specialty, procedureId, roomCategory, networkOnly, policy?.id]);
+
+  return (
+    <div className="flex flex-col gap-5">
+      
+      {/* 1. Top Search & Filter Bar */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div className="flex items-center gap-2">
+            <Filter size={18} className="text-teal-600" />
+            <h3 className="text-base md:text-lg font-bold text-slate-900">
+              Hospital Decision-Support Filters
+            </h3>
+          </div>
+          
+          <label className="flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={networkOnly}
+              onChange={(e) => setNetworkOnly(e.target.checked)}
+              className="rounded-sm border-slate-300 text-teal-600 focus:ring-teal-500"
+            />
+            Show In-Network Only
+          </label>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          
+          {/* City */}
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+              City / Location
+            </label>
+            <select
+              className="w-full px-3 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl outline-hidden focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+            >
+              <option value="Bengaluru">Bengaluru</option>
+              <option value="Mumbai">Mumbai</option>
+              <option value="Delhi">Delhi-NCR</option>
+              <option value="Chennai">Chennai</option>
+              <option value="Hyderabad">Hyderabad</option>
+            </select>
+          </div>
+
+          {/* Specialty */}
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+              Clinical Specialty
+            </label>
+            <select
+              className="w-full px-3 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl outline-hidden focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20"
+              value={specialty}
+              onChange={(e) => setSpecialty(e.target.value)}
+            >
+              <option value="ORTHOPEDICS">Orthopedics & Joint Care</option>
+              <option value="CARDIOLOGY">Cardiology & Cath Lab</option>
+              <option value="NEUROLOGY">Neurology & Neurosurgery</option>
+              <option value="ONCOLOGY">Oncology & Cancer Care</option>
+              <option value="GENERAL_SURGERY">General Surgery</option>
+            </select>
+          </div>
+
+          {/* Procedure */}
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+              Procedure / Investigation
+            </label>
+            <select
+              className="w-full px-3 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl outline-hidden focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20"
+              value={procedureId}
+              onChange={(e) => setProcedureId(e.target.value)}
+            >
+              <option value="proc-knee-replacement">Total Knee Replacement</option>
+              <option value="proc-angioplasty">Coronary Angioplasty (PTCA)</option>
+              <option value="proc-appendectomy">Laparoscopic Appendectomy</option>
+              <option value="proc-mri-brain">MRI Brain with Contrast</option>
+            </select>
+          </div>
+
+          {/* Preferred Room */}
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+              Preferred Room Category
+            </label>
+            <select
+              className="w-full px-3 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl outline-hidden focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20"
+              value={roomCategory}
+              onChange={(e) => setRoomCategory(e.target.value)}
+            >
+              <option value="GENERAL">General Ward (Multi-bed)</option>
+              <option value="SEMI_PRIVATE">Semi-Private (Twin Sharing)</option>
+              <option value="PRIVATE_AC">Single Private AC Room</option>
+              <option value="DELUXE">Deluxe Private Room</option>
+              <option value="SUITE">Executive Suite</option>
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+      {/* 2. Results Header */}
+      <div className="flex justify-between items-center px-1">
+        <div>
+          <h2 className="text-xl font-extrabold text-slate-900">
+            Ranked Hospital Options ({matches.length})
+          </h2>
+          <p className="text-xs text-slate-500">
+            Showing options evaluated against policy: <strong>{policy?.policy_name || 'Standard Baseline'}</strong>
+          </p>
+        </div>
+      </div>
+
+      {/* 3. Hospital Cards List */}
+      {loading ? (
+        <div className="text-center py-12">
+          <Activity size={32} className="text-teal-600 mx-auto animate-spin" />
+          <p className="mt-2 text-xs font-semibold text-slate-500">Evaluating hospital network constraints...</p>
+        </div>
+      ) : matches.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-xs">
+          <Building2 size={40} className="text-slate-400 mx-auto mb-3" />
+          <h3 className="text-base font-bold text-slate-800">No matching hospitals found</h3>
+          <p className="text-xs text-slate-500 mt-1">
+            Try relaxing your filter criteria or changing the location.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {matches.map((item, idx) => {
+            const h = item.hospital;
+            const isTopRank = idx === 0;
+            const isExpanded = expandedHospitalId === h.id;
+
+            return (
+              <div
+                key={h.id}
+                className={`border rounded-2xl p-5 md:p-6 shadow-xs transition-all relative ${
+                  isTopRank
+                    ? 'bg-linear-to-br from-white to-teal-50/40 border-teal-300 ring-1 ring-teal-200'
+                    : 'bg-white border-slate-200 hover:shadow-md'
+                }`}
+              >
+                {isTopRank && (
+                  <span className="absolute top-4 right-4 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-600 text-white shadow-xs">
+                    ★ Highest Compatibility
+                  </span>
+                )}
+
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  
+                  {/* Hospital Info & Badges */}
+                  <div className="flex-1 min-w-70">
+                    <h3 className="text-lg md:text-xl font-extrabold text-slate-900 mb-1">
+                      {h.name}
+                    </h3>
+
+                    <p className="text-xs text-slate-500 flex items-center gap-1.5 mb-3">
+                      <MapPin size={14} className="text-slate-400 shrink-0" />
+                      {h.address}, {h.city} ({h.pincode})
+                    </p>
+
+                    {/* Status Badges Row */}
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      {item.networkStatus === 'IN_NETWORK' ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <CheckCircle2 size={12} />
+                          In-Network {item.cashlessSupported ? '(Cashless Confirmed)' : '(Reimbursement)'}
+                        </span>
+                      ) : item.networkStatus === 'UNKNOWN' ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                          <AlertTriangle size={12} />
+                          Network Unconfirmed
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                          <AlertTriangle size={12} />
+                          Out-of-Network
+                        </span>
+                      )}
+
+                      {item.roomCategoryMatch ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                          <BedDouble size={12} />
+                          Room: {roomCategory} (Compatible)
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                          <AlertTriangle size={12} />
+                          Room: {roomCategory} (Exceeds Policy Limit)
+                        </span>
+                      )}
+
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                        <Activity size={12} />
+                        Beds: {h.beds || 'N/A'} (ICU: {h.icu_beds || 'N/A'})
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Match Score & Financial Summary */}
+                  <div className="flex items-center gap-5">
+                    
+                    {/* Financial Estimate */}
+                    <div className="text-right">
+                      <div className="text-[11px] font-semibold text-slate-500">Indicative Patient Exposure</div>
+                      <div className={`text-xl font-extrabold ${item.estimatedPatientExposure > 30000 ? 'text-amber-600' : 'text-teal-600'}`}>
+                        ₹{item.estimatedPatientExposure.toLocaleString()}
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        Typical Gross: ₹{item.estimatedTotalCost.toLocaleString()}
+                      </div>
+                    </div>
+
+                    {/* Match Score Badge */}
+                    <div
+                      className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center text-white shadow-md ${
+                        item.matchScore >= 90
+                          ? 'bg-linear-to-br from-teal-600 to-emerald-600 shadow-teal-500/20'
+                          : item.matchScore >= 70
+                          ? 'bg-linear-to-br from-amber-500 to-amber-600 shadow-amber-500/20'
+                          : 'bg-linear-to-br from-red-500 to-red-600 shadow-red-500/20'
+                      }`}
+                    >
+                      <span className="text-lg font-extrabold leading-none">{item.matchScore}</span>
+                      <span className="text-[9px] font-bold opacity-90 mt-0.5">MATCH</span>
+                    </div>
+
+                  </div>
+
+                </div>
+
+                {/* Actions & Expand Toggle */}
+                <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
+                  
+                  <button
+                    onClick={() => setExpandedHospitalId(isExpanded ? null : h.id)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer transition-colors"
+                  >
+                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    {isExpanded ? 'Hide Factor Breakdown' : 'Why am I seeing this?'}
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onOpenQuestions(h.name, !item.roomCategoryMatch)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 cursor-pointer transition-colors"
+                    >
+                      <HelpCircle size={14} />
+                      What to Ask Desk
+                    </button>
+
+                    <button
+                      onClick={() => onStartJourney(h.id)}
+                      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-xs shadow-teal-600/30 cursor-pointer transition-colors"
+                    >
+                      <Sparkles size={14} />
+                      Track Journey Here
+                    </button>
+                  </div>
+
+                </div>
+
+                {/* Expandable "Why am I seeing this?" Panel */}
+                {isExpanded && (
+                  <div className="mt-3.5 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                    
+                    <h4 className="text-xs font-bold text-slate-900 mb-2">
+                      Explainability Factors & Rule Evaluation:
+                    </h4>
+                    
+                    <div className="flex flex-col gap-1.5 mb-3">
+                      {item.reasons.map((r: string, rIdx: number) => (
+                        <div
+                          key={rIdx}
+                          className={`text-xs font-medium ${
+                            r.startsWith('✓') ? 'text-emerald-700' : 'text-amber-700'
+                          }`}
+                        >
+                          {r}
+                        </div>
+                      ))}
+                    </div>
+
+                    {item.verificationItems.length > 0 && (
+                      <div className="mt-2.5 pt-2.5 border-t border-slate-200">
+                        <div className="text-xs font-bold text-amber-800 mb-1">
+                          Recommended Verification Steps:
+                        </div>
+                        {item.verificationItems.map((v: string, vIdx: number) => (
+                          <div key={vIdx} className="text-xs text-amber-900">
+                            • {v}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                  </div>
+                )}
+
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+    </div>
+  );
+};
