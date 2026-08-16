@@ -12,7 +12,6 @@ import { Sparkles, CheckCircle2 } from 'lucide-react';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
-  const [language, setLanguage] = useState<string>('en');
   
   // Data State
   const [patients, setPatients] = useState<any[]>([]);
@@ -160,8 +159,6 @@ export function App() {
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         pendingVerificationCount={pendingCount}
-        language={language}
-        onSelectLanguage={setLanguage}
       />
 
       {/* Main Content Area */}
