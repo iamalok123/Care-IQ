@@ -8,36 +8,36 @@
 
 ## 🌟 Key Features
 
-1. **Policy Ingestion & AI Extraction (Phases 11–14)**:
+1. **Policy Ingestion & AI Extraction**:
    - File upload (PDF, PNG, JPG, TXT) with SHA-256 checksum tracking.
    - Structured extraction of sum insured, room rent limits, ICU caps, copay %, PED waiting periods, and exclusions.
    - Verbatim quotation evidence with `source_page` citations and human confirmation review.
 
-2. **Hospital Matching & Alignment Scoring (Phases 15–17)**:
+2. **Hospital Matching & Alignment Scoring**:
    - Deterministic 5-factor matching (Network status, Room compatibility, Specialties/Services, 24x7 Critical Care, Tariff alignment).
    - Clear positive and warning badges with transparent scoring reasons.
 
-3. **Care Journey Tracking (Phases 19–20)**:
+3. **Care Journey Tracking**:
    - Interactive 6-stage timeline: `Admission` $\rightarrow$ `Investigation` $\rightarrow$ `Procedure` $\rightarrow$ `Recovery` $\rightarrow$ `Discharge` $\rightarrow$ `Claim Support`.
    - Dynamic policy-aware trigger checks at each care stage.
 
-4. **Transparent Cost Breakdown (Phase 18 & 29)**:
+4. **Transparent Cost Breakdown**:
    - Itemized gross cost estimate vs. estimated covered amount.
    - Calculates out-of-pocket exposure for non-payable consumables and proportionate deduction penalties.
 
-5. **Actionable Verification Center (Phases 21 & 30)**:
+5. **Actionable Verification Center**:
    - Pre-admission checklist (*"Things you should verify before you rely"*).
    - Preauthorization timing alerts, room mismatch flags, and network desk confirmations.
 
-6. **Contextual AI Explanations & Questions-to-Ask (Phases 22–23)**:
+6. **Contextual AI Explanations & Questions-to-Ask**:
    - Converts complex insurance mathematics into plain, caregiver-friendly explanations.
    - Generates targeted questions for Hospital Billing, TPA Desks, and Nursing Administration.
 
-7. **Policy Document Vector RAG Search (Phase 24)**:
+7. **Policy Document Vector RAG Search**:
    - In-memory TF-IDF and cosine similarity vector search across policy clauses.
    - Synthesizes grounded answers with explicit page numbers, section headers, and quotation excerpts.
 
-8. **AI Safety & Benchmark Suite (Phase 35)**:
+8. **AI Safety & Benchmark Suite**:
    - Automated evaluation suite validating 6 core safety scenarios with **0.0% Hallucination Rate** and **100% Evidence Grounding**.
 
 ---
