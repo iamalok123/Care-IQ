@@ -94,16 +94,17 @@ export const VerificationCenter: React.FC<VerificationCenterProps> = ({
       {/* 2. Verification Checklist Items */}
       <div className="flex flex-col gap-3.5">
         {filteredItems.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-xs">
-            <CheckCircle2 size={40} className="text-emerald-500 mx-auto mb-3" />
-            <h3 className="text-base font-bold text-slate-800">
-              All verification items in this category are resolved
+          <div className="bg-emerald-50/60 border border-emerald-200 rounded-3xl p-10 text-center shadow-xs">
+            <CheckCircle2 size={40} className="text-emerald-600 mx-auto mb-2.5" />
+            <h3 className="text-base font-extrabold text-emerald-950">
+              ✅ All clear! No pending verification items.
             </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              You're all set for this care journey stage.
+            <p className="text-xs text-emerald-800 mt-1 max-w-md mx-auto">
+              All pre-authorization, room rent compatibility, and non-payable checks are resolved.
             </p>
           </div>
         ) : (
+
           filteredItems.map((item) => {
             const isResolved = item.status === 'RESOLVED';
 

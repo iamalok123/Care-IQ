@@ -111,7 +111,7 @@ export const api = {
 
 
 
-  // Documents & Extraction (Phases 12 & 13)
+  // Documents & Extraction
   getDocuments: () => fetchApi<any[]>('/documents'),
   getDocumentById: (id: string) => fetchApi<any>(`/documents/${id}`),
   uploadDocument: async (file: File, documentType: string = 'POLICY', ownerId: string = 'caregiver-primary') => {
@@ -134,7 +134,7 @@ export const api = {
   confirmExtraction: (id: string, confirmedData: any) =>
     fetchApi<any>(`/documents/${id}/confirm`, { method: 'POST', body: JSON.stringify(confirmedData) }),
 
-  // Document RAG (Phase 24)
+  // Document RAG
   queryPolicyRag: (query: string, policyId?: string) =>
     fetchApi<any>('/ai/rag/query', { method: 'POST', body: JSON.stringify({ query, policy_id: policyId }) }),
 

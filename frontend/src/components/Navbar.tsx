@@ -26,7 +26,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   return (
     <header className="bg-white border-b border-slate-200/80 px-3 sm:px-6 py-3 sticky top-0 z-30 shadow-xs">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 max-w-[1400px] mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 max-w-350 mx-auto">
         
         {/* Mobile Header Bar (Menu button & Title/Brand) */}
         <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">

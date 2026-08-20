@@ -260,7 +260,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               {highPriorityAlert?.title || 'All verification items resolved'}
             </h4>
             <p className="text-xs text-amber-800/90 leading-relaxed">
-              {highPriorityAlert?.reason || 'No immediate desk verification required for this care phase.'}
+              {highPriorityAlert?.reason || 'No immediate desk verification required for this care stage.'}
             </p>
           </div>
 

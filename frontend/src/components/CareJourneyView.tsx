@@ -45,7 +45,7 @@ export const CareJourneyView: React.FC<CareJourneyViewProps> = ({
         title,
         description,
         status: 'COMPLETED',
-        insurance_relevance: `Logged event in ${stage} phase. Contextual policy checks applied.`,
+        insurance_relevance: `Logged event in ${stage} stage. Contextual policy checks applied.`,
         requires_verification: true
       });
       setShowAddModal(false);
@@ -59,8 +59,23 @@ export const CareJourneyView: React.FC<CareJourneyViewProps> = ({
     }
   };
 
+  if (!journey) {
+    return (
+      <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center shadow-xs">
+        <div className="p-3 bg-teal-50 text-teal-600 rounded-2xl w-fit mx-auto mb-3">
+          <Sparkles size={36} />
+        </div>
+        <h3 className="text-base font-extrabold text-slate-900">No active care trajectory found</h3>
+        <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+          Start your care journey by selecting an in-network hospital from the matcher or launching a demo scenario.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
+
       
       {/* 1. Header & Quick Details */}
       <div className="bg-linear-to-br from-white to-teal-50/60 border border-teal-200 rounded-2xl p-6 shadow-xs">
