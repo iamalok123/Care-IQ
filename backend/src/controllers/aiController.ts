@@ -6,7 +6,7 @@ import { documentRagEngine } from '../services/documentRagEngine';
 
 export class AiController {
   // POST /api/ai/explain
-  public explain(req: Request, res: Response): void {
+  public async explain(req: Request, res: Response): Promise<void> {
     const { hospital_id, policy_id, patient_name } = req.body;
 
     const hospital = dataRepository.getHospitalById(hospital_id);
@@ -24,7 +24,7 @@ export class AiController {
     });
 
     const currentMatch = matches.find((m) => m.hospital.id === hospital_id) || matches[0];
-    const explanation = aiExplanationEngine.explainHospitalMatch(currentMatch, patient_name || 'the patient');
+    const explanation = await aiExplanationEngine.explainHospitalMatchAsync(currentMatch, patient_name || 'the patient');
 
     res.json({
       success: true,
@@ -50,7 +50,7 @@ export class AiController {
   }
 
   // POST /api/ai/rag/query
-  public queryRag(req: Request, res: Response): void {
+  public async queryRag(req: Request, res: Response): Promise<void> {
     const { query, policy_id } = req.body;
 
     if (!query || typeof query !== 'string') {
@@ -61,13 +61,14 @@ export class AiController {
       return;
     }
 
-    const ragResponse = documentRagEngine.queryPolicyRAG(query, policy_id);
+    const ragResponse = await documentRagEngine.queryPolicyRAGAsync(query, policy_id);
 
     res.json({
       success: true,
       data: ragResponse
     });
   }
+
 
   // POST /api/ai/coverage-confidence
   public getCoverageConfidence(req: Request, res: Response): void {

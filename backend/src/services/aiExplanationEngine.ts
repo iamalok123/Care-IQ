@@ -1,10 +1,13 @@
 import { HospitalMatchResult, CostEstimateResult, CareJourney } from '../types/domain';
+import { geminiService } from './geminiService';
 
 export interface ExplanationResponse {
   summary: string;
   keyFactors: string[];
   caveatsAndUncertainties: string[];
   disclaimer: string;
+  isAiGenerated?: boolean;
+  modelUsed?: string;
 }
 
 export interface QuestionsToAskResponse {
@@ -46,9 +49,49 @@ export class AiExplanationEngine {
       keyFactors,
       caveatsAndUncertainties,
       disclaimer:
-        'This explanation is provided for decision support and informational guidance only. It does not constitute medical advice or binding claim approval.'
+        'This explanation is provided for decision support and informational guidance only. It does not constitute medical advice or binding claim approval.',
+      isAiGenerated: false,
+      modelUsed: 'deterministic-rules-engine'
     };
   }
+
+  /**
+   * Generates real-time Gemini AI explanation for hospital match.
+   */
+  public async explainHospitalMatchAsync(result: HospitalMatchResult, patientName: string): Promise<ExplanationResponse> {
+    const fallback = this.explainHospitalMatch(result, patientName);
+    if (!geminiService.isAvailable()) {
+      return fallback;
+    }
+
+    const prompt = `You are CareIQ, an expert Indian Health Insurance Decision-Support AI.
+Generate a concise, compassionate explanation for why ${result.hospital.name} in ${result.hospital.city} was recommended for patient ${patientName}.
+Match Score: ${result.matchScore}/100
+Network Status: ${result.networkStatus} (Cashless Supported: ${result.cashlessSupported})
+Room Category Compatible: ${result.roomCategoryMatch}
+Estimated Out-of-Pocket: ₹${result.estimatedPatientExposure}
+Key Reasons: ${result.reasons.join('; ')}
+
+Respond ONLY with valid JSON conforming to this schema:
+{
+  "summary": "string",
+  "keyFactors": ["string", "string", "string"],
+  "caveatsAndUncertainties": ["string", "string"],
+  "disclaimer": "This explanation is provided for decision support and informational guidance only. It does not constitute medical advice or binding claim approval."
+}`;
+
+    const res = await geminiService.generateJson<ExplanationResponse>(prompt);
+    if (res.success && res.data && res.data.summary) {
+      return {
+        ...res.data,
+        isAiGenerated: true,
+        modelUsed: res.model
+      };
+    }
+
+    return fallback;
+  }
+
 
   /**
    * Generates actionable questions for caregiver to ask hospital staff.
@@ -153,11 +196,9 @@ export class AiExplanationEngine {
     const hospitalName = params.hospitalId ? params.hospitalId.replace('hosp-', '').replace(/-/g, ' ') : 'the hospital';
     const procedureName = params.procedureName || 'the planned medical procedure';
 
-    // 1. Try Gemini API if API key is present
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (apiKey && apiKey !== 'your_gemini_api_key_here') {
-      try {
-        const prompt = `You are CareIQ, an expert Indian Health Insurance Decision-Support AI.
+    // 1. Try Gemini API if available
+    if (geminiService.isAvailable()) {
+      const prompt = `You are CareIQ, an expert Indian Health Insurance Decision-Support AI.
 Generate a structured JSON guidance object for a patient navigating the "${stage}" stage of their hospital care journey.
 Patient Name: ${patientName}
 Hospital: ${hospitalName}
@@ -177,41 +218,20 @@ Respond ONLY with valid JSON conforming to this schema:
   "insuranceCheck": "string"
 }`;
 
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }],
-              generationConfig: {
-                temperature: 0.2,
-                responseMimeType: 'application/json'
-              }
-            })
-          }
-        );
-
-        if (response.ok) {
-          const resData = await response.json();
-          const rawText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (rawText) {
-            const parsed = JSON.parse(rawText);
-            return {
-              ...parsed,
-              isAiGenerated: true,
-              modelUsed: 'gemini-2.5-flash'
-            };
-          }
-        }
-      } catch (err) {
-        console.warn('Gemini API call failed, falling back to deterministic stage engine:', err);
+      const res = await geminiService.generateJson<StageGuidanceResult>(prompt);
+      if (res.success && res.data && res.data.stageTitle) {
+        return {
+          ...res.data,
+          isAiGenerated: true,
+          modelUsed: res.model
+        };
       }
     }
 
     // 2. High-Yield Deterministic Fallback Rules
     return this.getDeterministicStageGuidance(stage, patientName, hospitalName, procedureName, params.isRoomMismatch);
   }
+
 
   private getDeterministicStageGuidance(
     stage: string,

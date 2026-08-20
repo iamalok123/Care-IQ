@@ -1,6 +1,8 @@
 import { dataRepository } from './dataRepository';
+import { geminiService } from './geminiService';
 
 export interface PolicyChunk {
+
   id: string;
   policy_id: string;
   policy_name: string;
@@ -252,6 +254,45 @@ export class DocumentRagEngine {
         'This response is generated from indexed policy clauses for informational decision support only. Coverage estimates are indicative and subject to hospital TPA sanction.'
     };
   }
+
+  /**
+   * Synthesizes answers using Gemini 3.5 / 2.5 Flash from retrieved policy chunks.
+   */
+  public async queryPolicyRAGAsync(query: string, policyId?: string): Promise<RagQueryResponse> {
+    const baseResponse = this.queryPolicyRAG(query, policyId);
+    if (!geminiService.isAvailable() || baseResponse.citations.length === 0) {
+      return baseResponse;
+    }
+
+    const contextText = baseResponse.citations
+      .map(
+        (c, idx) =>
+          `[Source ${idx + 1}] Policy: ${c.policyName} | Section: ${c.sectionTitle} | Page: ${c.pageNumber}\nClause Text: "${c.quoteExcerpt}"`
+      )
+      .join('\n\n');
+
+    const prompt = `You are CareIQ, an expert Indian Health Insurance Policy Decision Support AI.
+The user is asking: "${query}"
+
+Here are the retrieved verbatim policy clauses from the patient's insurance document:
+${contextText}
+
+Synthesize a clear, empathetic, and 100% grounded answer for the patient/caregiver.
+Strictly adhere to the facts in the retrieved sources. Explicitly reference the policy name and page citations in your answer.
+Do not fabricate facts or coverage limits not present in the sources.`;
+
+    const aiRes = await geminiService.generateText(prompt);
+    if (aiRes.success && aiRes.text && aiRes.text.trim().length > 0) {
+      return {
+        ...baseResponse,
+        answer: aiRes.text.trim(),
+        disclaimer: `This response is synthesized by Gemini (${aiRes.model}) from verified policy citations for informational decision support only.`
+      };
+    }
+
+    return baseResponse;
+  }
 }
 
 export const documentRagEngine = new DocumentRagEngine();
+
