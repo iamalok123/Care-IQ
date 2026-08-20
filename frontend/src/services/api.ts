@@ -63,7 +63,7 @@ export const api = {
   createVerificationItem: (data: any) =>
     fetchApi<any>('/verification-items', { method: 'POST', body: JSON.stringify(data) }),
 
-  // Cost Estimation
+  // Cost Estimation & What-If Simulation
   calculateCostEstimate: (params: {
     policy_id: string;
     hospital_id?: string;
@@ -71,6 +71,16 @@ export const api = {
     preferred_room_category?: string;
     selected_tariff?: number;
   }) => fetchApi<any>('/cost/estimate', { method: 'POST', body: JSON.stringify(params) }),
+  calculateWhatIf: (params: {
+    policy_id: string;
+    hospital_id?: string;
+    procedure_id?: string;
+    current_room_category?: string;
+    alternative_room_category?: string;
+    current_tariff?: number;
+    alternative_tariff?: number;
+  }) => fetchApi<any>('/cost/what-if', { method: 'POST', body: JSON.stringify(params) }),
+
 
   // AI Explanations, Confidence & Questions
   explainMatch: (params: { hospital_id: string; policy_id?: string; patient_name?: string }) =>

@@ -10,9 +10,12 @@ import {
   ChevronUp,
   BedDouble,
   Activity,
-  MapPin
+  MapPin,
+  ArrowLeftRight
 } from 'lucide-react';
+
 import { api } from '../services/api';
+import { HospitalCompare } from './HospitalCompare';
 
 interface HospitalMatchViewProps {
   policy: any;
@@ -36,6 +39,23 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [expandedHospitalId, setExpandedHospitalId] = useState<string | null>(null);
+  
+  // Hospital Compare State
+  const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState<boolean>(false);
+
+
+  const toggleCompare = (hospitalId: string) => {
+    setSelectedForCompare((prev) => {
+      if (prev.includes(hospitalId)) {
+        return prev.filter((id) => id !== hospitalId);
+      }
+      if (prev.length >= 2) {
+        return [prev[1], hospitalId];
+      }
+      return [...prev, hospitalId];
+    });
+  };
 
   const fetchMatches = async () => {
     setLoading(true);
@@ -61,42 +81,46 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
   }, [city, specialty, procedureId, roomCategory, networkOnly, policy?.id]);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 relative pb-16">
       
       {/* 1. Top Search & Filter Bar */}
       <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
           <div className="flex items-center gap-2">
             <Filter size={18} className="text-teal-600" />
-            <h3 className="text-base md:text-lg font-bold text-slate-900">
-              Hospital Decision-Support Filters
+            <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
+              Hospital Search & Insurance Constraint Filters
             </h3>
           </div>
           
-          <label className="flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer">
+          <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
             <input
               type="checkbox"
               checked={networkOnly}
               onChange={(e) => setNetworkOnly(e.target.checked)}
-              className="rounded-sm border-slate-300 text-teal-600 focus:ring-teal-500"
+              className="rounded text-teal-600 focus:ring-teal-500 w-4 h-4 cursor-pointer"
             />
-            Show In-Network Only
+            Show Cashless In-Network Only
           </label>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
           
           {/* City */}
           <div>
             <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-              City / Location
+              Location / City
             </label>
             <select
               className="w-full px-3 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl outline-hidden focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20"
               value={city}
               onChange={(e) => setCity(e.target.value)}
             >
-              <option value="Bengaluru">Bengaluru (Karnataka)</option>
+              <option value="Bengaluru">Bengaluru</option>
+              <option value="Mumbai">Mumbai</option>
+              <option value="Delhi">Delhi NCR</option>
+              <option value="Hyderabad">Hyderabad</option>
+              <option value="Chennai">Chennai</option>
             </select>
           </div>
 
@@ -157,7 +181,7 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
       </div>
 
       {/* 2. Results Header */}
-      <div className="flex justify-between items-center px-1">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
         <div>
           <h2 className="text-xl font-extrabold text-slate-900">
             Ranked Hospital Options ({matches.length})
@@ -166,6 +190,23 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
             Showing options evaluated against policy: <strong>{policy?.policy_name || 'Standard Baseline'}</strong>
           </p>
         </div>
+
+        {selectedForCompare.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">
+              {selectedForCompare.length} selected for comparison
+            </span>
+            {selectedForCompare.length === 2 && (
+              <button
+                type="button"
+                onClick={() => setIsCompareModalOpen(true)}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs cursor-pointer transition-colors"
+              >
+                Compare Now ⚡
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 3. Hospital Cards List */}
@@ -188,12 +229,15 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
             const h = item.hospital;
             const isTopRank = idx === 0;
             const isExpanded = expandedHospitalId === h.id;
+            const isSelectedForCompare = selectedForCompare.includes(h.id);
 
             return (
               <div
                 key={h.id}
                 className={`border rounded-2xl p-5 md:p-6 shadow-xs transition-all relative ${
-                  isTopRank
+                  isSelectedForCompare
+                    ? 'bg-indigo-50/40 border-indigo-400 ring-2 ring-indigo-500/20'
+                    : isTopRank
                     ? 'bg-linear-to-br from-white to-teal-50/40 border-teal-300 ring-1 ring-teal-200'
                     : 'bg-white border-slate-200 hover:shadow-md'
                 }`}
@@ -290,13 +334,28 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
                 {/* Actions & Expand Toggle */}
                 <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
                   
-                  <button
-                    onClick={() => setExpandedHospitalId(isExpanded ? null : h.id)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer transition-colors"
-                  >
-                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                    {isExpanded ? 'Hide Factor Breakdown' : 'Why am I seeing this?'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setExpandedHospitalId(isExpanded ? null : h.id)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer transition-colors"
+                    >
+                      {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      {isExpanded ? 'Hide Factor Breakdown' : 'Why am I seeing this?'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => toggleCompare(h.id)}
+                      className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        isSelectedForCompare
+                          ? 'bg-indigo-600 text-white shadow-2xs'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                      }`}
+                    >
+                      <ArrowLeftRight size={13} />
+                      {isSelectedForCompare ? '✓ Selected to Compare' : 'Compare'}
+                    </button>
+                  </div>
 
                   <div className="flex items-center gap-2">
                     <button
@@ -422,6 +481,56 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
           })}
         </div>
       )}
+
+      {/* Floating Side-by-Side Comparison Action Bar */}
+      {selectedForCompare.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-4 border border-slate-700 animate-fade-in">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-indigo-600 rounded-xl">
+              <ArrowLeftRight size={16} className="text-white" />
+            </div>
+            <div>
+              <span className="text-xs font-bold block">
+                {selectedForCompare.length === 1
+                  ? '1 hospital selected. Pick 1 more to compare.'
+                  : '2 hospitals ready for side-by-side comparison.'}
+              </span>
+              <span className="text-[10px] text-slate-400">
+                {selectedForCompare.map((id) => matches.find((m) => (m.hospital?.id || m.id) === id)?.hospital?.name || id).join(' vs ')}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {selectedForCompare.length === 2 && (
+              <button
+                type="button"
+                onClick={() => setIsCompareModalOpen(true)}
+                className="px-4 py-2 rounded-xl text-xs font-extrabold bg-linear-to-r from-teal-500 to-indigo-500 hover:opacity-95 text-white shadow-md cursor-pointer transition-all"
+              >
+                Compare Side-by-Side ⚡
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setSelectedForCompare([])}
+              className="text-xs font-bold text-slate-400 hover:text-white px-2 py-1 cursor-pointer"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Side-by-Side Comparison Modal */}
+      <HospitalCompare
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+        hospitalA={matches.find((m) => (m.hospital?.id || m.id) === selectedForCompare[0])}
+        hospitalB={matches.find((m) => (m.hospital?.id || m.id) === selectedForCompare[1])}
+        policy={policy}
+        onSelectHospital={onStartJourney}
+      />
 
     </div>
   );

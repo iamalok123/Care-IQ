@@ -105,5 +105,19 @@ console.log(`RAG Query: "${ragQuery}"`);
 console.log(`RAG Answer: ${ragAnswer.answer.slice(0, 160)}...`);
 console.log(`Retrieved Citations: ${ragAnswer.citations.map((c) => `Page ${c.pageNumber} (${c.sectionTitle})`).join(', ')}`);
 
+// 7. Test What-If Room Upgrade Simulation (Phase 2A)
+console.log('\n[7] Testing What-If Room Upgrade Simulation (Phase 2A)...');
+const curEstimate = costEngine.calculateEstimate(ananyaPolicy, procCost, components, RoomCategoryCode.PRIVATE_AC, 6500, 6500);
+const altEstimate = costEngine.calculateEstimate(ananyaPolicy, procCost, components, RoomCategoryCode.DELUXE, 6500, 11000);
+const oopDelta = altEstimate.indicativePatientExposure - curEstimate.indicativePatientExposure;
+console.log(`Current Room (PRIVATE_AC): OOP = ₹${curEstimate.indicativePatientExposure.toLocaleString()}`);
+console.log(`Simulated Room (DELUXE): OOP = ₹${altEstimate.indicativePatientExposure.toLocaleString()}`);
+console.log(`What-If Delta: +₹${oopDelta.toLocaleString()} increase due to room difference & proportionate deduction.`);
+if (oopDelta <= 0) {
+  throw new Error(`Expected positive OOP delta for Deluxe room upgrade, got ${oopDelta}`);
+}
+
 console.log('\n✓ ALL CAREIQ INTELLIGENCE TESTS PASSED SUCCESSFULLY!');
+
+
 
