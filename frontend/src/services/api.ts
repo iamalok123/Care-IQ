@@ -100,6 +100,15 @@ export const api = {
     is_preauth_pending?: boolean;
     has_consumables_verified?: boolean;
   }) => fetchApi<any>('/ai/coverage-confidence', { method: 'POST', body: JSON.stringify(params) }),
+  getStageGuidance: (params: {
+    stage: string;
+    policy_id?: string;
+    hospital_id?: string;
+    patient_name?: string;
+    procedure_name?: string;
+    is_room_mismatch?: boolean;
+  }) => fetchApi<any>('/ai/stage-guidance', { method: 'POST', body: JSON.stringify(params) }),
+
 
 
   // Documents & Extraction (Phases 12 & 13)

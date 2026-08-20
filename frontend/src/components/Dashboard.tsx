@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ShieldCheck,
   Building2,
@@ -9,11 +9,14 @@ import {
   Sparkles,
   BedDouble,
   HelpCircle,
-  Landmark
+  Landmark,
+  Share2
 } from 'lucide-react';
+
 import { PolicyRagAssistant } from './PolicyRagAssistant';
 import { CoverageConfidenceGauge } from './CoverageConfidenceGauge';
 import { MissingInfoCard } from './MissingInfoCard';
+import { CaregiverShareModal } from './CaregiverShareModal';
 
 interface DashboardProps {
   patient: any;
@@ -25,12 +28,14 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
+  patient,
   policy,
   journey,
   verificationItems,
   onNavigate,
   onOpenQuestionsModal
 }) => {
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
   const pendingVerifications = verificationItems.filter((v) => v.status === 'PENDING');
   const highPriorityAlert = pendingVerifications.find((v) => v.priority === 'HIGH') || pendingVerifications[0];
 
@@ -101,14 +106,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </h2>
           </div>
 
-          <button
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-sm shadow-teal-600/30 transition-all cursor-pointer"
-            onClick={() => onNavigate('journey')}
-          >
-            <Sparkles size={16} />
-            View Full Journey Timeline
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsShareModalOpen(true)}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-extrabold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 shadow-2xs transition-all cursor-pointer"
+            >
+              <Share2 size={15} className="text-indigo-600" />
+              Share with Caregiver
+            </button>
+
+            <button
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-sm shadow-teal-600/30 transition-all cursor-pointer"
+              onClick={() => onNavigate('journey')}
+            >
+              <Sparkles size={16} />
+              View Full Journey Timeline
+            </button>
+          </div>
         </div>
+
 
         {/* Multi-Stage Step Progress Bar */}
         <div className="flex items-center justify-between relative mt-4 pt-2">
@@ -323,7 +340,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </button>
       </div>
 
+      {/* Caregiver Share Summary Modal */}
+      <CaregiverShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        patient={patient}
+        policy={policy}
+        journey={journey}
+        verificationItems={verificationItems}
+      />
+
     </div>
   );
 };
+
 

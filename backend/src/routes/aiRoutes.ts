@@ -15,5 +15,9 @@ router.post('/rag/query', (req, res) => aiController.queryRag(req, res));
 // POST /api/ai/coverage-confidence
 router.post('/coverage-confidence', (req, res) => aiController.getCoverageConfidence(req, res));
 
+// POST /api/ai/stage-guidance
+router.post('/stage-guidance', (req, res) => aiController.getStageGuidance(req, res));
+
 export default router;
+
 

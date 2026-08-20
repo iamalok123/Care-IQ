@@ -6,6 +6,7 @@ import {
   Clock
 } from 'lucide-react';
 import { api } from '../services/api';
+import { StageGuidanceCard } from './StageGuidanceCard';
 
 interface CareJourneyViewProps {
   journey: any;
@@ -28,8 +29,9 @@ export const CareJourneyView: React.FC<CareJourneyViewProps> = ({
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   const stages = ['ADMISSION', 'INVESTIGATION', 'PROCEDURE', 'RECOVERY', 'DISCHARGE'];
-  const currentStage = journey?.current_stage || 'ADMISSION';
-  const stageIndex = stages.indexOf(currentStage);
+  const currentStage = journey?.current_stage || 'PROCEDURE';
+  const stageIndex = stages.indexOf(currentStage) >= 0 ? stages.indexOf(currentStage) : 2;
+  const [focusedStage, setFocusedStage] = useState<string>(currentStage);
 
   const handleAddEvent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +60,7 @@ export const CareJourneyView: React.FC<CareJourneyViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       
       {/* 1. Header & Quick Details */}
       <div className="bg-linear-to-br from-white to-teal-50/60 border border-teal-200 rounded-2xl p-6 shadow-xs">
@@ -95,32 +97,52 @@ export const CareJourneyView: React.FC<CareJourneyViewProps> = ({
           {stages.map((stageName, idx) => {
             const isCompleted = idx < stageIndex;
             const isCurrent = idx === stageIndex;
+            const isFocused = focusedStage === stageName;
 
             return (
-              <div key={stageName} className="flex flex-col items-center relative z-3">
+              <button
+                key={stageName}
+                type="button"
+                onClick={() => setFocusedStage(stageName)}
+                className="flex flex-col items-center relative z-3 cursor-pointer group"
+              >
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                    isCompleted
+                    isFocused
+                      ? 'bg-indigo-600 text-white ring-4 ring-indigo-500/20 scale-110 shadow-sm'
+                      : isCompleted
                       ? 'bg-teal-600 text-white'
                       : isCurrent
                       ? 'bg-white border-2 border-teal-600 text-teal-600 ring-4 ring-teal-500/20'
-                      : 'bg-slate-100 border-2 border-slate-300 text-slate-400'
+                      : 'bg-slate-100 border-2 border-slate-300 text-slate-400 group-hover:border-slate-400'
                   }`}
                 >
                   {isCompleted ? <CheckCircle2 size={18} /> : idx + 1}
                 </div>
                 <span
-                  className={`text-[11px] mt-1.5 capitalize ${
-                    isCurrent ? 'font-bold text-slate-900' : 'font-medium text-slate-500'
+                  className={`text-[11px] mt-1.5 capitalize transition-colors ${
+                    isFocused
+                      ? 'font-black text-indigo-700 underline underline-offset-2'
+                      : isCurrent
+                      ? 'font-bold text-slate-900'
+                      : 'font-medium text-slate-500 group-hover:text-slate-700'
                   }`}
                 >
                   {stageName.toLowerCase()}
                 </span>
-              </div>
+              </button>
             );
           })}
         </div>
       </div>
+
+      {/* 2. Context-Aware Stage Guidance Card */}
+      <StageGuidanceCard
+        stage={focusedStage}
+        policy={policy}
+        hospital={hospital}
+        onSelectStage={(newStage) => setFocusedStage(newStage)}
+      />
 
       {/* Section 53 — 'What Changed Since Your Last Update?' Timeline Comparison Card */}
       <div className="bg-white border border-indigo-200 rounded-2xl p-5 shadow-xs bg-linear-to-r from-indigo-50/50 via-white to-teal-50/40">
@@ -166,8 +188,9 @@ export const CareJourneyView: React.FC<CareJourneyViewProps> = ({
         </div>
       </div>
 
-      {/* 2. Timeline Event Feed */}
+      {/* 3. Timeline Event Feed */}
       <div>
+
         <h3 className="text-base md:text-lg font-extrabold text-slate-900 mb-3 px-1">
           Journey Event Timeline & Insurance Guidance
         </h3>

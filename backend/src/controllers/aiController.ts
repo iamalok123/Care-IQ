@@ -88,7 +88,35 @@ export class AiController {
       data: confidence
     });
   }
+
+  // POST /api/ai/stage-guidance
+  public async getStageGuidance(req: Request, res: Response): Promise<void> {
+    const { stage, policy_id, hospital_id, patient_name, procedure_name, is_room_mismatch } = req.body;
+
+    try {
+      const guidance = await aiExplanationEngine.generateStageGuidance({
+        stage: stage || 'ADMISSION',
+        policyId: policy_id,
+        hospitalId: hospital_id,
+        patientName: patient_name,
+        procedureName: procedure_name,
+        isRoomMismatch: is_room_mismatch
+      });
+
+      res.json({
+        success: true,
+        data: guidance
+      });
+    } catch (err: any) {
+      console.error('Error generating stage guidance:', err);
+      res.status(500).json({
+        success: false,
+        error: { code: 'STAGE_GUIDANCE_ERROR', message: err.message || 'Failed to generate stage guidance' }
+      });
+    }
+  }
 }
 
 export const aiController = new AiController();
+
 

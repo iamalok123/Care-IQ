@@ -10,8 +10,10 @@ import { RoomCategoryCode } from '../types/domain';
 
 console.log('--- CareIQ Intelligence Layer Verification Test ---');
 
-// 1. Test Hospital Matching for Ananya (Persona 01 - Simple Match)
-console.log('\n[1] Testing Hospital Matching for Persona 01 (Star Health Policy)...');
+async function runAllTests() {
+  // 1. Test Hospital Matching for Ananya (Persona 01 - Simple Match)
+  console.log('\n[1] Testing Hospital Matching for Persona 01 (Star Health Policy)...');
+
 const ananyaPolicy = dataRepository.getPolicyById('pol-syn-ananya');
 if (!ananyaPolicy) throw new Error('Ananya policy missing');
 
@@ -117,7 +119,30 @@ if (oopDelta <= 0) {
   throw new Error(`Expected positive OOP delta for Deluxe room upgrade, got ${oopDelta}`);
 }
 
-console.log('\n✓ ALL CAREIQ INTELLIGENCE TESTS PASSED SUCCESSFULLY!');
+// 8. Test Stage-Specific Guidance & Caregiver Mode (Phase 3A)
+console.log('\n[8] Testing Stage-Specific Guidance & Caregiver Mode (Phase 3A)...');
+const admissionGuidance = await aiExplanationEngine.generateStageGuidance({
+  stage: 'ADMISSION',
+  policyId: 'pol-syn-ananya',
+  hospitalId: 'hosp-manipal-old-airport',
+  patientName: 'Ananya Sharma',
+  procedureName: 'Total Knee Replacement'
+});
+console.log(`Stage Title: ${admissionGuidance.stageTitle}`);
+console.log(`Guidance Model: ${admissionGuidance.modelUsed} (AI Generated: ${admissionGuidance.isAiGenerated})`);
+console.log(`Proactive Tips Count: ${admissionGuidance.proactiveTips.length}`);
+console.log(`Required Documents: ${admissionGuidance.requiredDocuments.join(', ')}`);
+console.log(`Billing Desk Questions Count: ${admissionGuidance.billingDeskQuestions.length}`);
+
+  console.log('\n✓ ALL CAREIQ INTELLIGENCE TESTS PASSED SUCCESSFULLY!');
+}
+
+runAllTests().catch((err) => {
+  console.error('Test execution failed:', err);
+  process.exit(1);
+});
+
+
 
 
 
