@@ -80,8 +80,8 @@ const questions = aiExplanationEngine.generateQuestionsToAsk({
 });
 console.log(`Generated ${questions.billingDeskQuestions.length} Billing Desk questions and ${questions.insuranceCoordinatorQuestions.length} TPA questions.`);
 
-// 5. Test Policy AI Extraction (Phase 13)
-console.log('\n[5] Testing Policy AI Extraction & Evidence Binding (Phase 13)...');
+// 5. Test Policy AI Extraction
+console.log('\n[5] Testing Policy AI Extraction & Evidence Binding...');
 const mockDoc = {
   id: 'test-doc-care',
   document_type: 'POLICY' as const,
@@ -99,16 +99,16 @@ console.log(`Extracted Insurer: ${extractionResult.extractedData.insurer_name}`)
 console.log(`Extracted Sum Insured: ₹${extractionResult.extractedData.sum_insured.toLocaleString()}`);
 console.log(`Extracted Evidence Count: ${extractionResult.evidence.length} (Page citations verified)`);
 
-// 6. Test Document RAG Semantic Retrieval (Phase 24)
-console.log('\n[6] Testing Document RAG Semantic Policy Search (Phase 24)...');
+// 6. Test Document RAG Semantic Retrieval
+console.log('\n[6] Testing Document RAG Semantic Policy Search...');
 const ragQuery = 'Is robotic knee surgery covered under this policy?';
 const ragAnswer = documentRagEngine.queryPolicyRAG(ragQuery, 'pol-syn-ananya');
 console.log(`RAG Query: "${ragQuery}"`);
 console.log(`RAG Answer: ${ragAnswer.answer.slice(0, 160)}...`);
 console.log(`Retrieved Citations: ${ragAnswer.citations.map((c) => `Page ${c.pageNumber} (${c.sectionTitle})`).join(', ')}`);
 
-// 7. Test What-If Room Upgrade Simulation (Phase 2A)
-console.log('\n[7] Testing What-If Room Upgrade Simulation (Phase 2A)...');
+// 7. Test What-If Room Upgrade Simulation
+console.log('\n[7] Testing What-If Room Upgrade Simulation...');
 const curEstimate = costEngine.calculateEstimate(ananyaPolicy, procCost, components, RoomCategoryCode.PRIVATE_AC, 6500, 6500);
 const altEstimate = costEngine.calculateEstimate(ananyaPolicy, procCost, components, RoomCategoryCode.DELUXE, 6500, 11000);
 const oopDelta = altEstimate.indicativePatientExposure - curEstimate.indicativePatientExposure;
@@ -119,8 +119,8 @@ if (oopDelta <= 0) {
   throw new Error(`Expected positive OOP delta for Deluxe room upgrade, got ${oopDelta}`);
 }
 
-// 8. Test Stage-Specific Guidance & Caregiver Mode (Phase 3A)
-console.log('\n[8] Testing Stage-Specific Guidance & Caregiver Mode (Phase 3A)...');
+// 8. Test Stage-Specific Guidance & Caregiver Mode
+console.log('\n[8] Testing Stage-Specific Guidance & Caregiver Mode...');
 const admissionGuidance = await aiExplanationEngine.generateStageGuidance({
   stage: 'ADMISSION',
   policyId: 'pol-syn-ananya',

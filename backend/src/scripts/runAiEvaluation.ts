@@ -4,7 +4,7 @@ import { aiEvaluationHarness } from '../services/aiEvaluationHarness';
 
 async function main() {
   console.log('=====================================================');
-  console.log('   CareIQ Phase 35 — AI Safety & Evaluation Suite   ');
+  console.log('       CareIQ AI Safety & Evaluation Suite           ');
   console.log('=====================================================\n');
 
   console.log('Running automated benchmarks across 6 core scenarios...\n');
@@ -33,7 +33,7 @@ async function main() {
     fs.mkdirSync(docsDir, { recursive: true });
   }
 
-  const markdownContent = `# CareIQ AI Safety & Performance Evaluation Report (Phase 35)
+  const markdownContent = `# CareIQ AI Safety & Performance Evaluation Report
 
 **Evaluation Date**: ${report.timestamp}  
 **Evaluator**: CareIQ Automated Evaluation Harness  
