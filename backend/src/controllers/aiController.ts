@@ -68,6 +68,27 @@ export class AiController {
       data: ragResponse
     });
   }
+
+  // POST /api/ai/coverage-confidence
+  public getCoverageConfidence(req: Request, res: Response): void {
+    const { policy_id, hospital_id, patient_id, is_network_cashless, has_room_mismatch, is_preauth_pending, has_consumables_verified } = req.body;
+
+    const confidence = aiExplanationEngine.calculateCoverageConfidence({
+      policyId: policy_id,
+      hospitalId: hospital_id,
+      patientId: patient_id,
+      isNetworkCashless: is_network_cashless,
+      hasRoomMismatch: has_room_mismatch,
+      isPreauthPending: is_preauth_pending,
+      hasConsumablesVerified: has_consumables_verified
+    });
+
+    res.json({
+      success: true,
+      data: confidence
+    });
+  }
 }
 
 export const aiController = new AiController();
+

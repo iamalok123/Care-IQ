@@ -72,7 +72,7 @@ export const api = {
     selected_tariff?: number;
   }) => fetchApi<any>('/cost/estimate', { method: 'POST', body: JSON.stringify(params) }),
 
-  // AI Explanations & Questions
+  // AI Explanations, Confidence & Questions
   explainMatch: (params: { hospital_id: string; policy_id?: string; patient_name?: string }) =>
     fetchApi<any>('/ai/explain', { method: 'POST', body: JSON.stringify(params) }),
   getQuestions: (params: {
@@ -81,6 +81,16 @@ export const api = {
     stage?: string;
     is_room_exceeded?: boolean;
   }) => fetchApi<any>('/ai/questions', { method: 'POST', body: JSON.stringify(params) }),
+  getCoverageConfidence: (params: {
+    policy_id?: string;
+    hospital_id?: string;
+    patient_id?: string;
+    is_network_cashless?: boolean;
+    has_room_mismatch?: boolean;
+    is_preauth_pending?: boolean;
+    has_consumables_verified?: boolean;
+  }) => fetchApi<any>('/ai/coverage-confidence', { method: 'POST', body: JSON.stringify(params) }),
+
 
   // Documents & Extraction (Phases 12 & 13)
   getDocuments: () => fetchApi<any[]>('/documents'),

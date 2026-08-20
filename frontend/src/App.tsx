@@ -8,12 +8,14 @@ import { CareJourneyView } from './components/CareJourneyView';
 import { CostBreakdownView } from './components/CostBreakdownView';
 import { VerificationCenter } from './components/VerificationCenter';
 import { AiQuestionsModal } from './components/AiQuestionsModal';
+import { OnboardingWizard } from './components/OnboardingWizard';
 import { api } from './services/api';
 import { Sparkles, CheckCircle2 } from 'lucide-react';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   
   // Data State
   const [patients, setPatients] = useState<any[]>([]);
@@ -36,6 +38,7 @@ export function App() {
     isOpen: false,
     hospitalName: ''
   });
+
 
   const loadDataForPatient = async (patient: any) => {
     try {
@@ -88,6 +91,10 @@ export function App() {
 
   useEffect(() => {
     initApp();
+    const hasSeen = localStorage.getItem('careiq_onboarding_completed');
+    if (!hasSeen) {
+      setShowOnboarding(true);
+    }
   }, []);
 
   const handleSelectPatient = async (patient: any) => {
@@ -172,6 +179,7 @@ export function App() {
           onLoadScenario={handleLoadScenario}
           onSelectTab={setActiveTab}
           onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          onOpenOnboarding={() => setShowOnboarding(true)}
         />
 
         {/* Main View Content Canvas */}
@@ -281,10 +289,19 @@ export function App() {
         />
       )}
 
+      {/* User Onboarding Welcome Wizard */}
+      <OnboardingWizard
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        onSelectScenario={handleLoadScenario}
+        onNavigateTab={setActiveTab}
+      />
+
     </div>
   );
 }
 
 export default App;
+
 
 

@@ -8,9 +8,12 @@ import {
   IndianRupee,
   Sparkles,
   BedDouble,
-  HelpCircle
+  HelpCircle,
+  Landmark
 } from 'lucide-react';
 import { PolicyRagAssistant } from './PolicyRagAssistant';
+import { CoverageConfidenceGauge } from './CoverageConfidenceGauge';
+import { MissingInfoCard } from './MissingInfoCard';
 
 interface DashboardProps {
   patient: any;
@@ -35,9 +38,47 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const stages = ['ADMISSION', 'INVESTIGATION', 'PROCEDURE', 'RECOVERY', 'DISCHARGE'];
   const stageIndex = stages.indexOf(currentStage);
 
+  // Government Scheme detection (e.g. Ayushman Bharat PM-JAY)
+  const isGovScheme = 
+    policy?.scheme_type === 'GOV_PMJAY' || 
+    policy?.policy_name?.toLowerCase().includes('pm-jay') || 
+    policy?.policy_name?.toLowerCase().includes('ayushman') ||
+    policy?.insurer_name?.toLowerCase().includes('ayushman');
+
   return (
     <div className="flex flex-col gap-5">
       
+      {/* 🏛️ Government Scheme Banner (Active when PM-JAY or Govt Scheme is loaded) */}
+      {isGovScheme && (
+        <div className="bg-linear-to-r from-emerald-600 via-teal-700 to-indigo-800 text-white rounded-2xl p-4 shadow-md flex items-center justify-between gap-4 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-xs">
+              <Landmark size={24} className="text-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-sm tracking-tight">
+                  Government Scheme: Ayushman Bharat PM-JAY
+                </span>
+                <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-white text-emerald-800 uppercase">
+                  100% Cashless Package
+                </span>
+              </div>
+              <p className="text-xs text-emerald-100 mt-0.5">
+                Empaneled Network Hospital • Zero out-of-pocket for standard package codes • No room rent deduction applies.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onNavigate('insurance')}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-emerald-900 hover:bg-emerald-50 transition-colors shrink-0 cursor-pointer shadow-xs"
+          >
+            Scheme Rules
+          </button>
+        </div>
+      )}
+
       {/* 1. Care Journey Active Stage Progress Banner */}
       <div className="bg-linear-to-br from-white to-teal-50/60 border border-teal-200/80 rounded-2xl p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
@@ -107,7 +148,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* 2. Key Metric Cards Grid */}
+      {/* 2. Coverage Confidence Score Radial Gauge Widget */}
+      <CoverageConfidenceGauge
+        policy={policy}
+        journey={journey}
+        verificationItems={verificationItems}
+        onOpenQuestionsModal={onOpenQuestionsModal}
+      />
+
+      {/* 3. What We Don't Know Yet & Actionable Items Card */}
+      <MissingInfoCard
+        verificationItems={verificationItems}
+        onOpenQuestionsModal={onOpenQuestionsModal}
+        onNavigate={onNavigate}
+      />
+
+      {/* 4. Key Metric Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         
         {/* Card A: Policy Coverage Health */}
@@ -210,13 +266,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       </div>
 
-      {/* Policy Document RAG Assistant Widget (Phase 24) */}
+      {/* Policy Document RAG Assistant Widget */}
       <PolicyRagAssistant
         selectedPolicyId={policy?.id}
         policyName={policy?.policy_name}
       />
 
-      {/* 3. Quick Action Shortcuts Bar */}
+      {/* 5. Quick Action Shortcuts Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <button
           onClick={() => onNavigate('hospitals')}
@@ -270,3 +326,4 @@ export const Dashboard: React.FC<DashboardProps> = ({
     </div>
   );
 };
+

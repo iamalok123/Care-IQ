@@ -88,6 +88,54 @@ export class AiExplanationEngine {
       nursingAdminQuestions
     };
   }
+
+  /**
+   * Calculates deterministic coverage confidence score (0-100) and factors breakdown.
+   */
+  public calculateCoverageConfidence(params: {
+    policyId?: string;
+    hospitalId?: string;
+    patientId?: string;
+    isNetworkCashless?: boolean;
+    hasRoomMismatch?: boolean;
+    isPreauthPending?: boolean;
+    hasConsumablesVerified?: boolean;
+  }) {
+    const isNetworkCashless = params.isNetworkCashless ?? true;
+    const hasRoomMismatch = params.hasRoomMismatch ?? false;
+    const isPreauthPending = params.isPreauthPending ?? false;
+    const hasConsumablesVerified = params.hasConsumablesVerified ?? true;
+    const hasPolicy = !!params.policyId;
+
+    const networkScore = isNetworkCashless ? 30 : 15;
+    const roomScore = !hasRoomMismatch ? 25 : 10;
+    const procedureScore = !isPreauthPending ? 20 : 12;
+    const policyScore = hasPolicy ? 15 : 5;
+    const costScore = hasConsumablesVerified ? 10 : 6;
+
+    const totalScore = Math.min(100, Math.max(0, networkScore + roomScore + procedureScore + policyScore + costScore));
+
+    let ratingLabel = 'High Information Certainty';
+    if (totalScore < 70) {
+      ratingLabel = 'Action Required';
+    } else if (totalScore < 85) {
+      ratingLabel = 'Verification Recommended';
+    }
+
+    return {
+      totalScore,
+      ratingLabel,
+      factors: {
+        network: { score: networkScore, maxScore: 30, status: isNetworkCashless ? 'CONFIRMED' : 'UNCONFIRMED', label: isNetworkCashless ? 'In-Network Cashless' : 'Unknown / Reimburse' },
+        room: { score: roomScore, maxScore: 25, status: !hasRoomMismatch ? 'ALIGNED' : 'MISMATCH', label: !hasRoomMismatch ? 'Within Policy Cap' : 'Mismatch Warning' },
+        procedure: { score: procedureScore, maxScore: 20, status: !isPreauthPending ? 'APPROVED' : 'PENDING', label: !isPreauthPending ? 'Pre-Auth Approved' : 'Pre-Auth In Review' },
+        policy: { score: policyScore, maxScore: 15, status: hasPolicy ? 'VALIDATED' : 'MISSING', label: hasPolicy ? 'Extracted & Grounded' : 'Unconfigured' },
+        cost: { score: costScore, maxScore: 10, status: hasConsumablesVerified ? 'MAPPED' : 'ESTIMATED', label: hasConsumablesVerified ? 'Tariffs Mapped' : 'Consumables Est.' }
+      },
+      disclaimer: 'Coverage confidence measures data completeness and rule alignment. It is not an insurance guarantee or binding claim decision.'
+    };
+  }
 }
 
 export const aiExplanationEngine = new AiExplanationEngine();
+

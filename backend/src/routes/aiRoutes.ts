@@ -12,4 +12,8 @@ router.post('/questions', (req, res) => aiController.generateQuestions(req, res)
 // POST /api/ai/rag/query
 router.post('/rag/query', (req, res) => aiController.queryRag(req, res));
 
+// POST /api/ai/coverage-confidence
+router.post('/coverage-confidence', (req, res) => aiController.getCoverageConfidence(req, res));
+
 export default router;
+
