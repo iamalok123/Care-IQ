@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
+import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 import { HospitalMatchView } from './components/HospitalMatchView';
 import { InsuranceView } from './components/InsuranceView';
@@ -12,6 +13,7 @@ import { Sparkles, CheckCircle2 } from 'lucide-react';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   
   // Data State
   const [patients, setPatients] = useState<any[]>([]);
@@ -147,108 +149,128 @@ export function App() {
   const pendingCount = verificationItems.filter((v) => v.status === 'PENDING').length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    <div className="min-h-screen flex bg-slate-50 font-sans text-slate-900">
       
-      {/* Top Navbar */}
-      <Navbar
-        patients={patients}
-        activePatient={activePatient}
-        onSelectPatient={handleSelectPatient}
-        scenarios={scenarios}
-        onLoadScenario={handleLoadScenario}
+      {/* Classical Full-Height Left Sidebar */}
+      <Sidebar
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         pendingVerificationCount={pendingCount}
+        isOpenMobile={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 md:px-6 pb-12">
+      {/* Main Right Area Container (Offset by lg:pl-64) */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen lg:pl-64">
         
-        {/* Feedback Alert Toast */}
-        {feedbackBanner && (
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200 shadow-xs mb-4 animate-fade-in">
-            <CheckCircle2 size={16} className="text-teal-600 shrink-0" />
-            {feedbackBanner}
-          </div>
-        )}
+        {/* Top Header Navbar */}
+        <Navbar
+          patients={patients}
+          activePatient={activePatient}
+          onSelectPatient={handleSelectPatient}
+          scenarios={scenarios}
+          onLoadScenario={handleLoadScenario}
+          onSelectTab={setActiveTab}
+          onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        />
 
-        {loading ? (
-          <div className="text-center py-20 px-4">
-            <Sparkles size={36} className="text-teal-600 mx-auto animate-spin" />
-            <h3 className="text-lg font-bold text-slate-900 mt-3">
-              Loading CareIQ Decision Engine...
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Connecting policy models and hospital networks
-            </p>
-          </div>
-        ) : (
-          <>
-            {activeTab === 'dashboard' && (
-              <Dashboard
-                patient={activePatient}
-                policy={activePolicy}
-                journey={journey}
-                verificationItems={verificationItems}
-                onNavigate={setActiveTab}
-                onOpenQuestionsModal={() =>
-                  setQuestionsModal({
-                    isOpen: true,
-                    hospitalName: hospitals.find((h) => h.id === journey?.hospital_id)?.name || 'the hospital'
-                  })
-                }
-              />
-            )}
+        {/* Main View Content Canvas */}
+        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-350 w-full mx-auto pb-12">
+          
+          {/* Feedback Alert Toast */}
+          {feedbackBanner && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200 shadow-xs mb-4 animate-fade-in">
+              <CheckCircle2 size={16} className="text-teal-600 shrink-0" />
+              {feedbackBanner}
+            </div>
+          )}
 
-            {activeTab === 'hospitals' && (
-              <HospitalMatchView
-                policy={activePolicy}
-                activePatient={activePatient}
-                onStartJourney={handleStartJourney}
-                onOpenQuestions={(hospName, isRoomExceeded) =>
-                  setQuestionsModal({
-                    isOpen: true,
-                    hospitalName: hospName,
-                    isRoomExceeded
-                  })
-                }
-              />
-            )}
+          {loading ? (
+            <div className="text-center py-20 px-4">
+              <Sparkles size={36} className="text-teal-600 mx-auto animate-spin" />
+              <h3 className="text-lg font-bold text-slate-900 mt-3">
+                Loading CareIQ Decision Engine...
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Connecting policy models and hospital networks
+              </p>
+            </div>
+          ) : (
+            <>
+              {activeTab === 'dashboard' && (
+                <Dashboard
+                  patient={activePatient}
+                  policy={activePolicy}
+                  journey={journey}
+                  verificationItems={verificationItems}
+                  onNavigate={setActiveTab}
+                  onOpenQuestionsModal={() =>
+                    setQuestionsModal({
+                      isOpen: true,
+                      hospitalName: hospitals.find((h) => h.id === journey?.hospital_id)?.name || 'the hospital'
+                    })
+                  }
+                />
+              )}
 
-            {activeTab === 'insurance' && (
-              <InsuranceView
-                policies={policies}
-                activePatient={activePatient}
-                onPolicyAdded={() => activePatient && loadDataForPatient(activePatient)}
-              />
-            )}
+              {activeTab === 'hospitals' && (
+                <HospitalMatchView
+                  policy={activePolicy}
+                  activePatient={activePatient}
+                  onStartJourney={handleStartJourney}
+                  onOpenQuestions={(hospName, isRoomExceeded) =>
+                    setQuestionsModal({
+                      isOpen: true,
+                      hospitalName: hospName,
+                      isRoomExceeded
+                    })
+                  }
+                />
+              )}
 
-            {activeTab === 'journey' && (
-              <CareJourneyView
-                journey={journey}
-                hospital={hospitals.find((h) => h.id === journey?.hospital_id)}
-                policy={activePolicy}
-                onEventAdded={() => activePatient && loadDataForPatient(activePatient)}
-              />
-            )}
+              {activeTab === 'insurance' && (
+                <InsuranceView
+                  policies={policies}
+                  activePatient={activePatient}
+                  onPolicyAdded={() => activePatient && loadDataForPatient(activePatient)}
+                />
+              )}
 
-            {activeTab === 'cost' && (
-              <CostBreakdownView
-                policy={activePolicy}
-                hospitals={hospitals}
-              />
-            )}
+              {activeTab === 'journey' && (
+                <CareJourneyView
+                  journey={journey}
+                  hospital={hospitals.find((h) => h.id === journey?.hospital_id)}
+                  policy={activePolicy}
+                  onEventAdded={() => activePatient && loadDataForPatient(activePatient)}
+                />
+              )}
 
-            {activeTab === 'verification' && (
-              <VerificationCenter
-                verificationItems={verificationItems}
-                onItemResolved={refreshVerificationItems}
-              />
-            )}
-          </>
-        )}
+              {activeTab === 'cost' && (
+                <CostBreakdownView
+                  policy={activePolicy}
+                  hospitals={hospitals}
+                />
+              )}
 
-      </main>
+              {activeTab === 'verification' && (
+                <VerificationCenter
+                  verificationItems={verificationItems}
+                  onItemResolved={refreshVerificationItems}
+                />
+              )}
+            </>
+          )}
+
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-slate-200/80 bg-white py-4 px-6 text-center text-xs text-slate-500">
+          <p>
+            <strong>CareIQ</strong> — Decision-Support Platform for Precision Care Challenge 2026. Non-clinical & non-diagnostic. Coverage estimates are indicative.
+          </p>
+        </footer>
+
+      </div>
 
       {/* Global AI Questions Modal */}
       {questionsModal.isOpen && (
@@ -259,15 +281,10 @@ export function App() {
         />
       )}
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
-        <p>
-          <strong>CareIQ</strong> — Decision-Support Platform for Precision Care Challenge 2026. Non-clinical & non-diagnostic. Coverage estimates are indicative.
-        </p>
-      </footer>
-
     </div>
   );
 }
 
 export default App;
+
+
