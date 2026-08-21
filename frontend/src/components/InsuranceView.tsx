@@ -19,12 +19,12 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { ExtractionReviewModal } from './ExtractionReviewModal';
-import { PolicyRagAssistant } from './PolicyRagAssistant';
 
 interface InsuranceViewProps {
   policies: any[];
   activePatient: any;
   onPolicyAdded: () => void;
+  onOpenChatbot?: () => void;
 }
 
 // Insurer Metadata Helper for Rich Branding
@@ -132,7 +132,8 @@ const getInsurerMeta = (insurerId: string = '') => {
 export const InsuranceView: React.FC<InsuranceViewProps> = ({
   policies,
   activePatient,
-  onPolicyAdded
+  onPolicyAdded,
+  onOpenChatbot
 }) => {
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [expandedPolicyId, setExpandedPolicyId] = useState<string | null>(
@@ -768,26 +769,36 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
         )}
       </div>
 
-      {/* 🤖 Interactive Policy Clause Chatbot (Gemini / ChatGPT Style) */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between px-1">
+      {/* 🤖 Interactive Policy Clause Chatbot Launcher */}
+      <div className="bg-slate-900 rounded-2xl p-4 sm:p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm border border-slate-800">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-teal-700 text-white rounded-xl shadow-xs shrink-0">
+            <ShieldCheck size={20} />
+          </div>
           <div>
-            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <span>Policy Intelligence Chatbot</span>
-              <span className="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full border border-indigo-200">
-                Gemini-Powered
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-black tracking-tight text-white">
+                CareIQ Policy Intelligence Copilot
+              </h3>
+              <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-400/30">
+                Grounded Vector RAG
               </span>
-            </h3>
-            <p className="text-xs text-slate-500">
-              Ask questions about coverage, room rent sublimits, proportionate deductions, and IRDAI non-payables
+            </div>
+            <p className="text-xs text-slate-300 mt-0.5">
+              Ask questions about coverage, room rent sublimits, proportionate deductions, and IRDAI non-payables.
             </p>
           </div>
         </div>
 
-        <PolicyRagAssistant
-          selectedPolicyId={policies[0]?.id}
-          policyName={policies[0]?.policy_name}
-        />
+        {onOpenChatbot && (
+          <button
+            type="button"
+            onClick={onOpenChatbot}
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-teal-700 hover:bg-teal-800 text-white shadow-xs cursor-pointer transition-colors shrink-0 self-start sm:self-auto"
+          >
+            Ask Policy Copilot →
+          </button>
+        )}
       </div>
 
       {/* 📝 Manual Add / Ingest Policy Modal */}

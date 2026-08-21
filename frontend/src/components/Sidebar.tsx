@@ -77,14 +77,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Classical Fixed Left Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 bottom-0 h-screen w-64 bg-white border-r border-slate-200/90 z-40 flex flex-col justify-between p-4 shadow-sm
+          fixed top-0 left-0 bottom-0 h-screen w-64 bg-white border-r border-slate-200/90 z-40 flex flex-col justify-between p-4 shadow-xs
           transition-transform duration-300 ease-in-out shrink-0
           ${isOpenMobile ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
         <div className="flex flex-col h-full justify-between">
           <div>
-            {/* Top Brand Header */}
+            {/* Top Brand Header (Subtle single solid color) */}
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
               <div 
                 className="flex items-center gap-3 cursor-pointer select-none"
@@ -93,12 +93,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   if (onCloseMobile) onCloseMobile();
                 }}
               >
-                <div className="bg-linear-to-br from-teal-600 to-indigo-600 text-white p-2 rounded-xl flex items-center justify-center shadow-md shadow-teal-500/20">
+                <div className="bg-teal-700 text-white p-2 rounded-xl flex items-center justify-center shadow-xs">
                   <ShieldCheck size={22} />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-lg font-black tracking-tight bg-linear-to-r from-teal-700 to-indigo-800 bg-clip-text text-transparent">
+                    <span className="text-lg font-black tracking-tight text-slate-900">
                       CareIQ
                     </span>
                     <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
@@ -115,7 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {onCloseMobile && (
                 <button 
                   onClick={onCloseMobile}
-                  className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                  className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                   aria-label="Close sidebar"
                 >
                   <X size={18} />
@@ -130,7 +130,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </h2>
             </div>
 
-            {/* Vertical Navigation Options */}
+            {/* Vertical Navigation Options (Subtle solid single color when active) */}
             <nav className="space-y-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -147,8 +147,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all duration-150 cursor-pointer group
                       ${
                         isActive
-                          ? 'bg-linear-to-r from-teal-600 to-indigo-600 text-white shadow-sm shadow-teal-600/20 font-bold'
-                          : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 font-semibold'
+                          ? 'bg-teal-700 text-white shadow-xs font-bold'
+                          : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-semibold'
                       }
                     `}
                   >
@@ -175,7 +175,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     {item.badge !== undefined && (
                       <span
                         className={`ml-2 px-1.5 py-0.3 rounded-full text-[10px] font-extrabold shrink-0 ${
-                          isActive ? 'bg-white text-teal-700' : 'bg-red-500 text-white'
+                          isActive ? 'bg-white text-teal-800' : 'bg-red-500 text-white'
                         }`}
                       >
                         {item.badge}
@@ -190,7 +190,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Sidebar Footer */}
           <div className="pt-3 border-t border-slate-100 px-2 text-[11px] text-slate-400 font-medium flex items-center justify-between">
             <span>CareIQ v2026.1</span>
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
               Active Session
             </span>
           </div>

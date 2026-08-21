@@ -9,6 +9,8 @@ import { CostBreakdownView } from './components/CostBreakdownView';
 import { VerificationCenter } from './components/VerificationCenter';
 import { AiQuestionsModal } from './components/AiQuestionsModal';
 import { OnboardingWizard } from './components/OnboardingWizard';
+import { ScenarioReferenceModal } from './components/ScenarioReferenceModal';
+import { PolicyRagAssistant } from './components/PolicyRagAssistant';
 import { api } from './services/api';
 import { Sparkles, CheckCircle2 } from 'lucide-react';
 
@@ -16,6 +18,8 @@ export function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
+  const [showScenarioGuide, setShowScenarioGuide] = useState<boolean>(false);
+  const [isChatbotOpen, setIsChatbotOpen] = useState<boolean>(false);
   
   // Data State
   const [patients, setPatients] = useState<any[]>([]);
@@ -38,7 +42,6 @@ export function App() {
     isOpen: false,
     hospitalName: ''
   });
-
 
   const loadDataForPatient = async (patient: any) => {
     try {
@@ -120,7 +123,7 @@ export function App() {
       const vers = await api.getVerificationItems(res.patient?.id);
       setVerificationItems(vers);
 
-      setFeedbackBanner(`Loaded Scenario: ${res.scenario.name}`);
+      setFeedbackBanner(`Loaded Scenario: ${res.scenario?.name || scenarioId}`);
       setTimeout(() => setFeedbackBanner(null), 4000);
     } catch (err) {
       console.error('Failed to activate scenario:', err);
@@ -156,7 +159,7 @@ export function App() {
   const pendingCount = verificationItems.filter((v) => v.status === 'PENDING').length;
 
   return (
-    <div className="min-h-screen flex bg-slate-50 font-sans text-slate-900">
+    <div className="min-h-screen flex bg-slate-50 font-sans text-slate-900 relative">
       
       {/* Classical Full-Height Left Sidebar */}
       <Sidebar
@@ -183,14 +186,15 @@ export function App() {
             localStorage.removeItem('careiq_onboarding_completed');
             setShowOnboarding(true);
           }}
+          onOpenScenarioGuide={() => setShowScenarioGuide(true)}
         />
 
         {/* Main View Content Canvas */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-350 w-full mx-auto pb-12">
+        <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-7 max-w-350 w-full mx-auto pb-16">
           
           {/* Feedback Alert Toast */}
           {feedbackBanner && (
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200 shadow-xs mb-4 animate-fade-in">
+            <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200 shadow-xs mb-3.5 animate-fade-in">
               <CheckCircle2 size={16} className="text-teal-600 shrink-0" />
               {feedbackBanner}
             </div>
@@ -221,6 +225,8 @@ export function App() {
                       hospitalName: hospitals.find((h) => h.id === journey?.hospital_id)?.name || 'the hospital'
                     })
                   }
+                  onOpenScenarioGuide={() => setShowScenarioGuide(true)}
+                  onOpenChatbot={() => setIsChatbotOpen(true)}
                 />
               )}
 
@@ -244,6 +250,7 @@ export function App() {
                   policies={policies}
                   activePatient={activePatient}
                   onPolicyAdded={() => activePatient && loadDataForPatient(activePatient)}
+                  onOpenChatbot={() => setIsChatbotOpen(true)}
                 />
               )}
 
@@ -275,13 +282,51 @@ export function App() {
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-slate-200/80 bg-white py-4 px-6 text-center text-xs text-slate-500">
+        <footer className="border-t border-slate-200/80 bg-white py-3.5 px-6 text-center text-xs text-slate-500">
           <p>
             <strong>CareIQ</strong> — Decision-Support Platform for Precision Care Challenge 2026. Non-clinical & non-diagnostic. Coverage estimates are indicative.
           </p>
         </footer>
 
       </div>
+
+      {/* 🚀 Bottom-Right Floating Action Button (FAB) for Policy Copilot (Only on Dashboard and Insurance pages) */}
+      {(activeTab === 'dashboard' || activeTab === 'insurance') && (
+        <>
+          <div className="fixed bottom-5 right-5 z-40">
+            <button
+              type="button"
+              onClick={() => setIsChatbotOpen(!isChatbotOpen)}
+              className={`inline-flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl shadow-lg transition-all duration-200 cursor-pointer select-none border ${
+                isChatbotOpen
+                  ? 'bg-slate-900 text-white border-slate-700 shadow-slate-900/20'
+                  : 'bg-teal-700 hover:bg-teal-800 text-white border-teal-800 shadow-teal-900/20 hover:scale-[1.02] active:scale-[0.98]'
+              }`}
+              title="Ask CareIQ Policy AI Copilot"
+              aria-label="Toggle Policy Chatbot"
+            >
+              <div className="relative flex items-center justify-center">
+                <Sparkles size={16} className="text-white" />
+              </div>
+              <span className="text-xs font-bold tracking-tight hidden sm:inline">
+                {isChatbotOpen ? 'Close Copilot' : 'Ask Policy Copilot'}
+              </span>
+              <span className="text-xs font-bold tracking-tight sm:hidden">
+                {isChatbotOpen ? 'Close' : 'Copilot'}
+              </span>
+            </button>
+          </div>
+
+          {/* 💬 Floating Policy AI Copilot Modal Window */}
+          <PolicyRagAssistant
+            selectedPolicyId={activePolicy?.id}
+            policyName={activePolicy?.policy_name}
+            isOpen={isChatbotOpen}
+            onClose={() => setIsChatbotOpen(false)}
+            isFloating={true}
+          />
+        </>
+      )}
 
       {/* Global AI Questions Modal */}
       {questionsModal.isOpen && (
@@ -300,11 +345,15 @@ export function App() {
         onNavigateTab={setActiveTab}
       />
 
+      {/* 11 Scenarios Comparative Reference Guide Modal */}
+      <ScenarioReferenceModal
+        isOpen={showScenarioGuide}
+        onClose={() => setShowScenarioGuide(false)}
+        onSelectScenario={handleLoadScenario}
+      />
+
     </div>
   );
 }
 
 export default App;
-
-
-

@@ -1,5 +1,13 @@
 import React from 'react';
-import { ShieldCheck, UserCheck, PlayCircle, Menu, Compass } from 'lucide-react';
+import { 
+  ShieldCheck, 
+  UserCheck, 
+  PlayCircle, 
+  Menu, 
+  Compass, 
+  Sparkles
+} from 'lucide-react';
+import { InfoPopover } from './InfoPopover';
 
 interface NavbarProps {
   patients: any[];
@@ -11,6 +19,7 @@ interface NavbarProps {
   loadingScenario?: boolean;
   onToggleMobileSidebar?: () => void;
   onOpenOnboarding?: () => void;
+  onOpenScenarioGuide?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -22,13 +31,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectTab,
   loadingScenario,
   onToggleMobileSidebar,
-  onOpenOnboarding
+  onOpenOnboarding,
+  onOpenScenarioGuide
 }) => {
   return (
-    <header className="bg-white border-b border-slate-200/80 px-3 sm:px-6 py-3 sticky top-0 z-30 shadow-xs">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 max-w-350 mx-auto">
+    <header className="bg-white border-b border-slate-200/80 px-3 sm:px-6 py-2.5 sticky top-0 z-30 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 max-w-350 mx-auto">
         
-        {/* Mobile Header Bar (Menu button & Title/Brand) */}
+        {/* Mobile / Desktop Brand & Subtitle */}
         <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
           <div className="flex items-center gap-2.5">
             {/* Mobile sidebar toggle button */}
@@ -38,11 +48,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200/80 sm:border-0"
                 aria-label="Toggle navigation menu"
               >
-                <Menu size={20} />
+                <Menu size={18} />
               </button>
             )}
 
-            {/* Mobile Brand View (visible on small screens when sidebar is collapsed) */}
+            {/* Mobile Brand View */}
             <div
               className="flex items-center gap-2 cursor-pointer lg:hidden"
               onClick={() => onSelectTab('dashboard')}
@@ -55,9 +65,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </div>
 
-            {/* Desktop Subtitle / Title */}
+            {/* Desktop Title & Subtitle (Clean without unnecessary (i) button) */}
             <div className="hidden lg:block">
-              <h1 className="text-sm font-extrabold text-slate-800 tracking-tight">
+              <h1 className="text-sm font-black text-slate-900 tracking-tight">
                 Hospital & Insurance Decision Support
               </h1>
               <p className="text-[11px] text-slate-500 font-medium">
@@ -67,8 +77,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Global Controls: Demo Loader, Patient Switcher & Welcome Guide */}
-        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+        {/* Global Controls: Tour, Scenario Matrix Guide, Demo Loader, Patient Selector */}
+        <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
           
           {/* Welcome Guide Trigger */}
           {onOpenOnboarding && (
@@ -82,6 +92,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
+          {/* Scenario Reference Matrix Modal Trigger */}
+          {onOpenScenarioGuide && (
+            <button
+              type="button"
+              onClick={onOpenScenarioGuide}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition-all cursor-pointer shrink-0 shadow-2xs"
+              title="Open 11 Scenarios Comparative Reference Guide"
+            >
+              <Sparkles size={14} className="text-indigo-600" />
+              <span className="hidden sm:inline">Scenario Guide</span>
+              <span className="sm:hidden">Scenarios</span>
+            </button>
+          )}
+
           {/* Persona Demo Loader */}
           <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-xl shadow-2xs text-xs flex-1 sm:flex-none">
             <PlayCircle size={15} className="text-indigo-600 shrink-0" />
@@ -92,7 +116,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 if (e.target.value) onLoadScenario(e.target.value);
               }}
               defaultValue=""
-              className="bg-transparent font-semibold text-slate-800 outline-hidden cursor-pointer w-full sm:max-w-40 truncate"
+              className="bg-transparent font-semibold text-slate-800 outline-hidden cursor-pointer w-full sm:max-w-44 truncate text-xs"
             >
               <option value="" disabled>Select Scenario...</option>
               {scenarios.map((sc) => (
@@ -103,17 +127,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             </select>
           </div>
 
-          {/* Patient Selector */}
-          <div className="flex items-center gap-1.5 bg-teal-50/80 border border-teal-200 px-2.5 py-1.5 rounded-xl shadow-2xs text-xs flex-1 sm:flex-none">
+          {/* Patient Selector Container with Isolated (i) Info Button */}
+          <div className="flex items-center gap-1 bg-teal-50/90 border border-teal-200 pl-2.5 pr-1.5 py-1 rounded-xl shadow-2xs text-xs flex-1 sm:flex-none">
             <UserCheck size={15} className="text-teal-700 shrink-0" />
             <span className="font-bold text-teal-800 hidden md:inline shrink-0">Patient:</span>
+            
             <select
               value={activePatient?.id || ''}
               onChange={(e) => {
                 const found = patients.find((p) => p.id === e.target.value);
                 if (found) onSelectPatient(found);
               }}
-              className="bg-transparent font-bold text-teal-800 outline-hidden cursor-pointer w-full sm:max-w-44 truncate"
+              className="bg-transparent font-bold text-teal-900 outline-hidden cursor-pointer w-full sm:max-w-40 truncate text-xs pr-1"
             >
               {patients.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -121,6 +146,25 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </option>
               ))}
             </select>
+
+            {/* Dedicated, isolated InfoPopover for Patient Details */}
+            {activePatient && (
+              <div className="shrink-0 pl-0.5" onClick={(e) => e.stopPropagation()}>
+                <InfoPopover
+                  title={`${activePatient.display_name} — Details`}
+                  size="xs"
+                  variant="teal"
+                  align="right"
+                  content="Active synthetic patient context loaded into CareIQ decision engines."
+                  details={[
+                    { label: 'Age & Gender', value: `${activePatient.age || 42} / ${activePatient.gender || 'Female'}` },
+                    { label: 'Location', value: activePatient.city || 'Bengaluru' },
+                    { label: 'Admission Type', value: activePatient.admission_type || 'Elective Planned' },
+                    { label: 'Active Diagnosis', value: activePatient.diagnosis || 'Clinical Diagnosis' }
+                  ]}
+                />
+              </div>
+            )}
           </div>
 
         </div>
@@ -129,5 +173,3 @@ export const Navbar: React.FC<NavbarProps> = ({
     </header>
   );
 };
-
-

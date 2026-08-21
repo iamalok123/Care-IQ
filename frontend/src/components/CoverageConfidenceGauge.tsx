@@ -6,6 +6,7 @@ import {
   ChevronDown, 
   ChevronUp 
 } from 'lucide-react';
+import { InfoPopover } from './InfoPopover';
 
 interface CoverageConfidenceGaugeProps {
   policy: any;
@@ -67,7 +68,6 @@ export const CoverageConfidenceGauge: React.FC<CoverageConfidenceGaugeProps> = (
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (totalScore / 100) * circumference;
 
-
   return (
     <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs transition-all hover:shadow-md">
       
@@ -77,9 +77,8 @@ export const CoverageConfidenceGauge: React.FC<CoverageConfidenceGaugeProps> = (
         <div className="flex items-center gap-4">
           
           {/* Radial SVG Gauge */}
-          <div className="relative w-22 h-22 shrink-0 flex items-center justify-center">
+          <div className="relative w-20 h-20 shrink-0 flex items-center justify-center">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-              {/* Background Track Circle */}
               <circle
                 cx="50"
                 cy="50"
@@ -89,7 +88,6 @@ export const CoverageConfidenceGauge: React.FC<CoverageConfidenceGaugeProps> = (
                 stroke="currentColor"
                 fill="transparent"
               />
-              {/* Progress Arc */}
               <circle
                 cx="50"
                 cy="50"
@@ -115,22 +113,35 @@ export const CoverageConfidenceGauge: React.FC<CoverageConfidenceGaugeProps> = (
             </div>
           </div>
 
-          {/* Title & Summary */}
+          {/* Title & Summary with Info Button */}
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-500">
                 Coverage Confidence Score
               </span>
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${ratingColor}`}>
                 {ratingLabel}
               </span>
+              <InfoPopover
+                title="Coverage Confidence Index"
+                size="xs"
+                variant="teal"
+                content="A deterministic composite index reflecting data availability, room rent rule alignment, and TPA pre-authorization status."
+                details={[
+                  { label: 'Hospital Network Status', value: `${networkScore}/30 pts` },
+                  { label: 'Room Category Entitlement', value: `${roomScore}/25 pts` },
+                  { label: 'Pre-Authorization Status', value: `${procedureScore}/20 pts` },
+                  { label: 'Policy Parameter Grounding', value: `${policyScore}/15 pts` },
+                  { label: 'Consumables & Cost Clarity', value: `${costScore}/10 pts` }
+                ]}
+              />
             </div>
             <h3 className="text-base font-extrabold text-slate-900 leading-tight">
               {totalScore >= 85 && 'Strong Alignment with Policy Terms'}
               {totalScore >= 70 && totalScore < 85 && 'Room or Pre-Auth Verification Recommended'}
               {totalScore < 70 && 'Critical Discrepancy or Desk Confirmation Needed'}
             </h3>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-500 mt-0.5">
               Measures policy data completeness, room eligibility match, and cashless certainty.
             </p>
           </div>
@@ -170,15 +181,15 @@ export const CoverageConfidenceGauge: React.FC<CoverageConfidenceGaugeProps> = (
               <div className="text-xs font-extrabold text-slate-900">
                 {isNetworkCashless ? 'In-Network Cashless' : 'Unknown / Reimburse'}
               </div>
-              <span className="text-[10px] text-slate-500 block mt-0.5">
-                Score: {networkScore}/30 pts
+              <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">
+                Weight: {networkScore}/30 pts
               </span>
             </div>
 
             {/* Factor 2: Room */}
             <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-bold text-slate-600">2. Room Eligibility</span>
+                <span className="text-[11px] font-bold text-slate-600">2. Room Entitlement</span>
                 {!hasRoomMismatch ? (
                   <CheckCircle2 size={15} className="text-teal-600" />
                 ) : (
@@ -188,8 +199,8 @@ export const CoverageConfidenceGauge: React.FC<CoverageConfidenceGaugeProps> = (
               <div className="text-xs font-extrabold text-slate-900">
                 {!hasRoomMismatch ? 'Within Policy Cap' : 'Mismatch Warning'}
               </div>
-              <span className="text-[10px] text-slate-500 block mt-0.5">
-                Score: {roomScore}/25 pts
+              <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">
+                Weight: {roomScore}/25 pts
               </span>
             </div>
 
@@ -206,8 +217,8 @@ export const CoverageConfidenceGauge: React.FC<CoverageConfidenceGaugeProps> = (
               <div className="text-xs font-extrabold text-slate-900">
                 {!isPreauthPending ? 'Pre-Auth Approved' : 'Pre-Auth In Review'}
               </div>
-              <span className="text-[10px] text-slate-500 block mt-0.5">
-                Score: {procedureScore}/20 pts
+              <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">
+                Weight: {procedureScore}/20 pts
               </span>
             </div>
 
@@ -220,8 +231,8 @@ export const CoverageConfidenceGauge: React.FC<CoverageConfidenceGaugeProps> = (
               <div className="text-xs font-extrabold text-slate-900">
                 {policy ? 'Extracted & Grounded' : 'Unconfigured'}
               </div>
-              <span className="text-[10px] text-slate-500 block mt-0.5">
-                Score: {policyScore}/15 pts
+              <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">
+                Weight: {policyScore}/15 pts
               </span>
             </div>
 
@@ -238,8 +249,8 @@ export const CoverageConfidenceGauge: React.FC<CoverageConfidenceGaugeProps> = (
               <div className="text-xs font-extrabold text-slate-900">
                 {hasConsumablesVerified ? 'Tariffs Mapped' : 'Consumables Est.'}
               </div>
-              <span className="text-[10px] text-slate-500 block mt-0.5">
-                Score: {costScore}/10 pts
+              <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">
+                Weight: {costScore}/10 pts
               </span>
             </div>
 
@@ -250,7 +261,7 @@ export const CoverageConfidenceGauge: React.FC<CoverageConfidenceGaugeProps> = (
             <div className="flex items-center gap-1.5">
               <Info size={14} className="text-teal-700 shrink-0" />
               <span>
-                <strong>Information Confidence Index:</strong> Reflects data availability & rule certainty. Not a binding claim guarantee.
+                <strong>Information Confidence Index:</strong> Deterministic model calculation. Subject to final TPA settlement.
               </span>
             </div>
             {onOpenQuestionsModal && pendingVerifications.length > 0 && (

@@ -11,7 +11,8 @@ import {
   BedDouble,
   Activity,
   MapPin,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Star
 } from 'lucide-react';
 
 import { api } from '../services/api';
@@ -238,23 +239,25 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
                   isSelectedForCompare
                     ? 'bg-indigo-50/40 border-indigo-400 ring-2 ring-indigo-500/20'
                     : isTopRank
-                    ? 'bg-linear-to-br from-white to-teal-50/40 border-teal-300 ring-1 ring-teal-200'
+                    ? 'bg-teal-50/30 border-teal-300 ring-1 ring-teal-200'
                     : 'bg-white border-slate-200 hover:shadow-md'
                 }`}
               >
-                {isTopRank && (
-                  <span className="absolute top-4 right-4 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-600 text-white shadow-xs">
-                    ★ Highest Compatibility
-                  </span>
-                )}
-
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   
                   {/* Hospital Info & Badges */}
                   <div className="flex-1 min-w-70">
-                    <h3 className="text-lg md:text-xl font-extrabold text-slate-900 mb-1">
-                      {h.name}
-                    </h3>
+                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                      <h3 className="text-lg md:text-xl font-extrabold text-slate-900">
+                        {h.name}
+                      </h3>
+                      {isTopRank && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-900 text-white shadow-xs">
+                          <Star size={12} className="text-amber-400 fill-amber-400 shrink-0" />
+                          Highest Compatibility
+                        </span>
+                      )}
+                    </div>
 
                     <p className="text-xs text-slate-500 flex items-center gap-1.5 mb-3">
                       <MapPin size={14} className="text-slate-400 shrink-0" />
@@ -300,12 +303,12 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
                   </div>
 
                   {/* Match Score & Financial Summary */}
-                  <div className="flex items-center gap-5">
+                  <div className="flex items-center gap-4 sm:gap-5 shrink-0">
                     
                     {/* Financial Estimate */}
                     <div className="text-right">
                       <div className="text-[11px] font-semibold text-slate-500">Indicative Patient Exposure</div>
-                      <div className={`text-xl font-extrabold ${item.estimatedPatientExposure > 30000 ? 'text-amber-600' : 'text-teal-600'}`}>
+                      <div className={`text-xl font-extrabold ${item.estimatedPatientExposure > 30000 ? 'text-amber-600' : 'text-teal-700'}`}>
                         ₹{item.estimatedPatientExposure.toLocaleString()}
                       </div>
                       <div className="text-[10px] text-slate-400">
@@ -315,12 +318,12 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
 
                     {/* Match Score Badge */}
                     <div
-                      className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center text-white shadow-md ${
+                      className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center text-white shadow-xs ${
                         item.matchScore >= 90
-                          ? 'bg-linear-to-br from-teal-600 to-emerald-600 shadow-teal-500/20'
+                          ? 'bg-teal-700'
                           : item.matchScore >= 70
-                          ? 'bg-linear-to-br from-amber-500 to-amber-600 shadow-amber-500/20'
-                          : 'bg-linear-to-br from-red-500 to-red-600 shadow-red-500/20'
+                          ? 'bg-amber-600'
+                          : 'bg-red-600'
                       }`}
                     >
                       <span className="text-lg font-extrabold leading-none">{item.matchScore}</span>
