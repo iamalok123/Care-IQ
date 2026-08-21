@@ -209,7 +209,7 @@ The frontend Vite application will start on **`http://localhost:5173`**.
 
 ---
 
-## 🧪 Testing & Benchmark Execution
+## 🧪 Database Management & Test Execution
 
 From the `backend/` directory:
 
@@ -217,11 +217,23 @@ From the `backend/` directory:
 # 1. Run Unit & Integration Test Suite
 npm test
 
-# 2. Run AI Safety & Evaluation Benchmark Suite (6 Scenarios)
-npm run test:eval
+# 2. Run Comprehensive 14-Scenario Matrix Suite
+npm run test:matrix
 
-# 3. Seed / Reset Master Data & Persona Scenarios
-npm run seed
+# 3. Check Supabase Database Status & Migration History
+npm run db:status
+
+# 4. Run Pending Database Migrations
+npm run db:migrate
+
+# 5. Seed / Reset Master Data & Persona Scenarios into Database
+npm run db:seed
+
+# 6. Verify 100% Supabase PostgreSQL Data Parity
+npm run verify:supabase
+
+# 7. Run AI Safety & Evaluation Benchmark Suite
+npm run test:eval
 ```
 
 ---

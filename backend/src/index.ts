@@ -11,6 +11,9 @@ import verificationRoutes from './routes/verificationRoutes';
 import costRoutes from './routes/costRoutes';
 import aiRoutes from './routes/aiRoutes';
 import scenarioRoutes from './routes/scenarioRoutes';
+import { checkSupabaseConnection } from './config/supabase';
+import { dataRepository } from './services/dataRepository';
+import { dbManager } from './db/dbManager';
 
 dotenv.config();
 
@@ -30,12 +33,20 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // Health check endpoint
-app.get('/api/health', (req: Request, res: Response) => {
+app.get('/api/health', async (req: Request, res: Response) => {
+  const dbStatus = await checkSupabaseConnection();
   res.json({
     success: true,
     data: {
       status: 'ok',
       service: 'CareIQ Decision-Support Backend API',
+      database: {
+        provider: 'Supabase PostgreSQL',
+        connected: dbStatus.connected,
+        tablesAvailable: dbStatus.tablesAvailable,
+        isDatabaseSynced: dataRepository.getIsDatabaseSynced(),
+        message: dbStatus.message
+      },
       timestamp: new Date().toISOString()
     }
   });
@@ -75,8 +86,9 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`CareIQ Backend Server is listening on http://localhost:${port}`);
+  await dbManager.initializeOnStartup();
 });
 
 export default app;

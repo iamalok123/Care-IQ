@@ -179,7 +179,10 @@ export function App() {
           onLoadScenario={handleLoadScenario}
           onSelectTab={setActiveTab}
           onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-          onOpenOnboarding={() => setShowOnboarding(true)}
+          onOpenOnboarding={() => {
+            localStorage.removeItem('careiq_onboarding_completed');
+            setShowOnboarding(true);
+          }}
         />
 
         {/* Main View Content Canvas */}

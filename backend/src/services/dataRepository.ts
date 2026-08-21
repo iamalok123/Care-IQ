@@ -22,17 +22,17 @@ import {
   VerificationItem,
   Document,
   DocumentExtraction,
-  ExtractionEvidence,
-  DataStatus,
-  VerificationStatus,
-  ConfidenceLevel
+  ExtractionEvidence
 } from '../types/domain';
+import { supabaseRepository } from './supabaseRepository';
+import { isSupabaseConfigured, checkSupabaseConnection } from '../config/supabase';
 
-class DataRepository {
+export class DataRepository {
   private baseDataDir: string;
   private cleanedDir: string;
   private syntheticDir: string;
   private scenariosDir: string;
+  private isDatabaseSynced: boolean = false;
 
   public hospitals: Hospital[] = [];
   public hospitalRooms: HospitalRoom[] = [];
@@ -55,6 +55,7 @@ class DataRepository {
   public documents: Document[] = [];
   public extractions: DocumentExtraction[] = [];
   public extractionEvidence: ExtractionEvidence[] = [];
+  public scenarios: any[] = [];
 
   constructor() {
     this.baseDataDir = path.resolve(__dirname, '../../../../data');
@@ -65,6 +66,7 @@ class DataRepository {
     this.syntheticDir = path.join(this.baseDataDir, 'synthetic');
     this.scenariosDir = path.join(this.baseDataDir, 'scenarios');
 
+    // Synchronously load local fallback datasets as baseline
     this.loadAllData();
   }
 
@@ -105,9 +107,105 @@ class DataRepository {
     this.patients = this.readJsonFile<Patient[]>(path.join(this.syntheticDir, 'patients.json'), []);
     this.journeys = this.readJsonFile<(CareJourney & { events: JourneyEvent[] })[]>(path.join(this.syntheticDir, 'journeys.json'), []);
     this.verificationItems = this.readJsonFile<VerificationItem[]>(path.join(this.syntheticDir, 'verification_items.json'), []);
+
+    if (fs.existsSync(this.scenariosDir)) {
+      const files = fs.readdirSync(this.scenariosDir).filter((f) => f.endsWith('.json'));
+      this.scenarios = files.map((file) => this.readJsonFile(path.join(this.scenariosDir, file), null)).filter(Boolean);
+    }
   }
 
+  /**
+   * Synchronizes in-memory caches directly from Supabase PostgreSQL tables.
+   */
+  public async syncFromSupabase(): Promise<boolean> {
+    const check = await checkSupabaseConnection();
+    if (!check.connected || !check.tablesAvailable) {
+      return false;
+    }
+
+    try {
+      const [
+        hospitals,
+        hospitalRooms,
+        hospitalSpecialties,
+        hospitalServices,
+        specialties,
+        services,
+        roomCategories,
+        procedures,
+        procedureCosts,
+        costComponents,
+        hospitalNetworks,
+        insurers,
+        policies,
+        policyRules,
+        policyExclusions,
+        patients,
+        journeys,
+        verificationItems,
+        documents,
+        scenarios
+      ] = await Promise.all([
+        supabaseRepository.fetchHospitals(),
+        supabaseRepository.fetchHospitalRooms(),
+        supabaseRepository.fetchHospitalSpecialties(),
+        supabaseRepository.fetchHospitalServices(),
+        supabaseRepository.fetchSpecialties(),
+        supabaseRepository.fetchServices(),
+        supabaseRepository.fetchRoomCategories(),
+        supabaseRepository.fetchProcedures(),
+        supabaseRepository.fetchProcedureCosts(),
+        supabaseRepository.fetchCostComponents(),
+        supabaseRepository.fetchHospitalNetworks(),
+        supabaseRepository.fetchInsurers(),
+        supabaseRepository.fetchPolicies(),
+        supabaseRepository.fetchPolicyRules(),
+        supabaseRepository.fetchPolicyExclusions(),
+        supabaseRepository.fetchPatients(),
+        supabaseRepository.fetchJourneys(),
+        supabaseRepository.fetchVerificationItems(),
+        supabaseRepository.fetchDocuments(),
+        supabaseRepository.fetchScenarios()
+      ]);
+
+      if (hospitals.length > 0) this.hospitals = hospitals;
+      if (hospitalRooms.length > 0) this.hospitalRooms = hospitalRooms;
+      if (hospitalSpecialties.length > 0) this.hospitalSpecialties = hospitalSpecialties;
+      if (hospitalServices.length > 0) this.hospitalServices = hospitalServices;
+      if (specialties.length > 0) this.specialties = specialties;
+      if (services.length > 0) this.services = services;
+      if (roomCategories.length > 0) this.roomCategories = roomCategories;
+      if (procedures.length > 0) this.procedures = procedures;
+      if (procedureCosts.length > 0) this.procedureCosts = procedureCosts;
+      if (costComponents.length > 0) this.costComponents = costComponents;
+      if (hospitalNetworks.length > 0) this.hospitalNetworks = hospitalNetworks;
+      if (insurers.length > 0) this.insurers = insurers;
+      if (policies.length > 0) this.policies = policies;
+      if (policyRules.length > 0) this.policyRules = policyRules;
+      if (policyExclusions.length > 0) this.policyExclusions = policyExclusions;
+      if (patients.length > 0) this.patients = patients;
+      if (journeys.length > 0) this.journeys = journeys;
+      if (verificationItems.length > 0) this.verificationItems = verificationItems;
+      if (documents.length > 0) this.documents = documents;
+      if (scenarios.length > 0) this.scenarios = scenarios;
+
+      this.isDatabaseSynced = true;
+      console.log('✅ CareIQ DataRepository synchronized live from Supabase PostgreSQL!');
+      return true;
+    } catch (err: any) {
+      console.warn('⚠️  Supabase live sync encountered error, retained local cache:', err?.message || err);
+      return false;
+    }
+  }
+
+  public getIsDatabaseSynced(): boolean {
+    return this.isDatabaseSynced;
+  }
+
+  // ==========================================
   // Patients
+  // ==========================================
+
   public getPatients(): Patient[] {
     return this.patients;
   }
@@ -117,11 +215,25 @@ class DataRepository {
   }
 
   public addPatient(patient: Patient): Patient {
-    this.patients.push(patient);
+    const existingIdx = this.patients.findIndex((p) => p.id === patient.id);
+    if (existingIdx >= 0) {
+      this.patients[existingIdx] = patient;
+    } else {
+      this.patients.push(patient);
+    }
+
+    if (isSupabaseConfigured) {
+      supabaseRepository.insertPatient(patient).catch((err) => {
+        console.error('Failed to sync new patient to Supabase:', err);
+      });
+    }
     return patient;
   }
 
-  // Policies
+  // ==========================================
+  // Policies & Rules
+  // ==========================================
+
   public getPolicies(): InsurancePolicy[] {
     return this.policies;
   }
@@ -135,7 +247,18 @@ class DataRepository {
   }
 
   public addPolicy(policy: InsurancePolicy): InsurancePolicy {
-    this.policies.push(policy);
+    const existingIdx = this.policies.findIndex((p) => p.id === policy.id);
+    if (existingIdx >= 0) {
+      this.policies[existingIdx] = policy;
+    } else {
+      this.policies.push(policy);
+    }
+
+    if (isSupabaseConfigured) {
+      supabaseRepository.insertPolicy(policy).catch((err) => {
+        console.error('Failed to sync new policy to Supabase:', err);
+      });
+    }
     return policy;
   }
 
@@ -147,7 +270,30 @@ class DataRepository {
     return this.policyExclusions.filter((e) => e.policy_id === policyId);
   }
 
-  // Hospitals
+  public addPolicyRules(rules: PolicyRule[]): PolicyRule[] {
+    this.policyRules.push(...rules);
+    if (isSupabaseConfigured) {
+      supabaseRepository.insertPolicyRules(rules).catch((err) => {
+        console.error('Failed to sync policy rules to Supabase:', err);
+      });
+    }
+    return rules;
+  }
+
+  public addPolicyExclusions(exclusions: PolicyExclusion[]): PolicyExclusion[] {
+    this.policyExclusions.push(...exclusions);
+    if (isSupabaseConfigured) {
+      supabaseRepository.insertPolicyExclusions(exclusions).catch((err) => {
+        console.error('Failed to sync policy exclusions to Supabase:', err);
+      });
+    }
+    return exclusions;
+  }
+
+  // ==========================================
+  // Hospitals, Rooms, Networks & Costs
+  // ==========================================
+
   public getHospitals(): Hospital[] {
     return this.hospitals;
   }
@@ -190,7 +336,10 @@ class DataRepository {
     return this.costComponents.filter((cc) => cc.procedure_cost_id === procedureCostId);
   }
 
+  // ==========================================
   // Care Journeys
+  // ==========================================
+
   public getJourneys(): (CareJourney & { events: JourneyEvent[] })[] {
     return this.journeys;
   }
@@ -200,7 +349,18 @@ class DataRepository {
   }
 
   public addJourney(journey: CareJourney & { events: JourneyEvent[] }): CareJourney & { events: JourneyEvent[] } {
-    this.journeys.push(journey);
+    const existingIdx = this.journeys.findIndex((j) => j.id === journey.id);
+    if (existingIdx >= 0) {
+      this.journeys[existingIdx] = journey;
+    } else {
+      this.journeys.push(journey);
+    }
+
+    if (isSupabaseConfigured) {
+      supabaseRepository.insertJourney(journey).catch((err) => {
+        console.error('Failed to sync new journey to Supabase:', err);
+      });
+    }
     return journey;
   }
 
@@ -210,10 +370,19 @@ class DataRepository {
     journey.events.push(event);
     journey.current_stage = event.stage;
     journey.updated_at = new Date().toISOString();
+
+    if (isSupabaseConfigured) {
+      supabaseRepository.insertJourneyEvent(journeyId, event).catch((err) => {
+        console.error('Failed to sync journey event to Supabase:', err);
+      });
+    }
     return event;
   }
 
+  // ==========================================
   // Verification Items
+  // ==========================================
+
   public getVerificationItems(patientId?: string, journeyId?: string): VerificationItem[] {
     return this.verificationItems.filter((item) => {
       if (patientId && item.patient_id !== patientId) return false;
@@ -223,7 +392,18 @@ class DataRepository {
   }
 
   public addVerificationItem(item: VerificationItem): VerificationItem {
-    this.verificationItems.push(item);
+    const existingIdx = this.verificationItems.findIndex((v) => v.id === item.id);
+    if (existingIdx >= 0) {
+      this.verificationItems[existingIdx] = item;
+    } else {
+      this.verificationItems.push(item);
+    }
+
+    if (isSupabaseConfigured) {
+      supabaseRepository.insertVerificationItem(item).catch((err) => {
+        console.error('Failed to sync verification item to Supabase:', err);
+      });
+    }
     return item;
   }
 
@@ -232,21 +412,20 @@ class DataRepository {
     if (item) {
       item.status = 'RESOLVED' as any;
       item.resolved_at = new Date().toISOString();
+
+      if (isSupabaseConfigured) {
+        supabaseRepository.resolveVerificationItem(id).catch((err) => {
+          console.error('Failed to resolve verification item in Supabase:', err);
+        });
+      }
     }
     return item;
   }
 
-  public addPolicyRules(rules: PolicyRule[]): PolicyRule[] {
-    this.policyRules.push(...rules);
-    return rules;
-  }
+  // ==========================================
+  // Documents & Extractions
+  // ==========================================
 
-  public addPolicyExclusions(exclusions: PolicyExclusion[]): PolicyExclusion[] {
-    this.policyExclusions.push(...exclusions);
-    return exclusions;
-  }
-
-  // Documents
   public getDocuments(): Document[] {
     return this.documents;
   }
@@ -256,7 +435,18 @@ class DataRepository {
   }
 
   public addDocument(doc: Document): Document {
-    this.documents.push(doc);
+    const existingIdx = this.documents.findIndex((d) => d.id === doc.id);
+    if (existingIdx >= 0) {
+      this.documents[existingIdx] = doc;
+    } else {
+      this.documents.push(doc);
+    }
+
+    if (isSupabaseConfigured) {
+      supabaseRepository.insertDocument(doc).catch((err) => {
+        console.error('Failed to sync document to Supabase:', err);
+      });
+    }
     return doc;
   }
 
@@ -268,13 +458,29 @@ class DataRepository {
     if (doc) {
       doc.extraction_status = status;
       doc.updated_at = new Date().toISOString();
+
+      if (isSupabaseConfigured) {
+        supabaseRepository.updateDocumentExtractionStatus(id, status).catch((err) => {
+          console.error('Failed to update document status in Supabase:', err);
+        });
+      }
     }
     return doc;
   }
 
-  // Extractions & Evidence
   public addExtraction(extraction: DocumentExtraction): DocumentExtraction {
-    this.extractions.push(extraction);
+    const existingIdx = this.extractions.findIndex((e) => e.id === extraction.id);
+    if (existingIdx >= 0) {
+      this.extractions[existingIdx] = extraction;
+    } else {
+      this.extractions.push(extraction);
+    }
+
+    if (isSupabaseConfigured) {
+      supabaseRepository.insertExtraction(extraction).catch((err) => {
+        console.error('Failed to sync extraction to Supabase:', err);
+      });
+    }
     return extraction;
   }
 
@@ -284,6 +490,12 @@ class DataRepository {
 
   public addExtractionEvidence(evidence: ExtractionEvidence[]): ExtractionEvidence[] {
     this.extractionEvidence.push(...evidence);
+
+    if (isSupabaseConfigured) {
+      supabaseRepository.insertExtractionEvidences(evidence).catch((err) => {
+        console.error('Failed to sync extraction evidences to Supabase:', err);
+      });
+    }
     return evidence;
   }
 
@@ -291,13 +503,25 @@ class DataRepository {
     return this.extractionEvidence.filter((ev) => ev.extraction_id === extractionId);
   }
 
+  // ==========================================
   // Scenarios
+  // ==========================================
+
   public listScenarios(): any[] {
-    const files = fs.readdirSync(this.scenariosDir).filter((f) => f.endsWith('.json'));
-    return files.map((file) => this.readJsonFile(path.join(this.scenariosDir, file), null)).filter(Boolean);
+    if (this.scenarios.length > 0) {
+      return this.scenarios;
+    }
+    if (fs.existsSync(this.scenariosDir)) {
+      const files = fs.readdirSync(this.scenariosDir).filter((f) => f.endsWith('.json'));
+      return files.map((file) => this.readJsonFile(path.join(this.scenariosDir, file), null)).filter(Boolean);
+    }
+    return [];
   }
 
   public getScenarioById(id: string): any | undefined {
+    const memoryMatch = this.scenarios.find((s) => s.id === id || s.name === id);
+    if (memoryMatch) return memoryMatch;
+
     const filePath = path.join(this.scenariosDir, `${id}.json`);
     if (fs.existsSync(filePath)) {
       return this.readJsonFile(filePath, undefined);
@@ -307,4 +531,3 @@ class DataRepository {
 }
 
 export const dataRepository = new DataRepository();
-
