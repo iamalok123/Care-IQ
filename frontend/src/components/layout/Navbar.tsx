@@ -52,52 +52,50 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="bg-white border-b border-slate-200/80 px-3 sm:px-6 py-2.5 sticky top-0 z-30 shadow-xs">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 max-w-350 mx-auto">
         
-        {/* Mobile / Desktop Brand & Subtitle */}
-        <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
-          <div className="flex items-center gap-2.5">
-            {/* Mobile sidebar toggle button */}
-            <button
-              onClick={onToggleMobileSidebar}
-              className="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200/80 sm:border-0"
-              aria-label="Toggle navigation menu"
-            >
-              <Menu size={18} />
-            </button>
-
-            {/* Mobile Brand View */}
-            <Link
-              to="/dashboard"
-              className="flex items-center gap-2 cursor-pointer lg:hidden"
-            >
-              <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center p-1.5 shadow-xs">
-                <img src="/logo.svg" alt="CareIQ Logo" className="w-full h-full object-contain brightness-0 invert" />
-              </div>
-              <span className="text-base font-black tracking-tight text-slate-800">
-                CareIQ
-              </span>
-            </Link>
-
-            {/* Desktop Title & Subtitle */}
-            <div className="hidden lg:flex items-center gap-3">
-              <div>
-                <h1 className="text-sm font-black text-slate-900 tracking-tight">
-                  Hospital & Insurance Decision Support
-                </h1>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  Precision Care Challenge 2026 • Non-clinical decision assistance
-                </p>
-              </div>
-
-              <Link
-                to="/"
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 transition-colors"
-                title="Return to Landing Page"
-              >
-                <Home size={12} className="text-slate-500" />
-                <span>Landing</span>
-              </Link>
+        {/* Mobile / Desktop Header Top Row */}
+        <div className="flex items-center justify-between w-full lg:w-auto">
+          {/* Mobile Left: CareIQ Brand */}
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-2 cursor-pointer lg:hidden"
+          >
+            <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center p-1.5 shadow-xs">
+              <img src="/logo.svg" alt="CareIQ Logo" className="w-full h-full object-contain brightness-0 invert" />
             </div>
+            <span className="text-base font-black tracking-tight text-slate-800">
+              CareIQ
+            </span>
+          </Link>
+
+          {/* Desktop Title & Subtitle */}
+          <div className="hidden lg:flex items-center gap-3">
+            <div>
+              <h1 className="text-sm font-black text-slate-900 tracking-tight">
+                Hospital & Insurance Decision Support
+              </h1>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Precision Care Challenge • Non-clinical decision assistance
+              </p>
+            </div>
+
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 transition-colors"
+              title="Return to Landing Page"
+            >
+              <Home size={12} className="text-slate-500" />
+              <span>Landing</span>
+            </Link>
           </div>
+
+          {/* Mobile Right: 3 Lines / Hamburger Toggle for Sidebar */}
+          <button
+            onClick={onToggleMobileSidebar}
+            className="lg:hidden p-2 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200/80"
+            aria-label="Open navigation menu"
+          >
+            <Menu size={20} strokeWidth={2.2} />
+          </button>
         </div>
 
         {/* Global Controls: Tour, Scenario Matrix Guide, Demo Loader, Patient Selector */}
