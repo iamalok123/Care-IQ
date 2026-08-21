@@ -68,7 +68,7 @@ export const LandingHowItWorks: React.FC<LandingHowItWorksProps> = ({ onLaunchAp
   ];
 
   return (
-    <section id="how-it-works" className="relative z-30 bg-white py-20 sm:py-28 border-b border-slate-100 overflow-hidden">
+    <section id="how-it-works" className="relative z-30 bg-white py-20 sm:py-28 border-b border-slate-100 overflow-hidden scroll-mt-28">
       <div className="max-w-285 mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}

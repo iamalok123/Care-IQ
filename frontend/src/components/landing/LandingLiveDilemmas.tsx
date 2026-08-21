@@ -72,7 +72,7 @@ export const LandingLiveDilemmas: React.FC<LandingLiveDilemmasProps> = ({ onLaun
   ];
 
   return (
-    <section id="scenarios" className="relative z-30 bg-slate-50/70 py-20 sm:py-28 border-b border-slate-100 overflow-hidden">
+    <section id="scenarios" className="relative z-30 bg-slate-50/70 py-20 sm:py-28 border-b border-slate-100 overflow-hidden scroll-mt-28">
       <div className="max-w-285 mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}

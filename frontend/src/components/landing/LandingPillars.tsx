@@ -33,7 +33,7 @@ export const LandingPillars: React.FC<LandingPillarsProps> = () => {
   }, []);
 
   return (
-    <section id="about" className="relative z-30 bg-white py-20 sm:py-28 border-b border-slate-100 overflow-hidden">
+    <section id="about" className="relative z-30 bg-white py-20 sm:py-28 border-b border-slate-100 overflow-hidden scroll-mt-28">
       <div className="max-w-285 mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
@@ -71,42 +71,50 @@ export const LandingPillars: React.FC<LandingPillarsProps> = () => {
             className="bg-linear-to-b from-blue-50/60 to-white rounded-3xl p-7 border border-blue-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
           >
             <div>
-              {/* Animated SVG Dial Meter */}
-              <div className="h-36 flex flex-col items-center justify-center relative mb-4">
-                <svg className="w-36 h-28" viewBox="0 0 100 60">
-                  {/* Background Track */}
-                  <path
-                    d="M 10 50 A 40 40 0 0 1 90 50"
-                    fill="none"
-                    stroke="#E2E8F0"
-                    strokeWidth="8"
-                    strokeLinecap="round"
-                  />
-                  {/* Animated Progress Arc */}
-                  <motion.path
-                    d="M 10 50 A 40 40 0 0 1 90 50"
-                    fill="none"
-                    stroke="url(#blueGradient)"
-                    strokeWidth="8"
-                    strokeDasharray="125"
-                    strokeDashoffset={125 - (125 * (accuracyVal / 1000))}
-                    strokeLinecap="round"
-                  />
+              {/* Animated SVG Dial Meter (Spacious, Zero Overlap) */}
+              <div className="h-40 flex flex-col items-center justify-center relative mb-3">
+                <svg className="w-48 h-30 overflow-visible" viewBox="0 0 160 95">
                   <defs>
                     <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#3B82F6" />
+                      <stop offset="0%" stopColor="#2563EB" />
+                      <stop offset="50%" stopColor="#06B6D4" />
                       <stop offset="100%" stopColor="#10B981" />
                     </linearGradient>
+                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#06B6D4" floodOpacity="0.25" />
+                    </filter>
                   </defs>
+
+                  {/* Background Track Arc */}
+                  <path
+                    d="M 18 85 A 62 62 0 0 1 142 85"
+                    fill="none"
+                    stroke="#F1F5F9"
+                    strokeWidth="10"
+                    strokeLinecap="round"
+                  />
+
+                  {/* Animated Progress Arc */}
+                  <motion.path
+                    d="M 18 85 A 62 62 0 0 1 142 85"
+                    fill="none"
+                    stroke="url(#blueGradient)"
+                    strokeWidth="10"
+                    strokeDasharray="194.8"
+                    strokeDashoffset={194.8 - (194.8 * (accuracyVal / 1000))}
+                    strokeLinecap="round"
+                    filter="url(#glow)"
+                  />
                 </svg>
 
-                {/* Center Counter Value */}
-                <div className="absolute top-10 flex flex-col items-center">
-                  <span className="text-2xl font-black text-slate-900">
+                {/* Center Counter Value Positioned with ample breathing room */}
+                <div className="absolute inset-0 flex flex-col items-center justify-end pb-1 pointer-events-none">
+                  <span className="text-3xl font-black text-slate-950 tracking-tight leading-none">
                     {(accuracyVal / 10).toFixed(1)}%
                   </span>
-                  <span className="text-[9px] font-extrabold uppercase text-emerald-600 tracking-wider">
-                    Zero Hallucinations
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 mt-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-black text-emerald-700 shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    ZERO HALLUCINATIONS
                   </span>
                 </div>
               </div>
@@ -145,7 +153,7 @@ export const LandingPillars: React.FC<LandingPillarsProps> = () => {
           >
             <div>
               {/* 360° Rotating Orbit Ring Graphic */}
-              <div className="h-36 flex items-center justify-center relative mb-4">
+              <div className="h-40 flex items-center justify-center relative mb-3">
                 {/* Rotating Dashed Circle */}
                 <div className="w-27.5 h-27.5 rounded-full border-2 border-dashed border-indigo-300 animate-spin-slow flex items-center justify-center relative">
                   {/* Orbiting Satellites */}
@@ -203,7 +211,7 @@ export const LandingPillars: React.FC<LandingPillarsProps> = () => {
           >
             <div>
               {/* Balance Scale Graphic */}
-              <div className="h-36 flex flex-col items-center justify-center relative mb-4">
+              <div className="h-40 flex flex-col items-center justify-center relative mb-3">
                 <div className="w-20 h-20 rounded-2xl bg-emerald-500/15 border border-emerald-400/30 flex flex-col items-center justify-center text-emerald-700 shadow-inner">
                   <BedDouble size={26} className="text-emerald-600 mb-1" />
                   <span className="text-[10px] font-black tracking-widest text-emerald-800">0% COPAY</span>

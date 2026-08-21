@@ -33,7 +33,7 @@ export const LandingFaq: React.FC = () => {
   ];
 
   return (
-    <section id="faq" className="relative z-30 bg-white py-20 sm:py-28 border-b border-slate-100">
+    <section id="faq" className="relative z-30 bg-white py-20 sm:py-28 border-b border-slate-100 scroll-mt-28">
       <div className="max-w-215 mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
