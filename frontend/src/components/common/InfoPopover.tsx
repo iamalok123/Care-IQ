@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Info, X } from 'lucide-react';
 
 export interface InfoDetailItem {
@@ -33,31 +34,83 @@ export const InfoPopover: React.FC<InfoPopoverProps> = ({
   action
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState<{ top: number; left: number; width: number }>({
+    top: 0,
+    left: 0,
+    width: 320
+  });
 
-  // Close on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
+  // Calculate and clamp coordinates to viewport
+  const updateCoordinates = () => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    const popoverWidth = Math.min(340, window.innerWidth - 24);
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
+    // Horizontal alignment & viewport clamping
+    let left =
+      align === 'left'
+        ? rect.left
+        : align === 'center'
+        ? rect.left + rect.width / 2 - popoverWidth / 2
+        : rect.right - popoverWidth;
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleKeyDown);
+    if (left < 12) left = 12;
+    if (left + popoverWidth > window.innerWidth - 12) {
+      left = window.innerWidth - popoverWidth - 12;
     }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
+
+    // Vertical alignment: prefer below, flip above if not enough space
+    const estimatedHeight = 260;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    let top = rect.bottom + 6;
+    if (spaceBelow < estimatedHeight && spaceAbove > spaceBelow) {
+      top = Math.max(12, rect.top - estimatedHeight - 6);
+    }
+
+    setPosition({ top, left, width: popoverWidth });
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    updateCoordinates();
+
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(target)
+      ) {
+        setIsOpen(false);
+      }
     };
-  }, [isOpen]);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+
+    const handleScrollOrResize = () => {
+      updateCoordinates();
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', handleScrollOrResize);
+    window.addEventListener('scroll', handleScrollOrResize, true);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', handleScrollOrResize);
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+    };
+  }, [isOpen, align]);
 
   // Variant color configs
   const variantStyles = {
@@ -108,8 +161,9 @@ export const InfoPopover: React.FC<InfoPopoverProps> = ({
   };
 
   return (
-    <div className={`relative inline-flex items-center ${className}`} ref={containerRef}>
+    <div className={`relative inline-flex items-center ${className}`}>
       <button
+        ref={buttonRef}
         type="button"
         onClick={(e) => {
           e.stopPropagation();
@@ -126,72 +180,78 @@ export const InfoPopover: React.FC<InfoPopoverProps> = ({
         {buttonLabel && <span className="font-bold pr-1">{buttonLabel}</span>}
       </button>
 
-      {/* Popover Card */}
-      {isOpen && (
-        <div
-          onClick={(e) => e.stopPropagation()}
-          className={`absolute z-50 mt-1.5 w-72 sm:w-80 md:w-88 max-w-[calc(100vw-2rem)] bg-white border border-slate-200 rounded-2xl shadow-2xl animate-fade-in text-left overflow-hidden ${
-            align === 'right'
-              ? 'right-0 top-full'
-              : align === 'left'
-              ? 'left-0 top-full'
-              : 'left-1/2 -translate-x-1/2 top-full'
-          }`}
-        >
-          {/* Header */}
-          <div className={`px-4 py-2.5 border-b flex items-center justify-between gap-2 ${style.header}`}>
-            <div className="flex items-center gap-1.5 min-w-0">
-              <Info size={15} className={`shrink-0 ${style.icon}`} />
-              <span className="font-extrabold text-xs tracking-tight truncate">
-                {title || 'Information & Details'}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 transition-colors cursor-pointer"
-              aria-label="Close"
-            >
-              <X size={14} />
-            </button>
-          </div>
-
-          {/* Body Content */}
-          <div className="p-4 max-h-72 overflow-y-auto space-y-3">
-            <div className="text-xs text-slate-600 leading-relaxed font-normal">
-              {content}
-            </div>
-
-            {/* Structured Details Table / List if provided */}
-            {details && details.length > 0 && (
-              <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                {details.map((item, idx) => (
-                  <div key={idx} className="flex items-start justify-between gap-2 text-xs">
-                    <span className="text-slate-500 font-medium shrink-0">{item.label}:</span>
-                    <span className="font-bold text-slate-800 text-right">{item.value}</span>
-                  </div>
-                ))}
+      {/* Viewport-Anchored High Z-Index Portal Popover */}
+      {isOpen &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'fixed',
+              top: `${position.top}px`,
+              left: `${position.left}px`,
+              width: `${position.width}px`,
+              zIndex: 9999
+            }}
+            className="bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.18)] animate-fade-in text-left overflow-hidden select-text"
+          >
+            {/* Header */}
+            <div className={`px-3.5 py-2.5 border-b flex items-center justify-between gap-2 ${style.header}`}>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Info size={14} className={`shrink-0 ${style.icon}`} />
+                <span className="font-extrabold text-xs tracking-tight truncate">
+                  {title || 'Information & Details'}
+                </span>
               </div>
-            )}
-          </div>
-
-          {/* Footer Action if provided */}
-          {action && (
-            <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
               <button
                 type="button"
-                onClick={() => {
-                  setIsOpen(false);
-                  action.onClick();
-                }}
-                className="text-xs font-bold text-teal-700 hover:text-teal-900 cursor-pointer"
+                onClick={() => setIsOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 transition-colors cursor-pointer"
+                aria-label="Close"
               >
-                {action.label} →
+                <X size={13} />
               </button>
             </div>
-          )}
-        </div>
-      )}
+
+            {/* Body Content */}
+            <div className="p-3.5 max-h-72 overflow-y-auto space-y-2.5">
+              <div className="text-xs text-slate-600 leading-relaxed font-normal">
+                {content}
+              </div>
+
+              {/* Structured Details Table / List if provided */}
+              {details && details.length > 0 && (
+                <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                  {details.map((item, idx) => (
+                    <div key={idx} className="flex items-start justify-between gap-2 text-xs">
+                      <span className="text-slate-500 font-medium shrink-0">{item.label}:</span>
+                      <span className="font-bold text-slate-800 text-right truncate max-w-44">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Footer Action if provided */}
+            {action && (
+              <div className="px-3.5 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    action.onClick();
+                  }}
+                  className="text-xs font-bold text-teal-700 hover:text-teal-900 cursor-pointer"
+                >
+                  {action.label} →
+                </button>
+              </div>
+            )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
+
+export default InfoPopover;

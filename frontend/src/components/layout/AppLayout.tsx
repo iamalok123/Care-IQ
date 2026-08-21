@@ -38,8 +38,8 @@ export const AppLayout: React.FC = () => {
       {/* Classical Full-Height Left Sidebar */}
       <Sidebar />
 
-      {/* Main Right Area Container (Offset by lg:pl-64) */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen lg:pl-64">
+      {/* Main Right Area Container (Offset by lg:pl-56) */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen lg:pl-56">
         
         {/* Top Header Navbar */}
         <Navbar />

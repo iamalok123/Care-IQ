@@ -44,9 +44,22 @@ export class ScenarioController {
     dataRepository.loadAllData();
 
     const patient = scenario.patientId ? dataRepository.getPatientById(scenario.patientId) : undefined;
-    const policy = scenario.policyId ? dataRepository.getPolicyById(scenario.policyId) : undefined;
+    const policy = scenario.policyId 
+      ? dataRepository.getPolicyById(scenario.policyId) 
+      : scenario.patientId 
+      ? dataRepository.getPoliciesByPatientId(scenario.patientId)[0] 
+      : undefined;
     const hospital = scenario.hospitalId ? dataRepository.getHospitalById(scenario.hospitalId) : undefined;
-    const journey = scenario.journeyId ? dataRepository.getJourneyById(scenario.journeyId) : undefined;
+    
+    let journey = scenario.journeyId ? dataRepository.getJourneyById(scenario.journeyId) : undefined;
+    if (!journey && scenario.patientId) {
+      const patientJourneys = dataRepository.getJourneys().filter((j) => j.patient_id === scenario.patientId);
+      if (patientJourneys.length > 0) {
+        journey = patientJourneys[0];
+      }
+    }
+
+    const verificationItems = scenario.patientId ? dataRepository.getVerificationItems(scenario.patientId) : [];
 
     res.json({
       success: true,
@@ -56,7 +69,8 @@ export class ScenarioController {
         patient,
         policy,
         hospital,
-        journey
+        journey,
+        verificationItems
       }
     });
   }

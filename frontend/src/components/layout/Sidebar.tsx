@@ -96,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Classical Fixed Left Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 bottom-0 h-screen w-64 bg-white border-r border-slate-200/90 z-40 flex flex-col justify-between p-5 shadow-xs
+          fixed top-0 left-0 bottom-0 h-screen w-56 bg-white border-r border-slate-200/90 z-40 flex flex-col justify-between p-4 shadow-xs
           transition-transform duration-300 ease-in-out shrink-0 select-none
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}

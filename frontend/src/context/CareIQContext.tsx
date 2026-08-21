@@ -172,9 +172,17 @@ export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
       if (res.journey) {
         setJourney(res.journey);
+      } else if (res.patient?.id) {
+        const jrns = await api.getJourneys(res.patient.id);
+        setJourney(jrns && jrns.length > 0 ? jrns[0] : null);
       }
-      const vers = await api.getVerificationItems(res.patient?.id);
-      setVerificationItems(vers || []);
+
+      if (res.verificationItems && res.verificationItems.length > 0) {
+        setVerificationItems(res.verificationItems);
+      } else if (res.patient?.id) {
+        const vers = await api.getVerificationItems(res.patient.id);
+        setVerificationItems(vers || []);
+      }
 
       setFeedbackBanner(`Loaded Scenario: ${res.scenario?.name || scenarioId}`);
       setTimeout(() => setFeedbackBanner(null), 4000);
