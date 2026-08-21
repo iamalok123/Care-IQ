@@ -10,7 +10,8 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   PlayCircle, 
-  Activity
+  Activity,
+  Zap
 } from 'lucide-react';
 import { DotPattern } from '@/components/ui/dot-pattern';
 import { cn } from '@/lib/utils';
@@ -74,7 +75,10 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
         </div>
         <div className="text-left">
           <div className="text-xs font-black text-slate-900">Pre-Auth Turnaround</div>
-          <div className="text-[10px] text-blue-600 font-bold">⚡ Approved in ~35 mins</div>
+          <div className="text-[10px] text-blue-600 font-bold flex items-center gap-1">
+            <Zap size={11} className="text-blue-600 fill-blue-600" />
+            <span>Fast-track ~35m</span>
+          </div>
         </div>
       </motion.div>
 
@@ -321,7 +325,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                       </div>
                       <div className="flex justify-between">
                         <span className="text-blue-200">Pre-Auth Approval:</span>
-                        <span className="font-bold text-emerald-300">100% Cashless ✓</span>
+                        <span className="font-bold text-emerald-300">100% Cashless (Approved)</span>
                       </div>
                     </div>
 

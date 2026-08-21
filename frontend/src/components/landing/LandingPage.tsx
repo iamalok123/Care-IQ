@@ -4,11 +4,8 @@ import { LandingNavbar } from './LandingNavbar';
 import { LandingHero } from './LandingHero';
 import { LandingTrustBadges } from './LandingTrustBadges';
 import { LandingPillars } from './LandingPillars';
-import { LandingFeaturesGrid } from './LandingFeaturesGrid';
-import { LandingHowItWorks } from './LandingHowItWorks';
 import { LandingLiveDilemmas } from './LandingLiveDilemmas';
-import { LandingTestimonials } from './LandingTestimonials';
-import { LandingPricing } from './LandingPricing';
+import { LandingHowItWorks } from './LandingHowItWorks';
 import { LandingFaq } from './LandingFaq';
 import { LandingFinalCta } from './LandingFinalCta';
 import { LandingFooter } from './LandingFooter';
@@ -30,51 +27,44 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans antialiased selection:bg-[#2545CB] selection:text-white">
       
-      {/* 🌟 1. Glassmorphic Navigation Bar */}
+      {/* 1. Glassmorphic Navigation Bar */}
       <LandingNavbar 
         onLaunchApp={handleLaunch} 
         onStartJourney={handleStart} 
       />
 
-      {/* 🌟 2. Hero Section with Live Mockup & Seamless Cloud Layer */}
+      {/* 2. Precision Hero with Live Interactive SVG Safari Simulator */}
       <LandingHero 
         onLaunchApp={handleLaunch} 
         onStartJourney={handleStart} 
       />
 
-      {/* 🌟 3. Healthcare Provider & Insurer Trust Badges */}
+      {/* 3. Healthcare Ecosystem SVG Trust Badges */}
       <LandingTrustBadges />
 
-      {/* 🌟 4. Core Decision Pillars (Pillar cards with animated counter & 360° orbit) */}
+      {/* 4. Core Mathematical Decision Pillars with Animated SVGs */}
       <LandingPillars onLaunchApp={handleLaunch} />
 
-      {/* 🌟 5. Key Features 2x2 Grid */}
-      <LandingFeaturesGrid />
-
-      {/* 🌟 6. Interactive 3-Step "How It Works" Workflow */}
-      <LandingHowItWorks onLaunchApp={handleLaunch} />
-
-      {/* 🌟 7. Real-World Dilemmas Showcase (11 Persona Interactive Playground) */}
+      {/* 5. Real-World Dilemmas Showcase (Interactive Persona Playground) */}
       <LandingLiveDilemmas onLaunchApp={handleLaunch} />
 
-      {/* 🌟 8. Patient & Caregiver Testimonials */}
-      <LandingTestimonials />
+      {/* 6. Interactive 3-Step Guided Workflow */}
+      <LandingHowItWorks onLaunchApp={handleLaunch} />
 
-      {/* 🌟 9. Transparent Pricing Tiers */}
-      <LandingPricing onLaunchApp={handleLaunch} />
-
-      {/* 🌟 10. Comprehensive FAQ Accordion */}
+      {/* 7. High-Signal FAQ Accordion */}
       <LandingFaq />
 
-      {/* 🌟 11. Final High-Energy CTA with Orbiting Milestone Cards */}
+      {/* 8. Final High-Energy CTA with Orbiting Milestone Cards */}
       <LandingFinalCta 
         onLaunchApp={handleLaunch} 
         onStartJourney={handleStart} 
       />
 
-      {/* 🌟 12. Modern Multi-Column Footer */}
+      {/* 9. Modern Multi-Column Footer */}
       <LandingFooter onLaunchApp={handleLaunch} />
 
     </div>
   );
 };
+
+export default LandingPage;

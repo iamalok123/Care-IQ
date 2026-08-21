@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Menu, X, Sparkles } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface LandingNavbarProps {
   onLaunchApp: () => void;
@@ -12,33 +12,31 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({
   onStartJourney
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeNav, setActiveNav] = useState('scenarios');
+  const [activeNav, setActiveNav] = useState('features');
   const handleAction = onStartJourney || onLaunchApp;
 
   const navLinks = [
     { id: 'features', label: 'Features', href: '#features' },
-    { id: 'how-it-works', label: 'How It Works', href: '#how-it-works' },
     { id: 'scenarios', label: '11 Scenarios', href: '#scenarios' },
-    { id: 'testimonials', label: 'Reviews', href: '#testimonials' },
-    { id: 'pricing', label: 'Pricing', href: '#pricing' },
+    { id: 'how-it-works', label: 'How It Works', href: '#how-it-works' },
     { id: 'faq', label: 'FAQ', href: '#faq' }
   ];
 
   return (
     <div className="fixed top-4 left-0 right-0 z-50 flex justify-center px-3 sm:px-6 pointer-events-none">
 
-      {/* 🌟 Clean Crystal Glassmorphic Navbar */}
+      {/* Clean Crystal Glassmorphic Navbar */}
       <motion.header
         initial={{ y: -30, opacity: 0, scale: 0.95 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="pointer-events-auto w-full max-w-265 rounded-full bg-white/85 backdrop-blur-3xl border border-slate-200/90 shadow-[0_10px_35px_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,0.9)] px-4 sm:px-6 py-2.5 flex items-center justify-between transition-all duration-300 relative overflow-hidden"
+        className="pointer-events-auto w-full max-w-260 rounded-full bg-white/85 backdrop-blur-3xl border border-slate-200/90 shadow-[0_10px_35px_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,0.9)] px-4 sm:px-6 py-2 flex items-center justify-between transition-all duration-300 relative overflow-hidden"
       >
         {/* Brand Logo & Name */}
         <motion.div
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2.5 cursor-pointer select-none z-10"
+          className="flex items-center gap-2.5 cursor-pointer select-none z-10 shrink-0"
           onClick={handleAction}
         >
           <div className="w-8 h-8 rounded-full bg-linear-to-tr from-blue-600 to-teal-500 p-0.5 shadow-md flex items-center justify-center">
@@ -64,12 +62,12 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({
                 href={item.href}
                 onClick={() => setActiveNav(item.id)}
                 className={`relative px-4 py-1.5 rounded-full text-xs transition-all duration-200 select-none ${
-                  isActive 
-                    ? 'text-slate-950 font-black drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]' 
+                  isActive
+                    ? 'text-slate-950 font-black drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]'
                     : 'text-slate-600 font-semibold hover:text-slate-950 hover:bg-slate-100/50'
                 }`}
               >
-                {/* 🌟 Ultra-Translucent Slight Gray Liquid Glass Pill */}
+                {/* Ultra-Translucent Slight Gray Liquid Glass Pill */}
                 {isActive && (
                   <motion.span
                     layoutId="activePill"
@@ -84,17 +82,14 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({
         </nav>
 
         {/* Right CTA Actions - Pure Black Pill */}
-        <div className="flex items-center gap-2 z-10">
+        <div className="flex items-center gap-2 z-10 shrink-0">
           <motion.button
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
             onClick={handleAction}
-            className="px-4 sm:px-5 py-2 rounded-full text-xs font-extrabold bg-slate-950 hover:bg-slate-900 text-white shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer border border-slate-800"
+            className="px-4 sm:px-5 py-2 rounded-full text-xs sm:text-[13px] font-bold tracking-tight bg-slate-950 hover:bg-slate-900 text-white shadow-md hover:shadow-lg transition-all cursor-pointer border border-slate-800 select-none"
           >
-            <Sparkles size={13} className="text-amber-300" />
-            <span className="hidden sm:inline">Launch Platform</span>
-            <span className="sm:hidden">Start</span>
-            <ArrowRight size={13} />
+            Get Started
           </motion.button>
 
           {/* Mobile Hamburger Toggle */}
@@ -128,7 +123,6 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({
                 className="px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors font-semibold text-xs flex items-center justify-between text-slate-700 hover:text-slate-950"
               >
                 <span>{item.label}</span>
-                <ArrowRight size={12} className="text-slate-400" />
               </a>
             ))}
 
@@ -140,7 +134,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({
                 }}
                 className="w-full py-2.5 rounded-full text-center text-xs font-bold bg-slate-950 text-white shadow-md cursor-pointer hover:bg-slate-900"
               >
-                Launch CareIQ Platform
+                Get Started
               </button>
             </div>
           </motion.div>
@@ -149,3 +143,5 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({
     </div>
   );
 };
+
+export default LandingNavbar;

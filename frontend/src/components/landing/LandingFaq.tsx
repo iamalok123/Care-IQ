@@ -8,27 +8,19 @@ export const LandingFaq: React.FC = () => {
   const faqs = [
     {
       q: 'How does CareIQ prevent Room Rent proportionate deduction traps?',
-      a: 'Most health policies cap room rent to 1% or 2% of the Sum Insured (e.g. ₹5,000/day on a ₹5 Lakh policy). If you choose a ₹9,000 deluxe room, the insurer doesn’t just deduct the extra ₹4,000 room charge—they retroactively deduct 44% from the surgeon fees, OT charges, and ICU bills! CareIQ simulates these room tiers before admission so you know the exact financial impact upfront.'
+      a: 'Most health policies cap room rent to 1% or 2% of the Sum Insured (e.g. ₹5,000/day on a ₹5 Lakh policy). If you choose a ₹9,000 deluxe room, insurers retroactively deduct ~44% across surgeon fees, OT charges, and diagnostics. CareIQ simulates room tiers before admission so you avoid catastrophic out-of-pocket penalties.'
     },
     {
-      q: 'How does the Deterministic Policy RAG guarantee zero hallucinations?',
-      a: 'Unlike generic chatbots that guess legal terms, CareIQ indexes your uploaded policy schedule into high-dimensional semantic vector embeddings. Every answer cites the exact verbatim clause, section title, page number, and sub-limit conditions directly from your policy document.'
+      q: 'How does Deterministic Policy RAG guarantee zero hallucinations?',
+      a: 'CareIQ extracts and indexes your uploaded policy schedule into high-dimensional semantic vector embeddings. Every answer cites verbatim clauses, section titles, and page numbers directly from your policy document.'
     },
     {
-      q: 'Can CareIQ handle dual-policy claims and government schemes like Ayushman Bharat (PM-JAY)?',
-      a: 'Yes! CareIQ natively supports multi-policy coordination (e.g., Corporate Group Insurance + Personal Super Top-up) and Ayushman Bharat PM-JAY package codes (HBP 2.2). It shows how primary and secondary claims should be sequenced to achieve 100% cashless coverage.'
+      q: 'Can CareIQ handle dual-policy claims and Ayushman Bharat (PM-JAY)?',
+      a: 'Yes. CareIQ natively coordinates primary + super top-up policies and Ayushman Bharat PM-JAY package codes (HBP 2.2) to ensure optimal sequencing and 100% cashless coverage.'
     },
     {
-      q: 'What is the 5-Stage Care Journey guidance?',
-      a: 'CareIQ guides caregivers across 5 critical milestone stages: 1) Pre-Admission Authorization, 2) Admission Desk Verification, 3) In-Patient Stay & Interim Bills, 4) Discharge Preparation, and 5) Final Settlement Reconciliation. At each stage, CareIQ auto-generates specific, actionable questions for hospital billing desks.'
-    },
-    {
-      q: 'How does the WhatsApp caregiver update feature work?',
-      a: 'With one click, CareIQ compiles the patient’s current trajectory milestone, room eligibility, cashless pre-auth status, and next scheduled events into a clear, clean message formatted for WhatsApp or SMS. You can instantly share it with anxious family members without medical jargon.'
-    },
-    {
-      q: 'Is our medical and insurance data private and secure?',
-      a: 'Yes. CareIQ is built to comply with NDHM (Ayushman Bharat Digital Mission) standards and HIPAA-grade encryption. Your uploaded documents and personal health identifiers are processed in secure, isolated sandboxes and never shared with third-party brokers or advertisers.'
+      q: 'How does the 5-stage Care Journey guidance work?',
+      a: 'CareIQ guides you through Pre-Admission Authorization, Admission Desk Verification, In-Patient Stay & Interim Bills, Discharge Preparation, and Final Settlement Reconciliation with tailored questions for hospital TPA desks.'
     }
   ];
 

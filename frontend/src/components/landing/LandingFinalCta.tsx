@@ -101,9 +101,9 @@ export const LandingFinalCta: React.FC<LandingFinalCtaProps> = ({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleAction}
-            className="px-8 py-4 rounded-xl text-sm font-bold bg-[#14161F] text-white hover:bg-slate-900 shadow-2xl hover:shadow-black/40 transition-all cursor-pointer flex items-center gap-2"
+            className="px-8 py-3.5 rounded-full text-sm font-bold bg-white text-slate-950 hover:bg-slate-100 shadow-2xl shadow-white/10 transition-all cursor-pointer flex items-center gap-2 select-none"
           >
-            <span>Launch CareIQ Platform Now</span>
+            <span>Launch CareIQ Platform</span>
             <ArrowRight size={16} />
           </motion.button>
         </motion.div>

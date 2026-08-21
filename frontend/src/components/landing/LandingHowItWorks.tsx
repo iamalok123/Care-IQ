@@ -59,9 +59,9 @@ export const LandingHowItWorks: React.FC<LandingHowItWorksProps> = ({ onLaunchAp
         tag: 'Discharge Tracker',
         title: 'Zero Surprise Settlement',
         items: [
-          'Pre-Auth Approved in 35m ✓',
-          'Interim Bills Reconciled ✓',
-          'Discharge Clearance Fast-Tracked ✓'
+          'Pre-Auth Approved in 35 mins',
+          'Interim Bills Reconciled',
+          'Discharge Clearance Fast-Tracked'
         ]
       }
     }
