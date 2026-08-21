@@ -8,7 +8,7 @@ import {
   ShieldAlert,
   ArrowLeftRight
 } from 'lucide-react';
-import { api } from '../services/api';
+import { api } from '../../services/api';
 
 interface WhatIfSimulatorProps {
   policy: any;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { api } from '../services/api';
-import { WhatIfSimulator } from './WhatIfSimulator';
+import { api } from '../../services/api';
+import { WhatIfSimulator } from '../widgets/WhatIfSimulator';
 import { Calculator, ArrowLeftRight } from 'lucide-react';
 
 interface CostBreakdownViewProps {

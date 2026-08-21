@@ -5,8 +5,8 @@ import {
   CheckCircle2,
   Clock
 } from 'lucide-react';
-import { api } from '../services/api';
-import { StageGuidanceCard } from './StageGuidanceCard';
+import { api } from '../../services/api';
+import { StageGuidanceCard } from '../widgets/StageGuidanceCard';
 
 interface CareJourneyViewProps {
   journey: any;

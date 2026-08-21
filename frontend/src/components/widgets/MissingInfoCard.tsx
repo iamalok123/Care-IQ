@@ -8,7 +8,7 @@ import {
   Copy,
   Check
 } from 'lucide-react';
-import { InfoPopover } from './InfoPopover';
+import { InfoPopover } from '../common/InfoPopover';
 
 interface MissingInfoCardProps {
   verificationItems: any[];

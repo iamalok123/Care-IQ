@@ -1,13 +1,12 @@
 import React from 'react';
 import { 
-  ShieldCheck, 
   UserCheck, 
   PlayCircle, 
   Menu, 
   Compass, 
   Sparkles
 } from 'lucide-react';
-import { InfoPopover } from './InfoPopover';
+import { InfoPopover } from '../common/InfoPopover';
 
 interface NavbarProps {
   patients: any[];
@@ -57,8 +56,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-2 cursor-pointer lg:hidden"
               onClick={() => onSelectTab('dashboard')}
             >
-              <div className="bg-linear-to-br from-teal-600 to-indigo-600 text-white p-1.5 rounded-lg">
-                <ShieldCheck size={18} />
+              <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center p-1.5 shadow-xs">
+                <img src="/logo.svg" alt="CareIQ Logo" className="w-full h-full object-contain brightness-0 invert" />
               </div>
               <span className="text-base font-black tracking-tight text-slate-800">
                 CareIQ

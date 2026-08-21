@@ -18,8 +18,8 @@ import {
   ChevronUp,
   X
 } from 'lucide-react';
-import { api } from '../services/api';
-import { InfoPopover } from './InfoPopover';
+import { api } from '../../services/api';
+import { InfoPopover } from '../common/InfoPopover';
 
 export interface PolicyRagAssistantProps {
   selectedPolicyId?: string;

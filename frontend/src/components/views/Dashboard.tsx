@@ -12,10 +12,10 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-import { CoverageConfidenceGauge } from './CoverageConfidenceGauge';
-import { MissingInfoCard } from './MissingInfoCard';
-import { CaregiverShareModal } from './CaregiverShareModal';
-import { InfoPopover } from './InfoPopover';
+import { CoverageConfidenceGauge } from '../widgets/CoverageConfidenceGauge';
+import { MissingInfoCard } from '../widgets/MissingInfoCard';
+import { CaregiverShareModal } from '../modals/CaregiverShareModal';
+import { InfoPopover } from '../common/InfoPopover';
 
 interface DashboardProps {
   patient: any;

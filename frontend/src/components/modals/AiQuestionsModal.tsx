@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HelpCircle, X, Copy, Check, ShieldCheck, Building2 } from 'lucide-react';
-import { api } from '../services/api';
+import { api } from '../../services/api';
 
 interface AiQuestionsModalProps {
   hospitalName: string;

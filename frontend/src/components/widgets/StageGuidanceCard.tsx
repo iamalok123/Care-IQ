@@ -12,7 +12,7 @@ import {
   RefreshCw,
   Info
 } from 'lucide-react';
-import { api } from '../services/api';
+import { api } from '../../services/api';
 
 
 interface StageGuidanceCardProps {

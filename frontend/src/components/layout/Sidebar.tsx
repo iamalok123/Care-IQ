@@ -93,8 +93,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   if (onCloseMobile) onCloseMobile();
                 }}
               >
-                <div className="bg-teal-700 text-white p-2 rounded-xl flex items-center justify-center shadow-xs">
-                  <ShieldCheck size={22} />
+                <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center p-2 shadow-xs shrink-0">
+                  <img src="/logo.svg" alt="CareIQ Logo" className="w-full h-full object-contain brightness-0 invert" />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">

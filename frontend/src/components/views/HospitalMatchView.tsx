@@ -15,8 +15,8 @@ import {
   Star
 } from 'lucide-react';
 
-import { api } from '../services/api';
-import { HospitalCompare } from './HospitalCompare';
+import { api } from '../../services/api';
+import { HospitalCompare } from '../widgets/HospitalCompare';
 
 interface HospitalMatchViewProps {
   policy: any;

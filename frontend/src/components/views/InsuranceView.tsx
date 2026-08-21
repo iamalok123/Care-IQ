@@ -17,8 +17,8 @@ import {
   IndianRupee,
   X
 } from 'lucide-react';
-import { api } from '../services/api';
-import { ExtractionReviewModal } from './ExtractionReviewModal';
+import { api } from '../../services/api';
+import { ExtractionReviewModal } from '../modals/ExtractionReviewModal';
 
 interface InsuranceViewProps {
   policies: any[];

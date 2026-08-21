@@ -1,21 +1,25 @@
 import { useState, useEffect } from 'react';
-import { Navbar } from './components/Navbar';
-import { Sidebar } from './components/Sidebar';
-import { Dashboard } from './components/Dashboard';
-import { HospitalMatchView } from './components/HospitalMatchView';
-import { InsuranceView } from './components/InsuranceView';
-import { CareJourneyView } from './components/CareJourneyView';
-import { CostBreakdownView } from './components/CostBreakdownView';
-import { VerificationCenter } from './components/VerificationCenter';
-import { AiQuestionsModal } from './components/AiQuestionsModal';
-import { OnboardingWizard } from './components/OnboardingWizard';
-import { ScenarioReferenceModal } from './components/ScenarioReferenceModal';
-import { PolicyRagAssistant } from './components/PolicyRagAssistant';
+import { Navbar, Sidebar } from './components/layout';
+import { LandingPage } from './components/landing';
+import { 
+  Dashboard, 
+  HospitalMatchView, 
+  InsuranceView, 
+  CareJourneyView, 
+  CostBreakdownView, 
+  VerificationCenter 
+} from './components/views';
+import { 
+  AiQuestionsModal, 
+  OnboardingWizard, 
+  ScenarioReferenceModal 
+} from './components/modals';
+import { PolicyRagAssistant } from './components/widgets';
 import { api } from './services/api';
 import { Sparkles, CheckCircle2 } from 'lucide-react';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [activeTab, setActiveTab] = useState<string>('landing');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [showScenarioGuide, setShowScenarioGuide] = useState<boolean>(false);
@@ -157,6 +161,19 @@ export function App() {
   };
 
   const pendingCount = verificationItems.filter((v) => v.status === 'PENDING').length;
+
+  if (activeTab === 'landing') {
+    return (
+      <LandingPage
+        onLaunchApp={() => setActiveTab('dashboard')}
+        onStartJourney={() => setActiveTab('dashboard')}
+        onSelectScenario={(scId) => {
+          handleLoadScenario(scId);
+          setActiveTab('dashboard');
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen flex bg-slate-50 font-sans text-slate-900 relative">

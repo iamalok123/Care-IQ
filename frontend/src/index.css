@@ -1,24 +1,120 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --brand-blue-700: #2F4FD8;
+    --brand-blue-500: #3D6BE0;
+    --brand-blue-300: #89A5EE;
+    --page-grad-start: #DBDCFC;
+    --page-grad-mid: #ECCDFD;
+    --page-grad-end: #AEE2FC;
+    --ink-900: #14161F;
+    --ink-600: #5B5F6B;
+    --ink-400: #9599A3;
+    --surface-white: #FFFFFF;
+    --surface-muted: #F5F6F8;
+    --accent-orange: #E08A3C;
+    --accent-teal: #2BB3A3;
+    --accent-purple: #8B7FE0;
+    --cta-black: #14161F;
+  }
+
   body {
-    @apply bg-slate-50 text-slate-900 min-h-screen antialiased;
-    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #FFFFFF;
+    color: var(--ink-900);
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
-/* Custom Scrollbar utility */
+/* Custom Animations */
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbitBubble {
+  0% {
+    transform: rotate(0deg) translateX(190px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(190px) rotate(-360deg);
+  }
+}
+
+@keyframes floatBobA {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes floatBobB {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(7px);
+  }
+}
+
+@keyframes floatBobC {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes floatBobD {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 12s linear infinite;
+}
+
+.animate-orbit-bubble {
+  animation: orbitBubble 10s linear infinite;
+}
+
+.animate-float-a {
+  animation: floatBobA 3.5s ease-in-out infinite;
+}
+
+.animate-float-b {
+  animation: floatBobB 4.2s ease-in-out infinite;
+}
+
+.animate-float-c {
+  animation: floatBobC 3.8s ease-in-out infinite;
+}
+
+.animate-float-d {
+  animation: floatBobD 4.5s ease-in-out infinite;
+}
+
+/* Globally hide scrollbars while maintaining smooth scrolling */
+html, body, * {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
