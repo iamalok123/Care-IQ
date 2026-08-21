@@ -51,9 +51,6 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({
             <span className="text-base font-black tracking-tight text-slate-950 flex items-center">
               Care<span className="text-blue-600">IQ</span>
             </span>
-            <span className="hidden sm:inline-block text-[9px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200">
-              2026
-            </span>
           </div>
         </motion.div>
 

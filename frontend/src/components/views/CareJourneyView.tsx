@@ -8,19 +8,28 @@ import {
 import { api } from '../../services/api';
 import { StageGuidanceCard } from '../widgets/StageGuidanceCard';
 
+import { useCareIQ } from '../../context/CareIQContext';
+
 interface CareJourneyViewProps {
-  journey: any;
-  hospital: any;
-  policy: any;
-  onEventAdded: () => void;
+  journey?: any;
+  hospital?: any;
+  policy?: any;
+  onEventAdded?: () => void;
 }
 
 export const CareJourneyView: React.FC<CareJourneyViewProps> = ({
-  journey,
-  hospital,
-  policy,
-  onEventAdded
+  journey: propJourney,
+  hospital: propHospital,
+  policy: propPolicy,
+  onEventAdded: propOnEventAdded
 }) => {
+  const context = useCareIQ();
+  const journey = propJourney !== undefined ? propJourney : context.journey;
+  const policy = propPolicy !== undefined ? propPolicy : context.activePolicy;
+  const hospital = propHospital !== undefined 
+    ? propHospital 
+    : context.hospitals.find((h) => h.id === journey?.hospital_id);
+  const onEventAdded = propOnEventAdded || (() => context.activePatient && context.loadDataForPatient(context.activePatient));
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [stage, setStage] = useState<string>('PROCEDURE');
   const [eventType, setEventType] = useState<string>('SURGICAL_PROCEDURE');

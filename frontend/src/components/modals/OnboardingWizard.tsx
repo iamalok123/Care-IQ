@@ -14,11 +14,13 @@ import {
   X
 } from 'lucide-react';
 
+import { useNavigate } from 'react-router-dom';
+
 interface OnboardingWizardProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectScenario: (scenarioId: string) => void;
-  onNavigateTab: (tab: string) => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
 export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
@@ -27,6 +29,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
   onSelectScenario,
   onNavigateTab
 }) => {
+  const navigate = useNavigate();
   const [step, setStep] = useState<number>(1);
   const [userRole, setUserRole] = useState<'patient' | 'caregiver' | 'family'>('caregiver');
   const [insuranceStatus, setInsuranceStatus] = useState<'private' | 'government' | 'unsure' | 'none'>('private');
@@ -39,9 +42,25 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
     onClose();
   };
 
-  const handleCompleteManual = (tab: string = 'insurance') => {
+  const handleCompleteManual = (target: string = 'insurance') => {
     localStorage.setItem('careiq_onboarding_completed', 'true');
-    onNavigateTab(tab);
+    if (onNavigateTab) {
+      onNavigateTab(target);
+    } else {
+      const routeMap: Record<string, string> = {
+        dashboard: '/dashboard',
+        hospitals: '/hospital-matcher',
+        'hospital-matcher': '/hospital-matcher',
+        insurance: '/insurance',
+        journey: '/care-journey',
+        'care-journey': '/care-journey',
+        cost: '/cost-breakdown',
+        'cost-breakdown': '/cost-breakdown',
+        verification: '/verification-center',
+        'verification-center': '/verification-center'
+      };
+      navigate(routeMap[target] || `/${target}`);
+    }
     onClose();
   };
 

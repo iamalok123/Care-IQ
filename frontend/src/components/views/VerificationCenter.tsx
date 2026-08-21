@@ -7,15 +7,20 @@ import {
 } from 'lucide-react';
 import { api } from '../../services/api';
 
+import { useCareIQ } from '../../context/CareIQContext';
+
 interface VerificationCenterProps {
-  verificationItems: any[];
-  onItemResolved: () => void;
+  verificationItems?: any[];
+  onItemResolved?: () => void;
 }
 
 export const VerificationCenter: React.FC<VerificationCenterProps> = ({
-  verificationItems,
-  onItemResolved
+  verificationItems: propVerificationItems,
+  onItemResolved: propOnItemResolved
 }) => {
+  const context = useCareIQ();
+  const verificationItems = propVerificationItems !== undefined ? propVerificationItems : context.verificationItems;
+  const onItemResolved = propOnItemResolved || context.refreshVerificationItems;
   const [filterCategory, setFilterCategory] = useState<string>('ALL');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedItemForGuidance, setSelectedItemForGuidance] = useState<any | null>(null);

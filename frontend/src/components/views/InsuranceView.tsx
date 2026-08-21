@@ -19,11 +19,12 @@ import {
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { ExtractionReviewModal } from '../modals/ExtractionReviewModal';
+import { useCareIQ } from '../../context/CareIQContext';
 
 interface InsuranceViewProps {
-  policies: any[];
-  activePatient: any;
-  onPolicyAdded: () => void;
+  policies?: any[];
+  activePatient?: any;
+  onPolicyAdded?: () => void;
   onOpenChatbot?: () => void;
 }
 
@@ -70,71 +71,65 @@ const getInsurerMeta = (insurerId: string = '') => {
     return {
       name: 'Care Health Insurance',
       shortName: 'Care Health',
-      theme: 'cyan',
-      bgGradient: 'from-cyan-50 to-blue-50',
-      borderColor: 'border-cyan-200',
-      badgeBg: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-      accentColor: 'text-cyan-700',
-      logoInitial: '🩺',
-      type: 'Health Insurer'
+      theme: 'teal',
+      bgGradient: 'from-teal-50 to-cyan-50',
+      borderColor: 'border-teal-200',
+      badgeBg: 'bg-teal-100 text-teal-800 border-teal-200',
+      accentColor: 'text-teal-700',
+      logoInitial: '🏥',
+      type: 'Standalone Health Insurer'
     };
-  } else if (id.includes('icici')) {
+  } else if (id.includes('niva') || id.includes('bupa') || id.includes('max')) {
     return {
-      name: 'ICICI Lombard General Insurance',
-      shortName: 'ICICI Lombard',
-      theme: 'rose',
-      bgGradient: 'from-rose-50 to-red-50',
-      borderColor: 'border-rose-200',
-      badgeBg: 'bg-rose-100 text-rose-800 border-rose-200',
-      accentColor: 'text-rose-700',
-      logoInitial: '🏛️',
-      type: 'General Insurer'
-    };
-  } else if (id.includes('new-india') || id.includes('new india')) {
-    return {
-      name: 'The New India Assurance Co. Ltd.',
-      shortName: 'New India Assurance',
+      name: 'Niva Bupa Health Insurance',
+      shortName: 'Niva Bupa',
       theme: 'indigo',
-      bgGradient: 'from-indigo-50 to-slate-50',
+      bgGradient: 'from-indigo-50 to-blue-50',
       borderColor: 'border-indigo-200',
       badgeBg: 'bg-indigo-100 text-indigo-800 border-indigo-200',
       accentColor: 'text-indigo-700',
-      logoInitial: '🇮🇳',
-      type: 'Public Sector PSU'
+      logoInitial: '💙',
+      type: 'Standalone Health Insurer'
     };
-  } else if (id.includes('pmjay') || id.includes('ayushman') || id.includes('pm-jay')) {
+  } else if (id.includes('pm-jay') || id.includes('ayushman') || id.includes('gov')) {
     return {
-      name: 'Ayushman Bharat PM-JAY',
-      shortName: 'AB-PMJAY',
+      name: 'Ayushman Bharat PM-JAY (Govt. Scheme)',
+      shortName: 'PM-JAY Scheme',
       theme: 'emerald',
-      bgGradient: 'from-emerald-50 via-amber-50/40 to-teal-50',
+      bgGradient: 'from-emerald-50 to-green-50',
       borderColor: 'border-emerald-300',
-      badgeBg: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+      badgeBg: 'bg-emerald-600 text-white border-emerald-700',
       accentColor: 'text-emerald-800',
       logoInitial: '🏛️',
-      type: 'Central Government Scheme'
+      type: 'National Health Scheme (100% Cashless Package)'
+    };
+  } else {
+    return {
+      name: 'Health Insurance Provider',
+      shortName: 'Insurer',
+      theme: 'slate',
+      bgGradient: 'from-slate-50 to-slate-100',
+      borderColor: 'border-slate-200',
+      badgeBg: 'bg-slate-100 text-slate-800 border-slate-200',
+      accentColor: 'text-slate-700',
+      logoInitial: '📄',
+      type: 'Health Insurance Policy'
     };
   }
-
-  return {
-    name: insurerId || 'Health Insurance Provider',
-    shortName: insurerId.replace(/^ins-/, '').replace(/-/g, ' ').toUpperCase() || 'Insurance',
-    theme: 'teal',
-    bgGradient: 'from-teal-50 to-slate-50',
-    borderColor: 'border-slate-200',
-    badgeBg: 'bg-teal-100 text-teal-800 border-teal-200',
-    accentColor: 'text-teal-700',
-    logoInitial: '📋',
-    type: 'Insurance Policy'
-  };
 };
 
 export const InsuranceView: React.FC<InsuranceViewProps> = ({
-  policies,
-  activePatient,
-  onPolicyAdded,
-  onOpenChatbot
+  policies: propPolicies,
+  activePatient: propActivePatient,
+  onPolicyAdded: propOnPolicyAdded,
+  onOpenChatbot: propOnOpenChatbot
 }) => {
+  const context = useCareIQ();
+  const policies = propPolicies !== undefined ? propPolicies : context.policies;
+  const activePatient = propActivePatient !== undefined ? propActivePatient : context.activePatient;
+  const onPolicyAdded = propOnPolicyAdded || (() => activePatient && context.loadDataForPatient(activePatient));
+  const onOpenChatbot = propOnOpenChatbot || (() => context.setIsChatbotOpen(true));
+
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [expandedPolicyId, setExpandedPolicyId] = useState<string | null>(
     policies.length > 0 ? policies[0].id : null

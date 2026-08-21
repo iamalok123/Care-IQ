@@ -17,30 +17,65 @@ import { MissingInfoCard } from '../widgets/MissingInfoCard';
 import { CaregiverShareModal } from '../modals/CaregiverShareModal';
 import { InfoPopover } from '../common/InfoPopover';
 
+import { useNavigate } from 'react-router-dom';
+import { useCareIQ } from '../../context/CareIQContext';
+
 interface DashboardProps {
-  patient: any;
-  policy: any;
-  journey: any;
-  verificationItems: any[];
-  onNavigate: (tab: string) => void;
-  onOpenQuestionsModal: () => void;
+  patient?: any;
+  policy?: any;
+  journey?: any;
+  verificationItems?: any[];
+  onNavigate?: (tab: string) => void;
+  onOpenQuestionsModal?: () => void;
   onOpenScenarioGuide?: () => void;
   onOpenChatbot?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
-  patient,
-  policy,
-  journey,
-  verificationItems,
-  onNavigate,
-  onOpenQuestionsModal,
-  onOpenScenarioGuide,
-  onOpenChatbot
+  patient: propPatient,
+  policy: propPolicy,
+  journey: propJourney,
+  verificationItems: propVerificationItems,
+  onNavigate: propOnNavigate,
+  onOpenQuestionsModal: propOnOpenQuestionsModal,
+  onOpenScenarioGuide: propOnOpenScenarioGuide,
+  onOpenChatbot: propOnOpenChatbot
 }) => {
+  const navigate = useNavigate();
+  const context = useCareIQ();
+
+  const patient = propPatient !== undefined ? propPatient : context.activePatient;
+  const policy = propPolicy !== undefined ? propPolicy : context.activePolicy;
+  const journey = propJourney !== undefined ? propJourney : context.journey;
+  const verificationItems = propVerificationItems !== undefined ? propVerificationItems : context.verificationItems;
+
+  const onNavigate = (target: string) => {
+    if (propOnNavigate) {
+      propOnNavigate(target);
+    } else {
+      const routeMap: Record<string, string> = {
+        dashboard: '/dashboard',
+        hospitals: '/hospital-matcher',
+        'hospital-matcher': '/hospital-matcher',
+        insurance: '/insurance',
+        journey: '/care-journey',
+        'care-journey': '/care-journey',
+        cost: '/cost-breakdown',
+        'cost-breakdown': '/cost-breakdown',
+        verification: '/verification-center',
+        'verification-center': '/verification-center'
+      };
+      navigate(routeMap[target] || `/${target}`);
+    }
+  };
+
+  const onOpenQuestionsModal = propOnOpenQuestionsModal || (() => context.openQuestionsModal());
+  const onOpenScenarioGuide = propOnOpenScenarioGuide || (() => context.setShowScenarioGuide(true));
+  const onOpenChatbot = propOnOpenChatbot || (() => context.setIsChatbotOpen(true));
+
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
-  const pendingVerifications = verificationItems.filter((v) => v.status === 'PENDING');
-  const highPriorityAlert = pendingVerifications.find((v) => v.priority === 'HIGH') || pendingVerifications[0];
+  const pendingVerifications = verificationItems.filter((v: any) => v.status === 'PENDING');
+  const highPriorityAlert = pendingVerifications.find((v: any) => v.priority === 'HIGH') || pendingVerifications[0];
 
   const currentStage = journey?.current_stage || 'ADMISSION';
   const stages = ['ADMISSION', 'INVESTIGATION', 'PROCEDURE', 'RECOVERY', 'DISCHARGE'];

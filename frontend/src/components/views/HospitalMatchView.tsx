@@ -18,19 +18,26 @@ import {
 import { api } from '../../services/api';
 import { HospitalCompare } from '../widgets/HospitalCompare';
 
+import { useCareIQ } from '../../context/CareIQContext';
+
 interface HospitalMatchViewProps {
-  policy: any;
-  activePatient: any;
-  onStartJourney: (hospitalId: string) => void;
-  onOpenQuestions: (hospitalName: string, isRoomExceeded: boolean) => void;
+  policy?: any;
+  activePatient?: any;
+  onStartJourney?: (hospitalId: string) => void;
+  onOpenQuestions?: (hospitalName: string, isRoomExceeded: boolean) => void;
 }
 
 export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
-  policy,
-  activePatient,
-  onStartJourney,
-  onOpenQuestions
+  policy: propPolicy,
+  activePatient: propActivePatient,
+  onStartJourney: propOnStartJourney,
+  onOpenQuestions: propOnOpenQuestions
 }) => {
+  const context = useCareIQ();
+  const policy = propPolicy !== undefined ? propPolicy : context.activePolicy;
+  const activePatient = propActivePatient !== undefined ? propActivePatient : context.activePatient;
+  const onStartJourney = propOnStartJourney || context.handleStartJourney;
+  const onOpenQuestions = propOnOpenQuestions || context.openQuestionsModal;
   const [city, setCity] = useState<string>(activePatient?.city || 'Bengaluru');
   const [specialty, setSpecialty] = useState<string>('ORTHOPEDICS');
   const [procedureId, setProcedureId] = useState<string>('proc-knee-replacement');

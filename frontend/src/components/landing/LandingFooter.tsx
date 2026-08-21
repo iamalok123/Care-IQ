@@ -25,9 +25,6 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onLaunchApp }) => 
               <div className="flex flex-col">
                 <span className="text-xl font-black text-white tracking-tight flex items-center gap-2">
                   CareIQ
-                  <span className="text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30 px-1.5 py-0.2 rounded-full">
-                    2026
-                  </span>
                 </span>
                 <span className="text-[11px] text-slate-400 font-medium">
                   Hospital & Insurance Decision Intelligence

@@ -3,15 +3,20 @@ import { api } from '../../services/api';
 import { WhatIfSimulator } from '../widgets/WhatIfSimulator';
 import { Calculator, ArrowLeftRight } from 'lucide-react';
 
+import { useCareIQ } from '../../context/CareIQContext';
+
 interface CostBreakdownViewProps {
-  policy: any;
-  hospitals: any[];
+  policy?: any;
+  hospitals?: any[];
 }
 
 export const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
-  policy,
-  hospitals
+  policy: propPolicy,
+  hospitals: propHospitals
 }) => {
+  const context = useCareIQ();
+  const policy = propPolicy !== undefined ? propPolicy : context.activePolicy;
+  const hospitals = propHospitals !== undefined ? propHospitals : context.hospitals;
   const [hospitalId, setHospitalId] = useState<string>('hosp-manipal-old-airport');
   const [procedureId, setProcedureId] = useState<string>('proc-knee-replacement');
   const [roomCategory, setRoomCategory] = useState<string>(policy?.room_eligibility || 'PRIVATE_AC');
