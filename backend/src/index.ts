@@ -24,10 +24,22 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: true,
   credentials: true
 }));
 app.use(express.json());
+
+// Serverless cold-start initialization middleware
+let initPromise: Promise<void> | null = null;
+app.use(async (req: Request, res: Response, next: NextFunction) => {
+  if (!initPromise) {
+    initPromise = dbManager.initializeOnStartup().catch((err) => {
+      console.warn('Database init notice:', err?.message || err);
+    });
+  }
+  await initPromise;
+  next();
+});
 
 // Request logging middleware
 app.use((req: Request, res: Response, next: NextFunction) => {

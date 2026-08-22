@@ -151,13 +151,13 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           </motion.button>
 
           <motion.a
-            href="#scenarios"
+            href="#case-studies"
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
-            className="px-6 py-3.5 rounded-full text-sm font-bold bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 shadow-sm transition-all cursor-pointer flex items-center gap-2"
+            className="px-6 py-3.5 rounded-full text-sm font-bold bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 shadow-2xs transition-all cursor-pointer flex items-center gap-2"
           >
             <PlayCircle size={17} className="text-blue-600" />
-            <span>Explore 11 Live Scenarios</span>
+            <span>Explore Case Studies</span>
           </motion.a>
         </motion.div>
       </div>

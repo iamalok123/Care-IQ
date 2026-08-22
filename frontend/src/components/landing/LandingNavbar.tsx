@@ -17,8 +17,8 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({
 
   const navLinks = [
     { id: 'features', label: 'Features', href: '#features' },
-    { id: 'scenarios', label: '11 Scenarios', href: '#scenarios' },
     { id: 'how-it-works', label: 'How It Works', href: '#how-it-works' },
+    { id: 'case-studies', label: 'Case Studies', href: '#case-studies' },
     { id: 'faq', label: 'FAQ', href: '#faq' }
   ];
 

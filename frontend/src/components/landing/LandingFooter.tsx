@@ -57,8 +57,8 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onLaunchApp }) => 
               <li><a href="#features" className="hover:text-white transition-colors">Deterministic Policy RAG</a></li>
               <li><a href="#features" className="hover:text-white transition-colors">Hospital Match Engine</a></li>
               <li><a href="#features" className="hover:text-white transition-colors">Room Rent Trap Calculator</a></li>
-              <li><a href="#how-it-works" className="hover:text-white transition-colors">5-Stage Care Journey</a></li>
-              <li><a href="#scenarios" className="hover:text-white transition-colors">11 Patient Personas</a></li>
+              <li><a href="#how-it-works" className="hover:text-white transition-colors">Care Trajectory Engine</a></li>
+              <li><a href="#case-studies" className="hover:text-white transition-colors">Patient Case Studies</a></li>
             </ul>
           </div>
 

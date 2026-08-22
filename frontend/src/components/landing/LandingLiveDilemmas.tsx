@@ -5,7 +5,7 @@ import {
   CheckCircle2, 
   Sparkles, 
   BedDouble, 
-  HeartPulse, 
+  Activity, 
   ShieldCheck, 
   Building2, 
   ArrowRight,
@@ -42,7 +42,7 @@ export const LandingLiveDilemmas: React.FC<LandingLiveDilemmasProps> = ({ onLaun
       savedAmount: '100% Cashless Settle',
       withoutCareIQ: 'TPA delayed cashless citing under 24hr stay requirement, forcing patient to swipe ₹85,000 card.',
       withCareIQ: 'Policy RAG cited Clause 4.2.1 verbatim proving Daycare exemption. Cashless approved in 25 mins.',
-      icon: HeartPulse,
+      icon: Activity,
       accent: 'from-blue-500 to-cyan-600'
     },
     {
@@ -72,7 +72,7 @@ export const LandingLiveDilemmas: React.FC<LandingLiveDilemmasProps> = ({ onLaun
   ];
 
   return (
-    <section id="scenarios" className="relative z-30 bg-slate-50/70 py-20 sm:py-28 border-b border-slate-100 overflow-hidden scroll-mt-28">
+    <section id="case-studies" className="relative z-30 bg-slate-50/70 py-20 sm:py-28 border-b border-slate-100 overflow-hidden scroll-mt-28">
       <div className="max-w-285 mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
@@ -84,7 +84,7 @@ export const LandingLiveDilemmas: React.FC<LandingLiveDilemmasProps> = ({ onLaun
             className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold uppercase tracking-wider mb-3"
           >
             <Sparkles size={12} />
-            <span>Interactive Scenario Matrix</span>
+            <span>Real-World Case Studies</span>
           </motion.div>
 
           <motion.h2 
