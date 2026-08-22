@@ -14,7 +14,13 @@ import {
   CheckCircle2,
   HelpCircle,
   Clock,
-  User
+  User,
+  HeartPulse,
+  Activity,
+  Pill,
+  AlertCircle,
+  Phone,
+  Edit3
 } from 'lucide-react';
 
 import { CaregiverShareModal } from '../modals/CaregiverShareModal';
@@ -56,13 +62,36 @@ export const Dashboard: React.FC<DashboardProps> = ({
     policy?.policy_name?.toLowerCase().includes('ayushman') ||
     policy?.insurer_name?.toLowerCase().includes('ayushman');
 
-  // Dynamic Patient Demographics & Context
+  // Dynamic Patient Demographics & Context (No hardcoded arbitrary fallbacks)
   const patientName = patient?.display_name || 'Active Patient';
-  const patientAge = patient?.age || (patient?.age_band ? `${patient.age_band.replace('-', '–')}y` : '42y');
-  const patientGender = patient?.gender || 'Patient';
-  const patientCity = patient?.city || 'Bengaluru';
-  const patientDiagnosis = patient?.diagnosis || journey?.events?.[0]?.description?.split('.')?.[0] || (isGovScheme ? 'Cardiac Angioplasty (PM-JAY Package)' : 'Planned Inpatient Procedure');
-  const patientAdmissionType = patient?.admission_type || (journey?.events?.[0]?.stage ? `${journey.events[0].stage} Care Stage` : 'Elective Planned');
+  const patientAge = patient?.age
+    ? `${patient.age} yrs`
+    : patient?.age_band
+    ? `${patient.age_band.replace('-', '–')}y`
+    : 'Age unspecified';
+  const patientGender = patient?.gender || 'Gender unspecified';
+  const patientCity = patient?.city || 'Location unspecified';
+  const patientDiagnosis =
+    patient?.diagnosis ||
+    journey?.events?.[0]?.description?.split('.')?.[0] ||
+    (isGovScheme ? 'Cardiac Angioplasty (PM-JAY Package)' : 'Planned Inpatient Procedure');
+  const patientAdmissionType =
+    patient?.admission_type ||
+    (journey?.events?.[0]?.stage ? `${journey.events[0].stage} Care Stage` : 'Elective Planned');
+
+  // Account Type
+  const accountType =
+    patient?.account_type === 'NEW_USER' || (!context.accountType && patient?.account_type !== 'DEMO')
+      ? 'NEW_USER'
+      : 'DEMO';
+
+  // Medical background details
+  const medicalConditions = patient?.medical_conditions || [];
+  const currentMedications = patient?.current_medications || [];
+  const allergies = patient?.allergies || [];
+  const bloodGroup = patient?.blood_group || null;
+  const emergencyContactName = patient?.emergency_contact_name || null;
+  const emergencyContactPhone = patient?.emergency_contact_phone || null;
 
   // Dynamic Hospital & Network Resolution
   const activeHospital = context.hospitals.find(
@@ -152,7 +181,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
         cost: '/cost-breakdown',
         'cost-breakdown': '/cost-breakdown',
         verification: '/verification-center',
-        'verification-center': '/verification-center'
+        'verification-center': '/verification-center',
+        onboarding: '/onboarding',
+        'get-started': '/get-started'
       };
       navigate(routeMap[target] || `/${target}`);
     }
@@ -222,6 +253,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                   {patientAge} • {patientGender}
                 </span>
+                <span
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border ${
+                    accountType === 'NEW_USER'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-cyan-50 text-cyan-700 border-cyan-200'
+                  }`}
+                >
+                  {accountType === 'NEW_USER' ? 'Verified User' : 'Demo Persona'}
+                </span>
                 <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
                   <Building2 size={11} className="text-emerald-600" />
                   <span className="truncate max-w-48">{hospitalName}</span>
@@ -258,6 +298,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
             <button
               type="button"
+              onClick={() => onNavigate('onboarding')}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition-all cursor-pointer"
+            >
+              <Edit3 size={13} className="text-slate-500" />
+              <span>Edit Profile</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setIsShareModalOpen(true)}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition-all cursor-pointer"
             >
@@ -274,6 +323,131 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </button>
           </div>
 
+        </div>
+      </div>
+
+      {/* 🌟 1.5. Health & Clinical Profile Card */}
+      <div className="bg-white/85 backdrop-blur-2xl border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-[0_8px_30px_rgb(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.9)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5 pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+              <HeartPulse size={16} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold text-slate-900 tracking-tight">Personal Health Profile</h2>
+                <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  Pre-auth & Waiting Period Context
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Clinical history used to verify pre-existing disease (PED) coverage and hospital specialty alignment
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {bloodGroup && (
+              <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                Blood: {bloodGroup}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => onNavigate('onboarding')}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+            >
+              <Edit3 size={12} className="text-slate-500" />
+              <span>Update</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 4 Clinical Grid Panels */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Medical Conditions */}
+          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl p-3">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+              <Activity size={12} className="text-cyan-600" />
+              <span>Medical Conditions</span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {medicalConditions && medicalConditions.length > 0 ? (
+                medicalConditions.map((cond: string, idx: number) => (
+                  <span
+                    key={idx}
+                    className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-white text-slate-800 border border-slate-200 shadow-2xs"
+                  >
+                    {cond}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-slate-400 font-medium">None reported / Healthy</span>
+              )}
+            </div>
+          </div>
+
+          {/* Current Medications */}
+          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl p-3">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+              <Pill size={12} className="text-purple-600" />
+              <span>Current Medications</span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {currentMedications && currentMedications.length > 0 ? (
+                currentMedications.map((med: string, idx: number) => (
+                  <span
+                    key={idx}
+                    className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-white text-purple-900 border border-purple-200 shadow-2xs"
+                  >
+                    {med}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-slate-400 font-medium">No routine medications</span>
+              )}
+            </div>
+          </div>
+
+          {/* Known Allergies */}
+          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl p-3">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+              <AlertCircle size={12} className="text-amber-600" />
+              <span>Known Allergies</span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {allergies && allergies.length > 0 ? (
+                allergies.map((all: string, idx: number) => (
+                  <span
+                    key={idx}
+                    className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-white text-amber-900 border border-amber-200 shadow-2xs"
+                  >
+                    {all}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-slate-400 font-medium">No known drug allergies</span>
+              )}
+            </div>
+          </div>
+
+          {/* Emergency Contact */}
+          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl p-3">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+              <Phone size={12} className="text-emerald-600" />
+              <span>Emergency Contact</span>
+            </div>
+            {emergencyContactName ? (
+              <div className="text-xs font-semibold text-slate-800">
+                <div>{emergencyContactName}</div>
+                {emergencyContactPhone && (
+                  <div className="text-[11px] text-slate-500 font-normal">{emergencyContactPhone}</div>
+                )}
+              </div>
+            ) : (
+              <span className="text-xs text-slate-400 font-medium">Contact not provided</span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -342,15 +516,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <ArrowUpRight size={14} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
             </div>
           </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 truncate">
-              {policyName}
-            </h3>
-            <div className="flex items-baseline justify-between mt-1 text-xs">
-              <span className="text-slate-400 text-[11px]">Remaining Sum:</span>
-              <strong className="text-blue-600 font-bold text-sm">₹{(remainingSum / 100000).toFixed(1)}L</strong>
+          {policy ? (
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 truncate">
+                {policyName}
+              </h3>
+              <div className="flex items-baseline justify-between mt-1 text-xs">
+                <span className="text-slate-400 text-[11px]">Remaining Sum:</span>
+                <strong className="text-blue-600 font-bold text-sm">₹{(remainingSum / 100000).toFixed(1)}L</strong>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <h3 className="text-xs font-bold text-blue-900 truncate">
+                + Add Health Policy
+              </h3>
+              <div className="flex items-baseline justify-between mt-1 text-[11px] text-slate-500">
+                <span>Unlock cashless coverage</span>
+                <strong className="text-blue-600 font-bold">Setup →</strong>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Card 2: Hospital Network */}
