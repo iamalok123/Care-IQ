@@ -22,14 +22,15 @@ export interface CareIQContextType {
   setJourney: (journey: any) => void;
   verificationItems: any[];
   pendingCount: number;
-  scenarios: any[];
+  demoProfiles: any[];
+  accountType: 'DEMO' | 'NEW_USER';
   loading: boolean;
   feedbackBanner: string | null;
   setFeedbackBanner: (banner: string | null) => void;
 
   // Actions
   handleSelectPatient: (patient: any) => Promise<void>;
-  handleLoadScenario: (scenarioId: string) => Promise<void>;
+  handleLoadDemoProfile: (profileId: string) => Promise<void>;
   handleStartJourney: (hospitalId: string) => Promise<void>;
   refreshVerificationItems: () => Promise<void>;
   loadDataForPatient: (patient: any) => Promise<void>;
@@ -37,10 +38,6 @@ export interface CareIQContextType {
   // Modal & Drawer State
   isMobileSidebarOpen: boolean;
   setIsMobileSidebarOpen: (open: boolean) => void;
-  showOnboarding: boolean;
-  setShowOnboarding: (show: boolean) => void;
-  showScenarioGuide: boolean;
-  setShowScenarioGuide: (show: boolean) => void;
   isChatbotOpen: boolean;
   setIsChatbotOpen: (open: boolean) => void;
   questionsModal: QuestionsModalState;
@@ -53,12 +50,16 @@ const CareIQContext = createContext<CareIQContextType | undefined>(undefined);
 
 export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
-  const { patient: authPatient, policy: authPolicy, journey: authJourney } = useAuth();
+  const {
+    patient: authPatient,
+    policy: authPolicy,
+    journey: authJourney,
+    loginAsDemo,
+    isDemoMode
+  } = useAuth();
 
   // Navigation / Drawer state
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
-  const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
-  const [showScenarioGuide, setShowScenarioGuide] = useState<boolean>(false);
   const [isChatbotOpen, setIsChatbotOpen] = useState<boolean>(false);
 
   // Data State
@@ -69,7 +70,13 @@ export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [hospitals, setHospitals] = useState<any[]>([]);
   const [journey, setJourney] = useState<any>(null);
   const [verificationItems, setVerificationItems] = useState<any[]>([]);
-  const [scenarios, setScenarios] = useState<any[]>([]);
+  const [demoProfiles, setDemoProfiles] = useState<any[]>([]);
+
+  // Account Type
+  const accountType: 'DEMO' | 'NEW_USER' =
+    authPatient?.account_type === 'NEW_USER' || (!isDemoMode && authPatient?.account_type !== 'DEMO')
+      ? 'NEW_USER'
+      : 'DEMO';
 
   // Feedback & Loading
   const [loading, setLoading] = useState<boolean>(true);
@@ -82,7 +89,8 @@ export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   });
 
   const openQuestionsModal = (hospitalName?: string, isRoomExceeded?: boolean) => {
-    const defaultName = hospitalName || hospitals.find((h) => h.id === journey?.hospital_id)?.name || 'the hospital';
+    const defaultName =
+      hospitalName || hospitals.find((h) => h.id === journey?.hospital_id)?.name || 'the hospital';
     setQuestionsModal({
       isOpen: true,
       hospitalName: defaultName,
@@ -125,15 +133,15 @@ export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const initApp = async () => {
     setLoading(true);
     try {
-      const [pts, hosps, scens] = await Promise.all([
+      const [pts, hosps, demos] = await Promise.all([
         api.getPatients(),
         api.getHospitals(),
-        api.getScenarios()
+        api.getDemoProfiles()
       ]);
 
       setPatients(pts || []);
       setHospitals(hosps || []);
-      setScenarios(scens || []);
+      setDemoProfiles(demos || []);
 
       if (authPatient) {
         setActivePatient(authPatient);
@@ -154,7 +162,7 @@ export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     initApp();
   }, []);
 
-  // Synchronize state when AuthContext loads a new authenticated profile or demo session
+  // Synchronize state when AuthContext changes active profile or switches demo session
   useEffect(() => {
     if (authPatient) {
       setActivePatient(authPatient);
@@ -176,9 +184,10 @@ export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setTimeout(() => setFeedbackBanner(null), 3500);
   };
 
-  const handleLoadScenario = async (scenarioId: string) => {
+  const handleLoadDemoProfile = async (profileId: string) => {
+    setLoading(true);
     try {
-      const res = await api.loadScenario(scenarioId);
+      const res = await loginAsDemo(profileId);
       if (res.patient) {
         setActivePatient(res.patient);
       }
@@ -188,23 +197,17 @@ export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
       if (res.journey) {
         setJourney(res.journey);
-      } else if (res.patient?.id) {
-        const jrns = await api.getJourneys(res.patient.id);
-        setJourney(jrns && jrns.length > 0 ? jrns[0] : null);
       }
-
-      if (res.verificationItems && res.verificationItems.length > 0) {
+      if (res.verificationItems) {
         setVerificationItems(res.verificationItems);
-      } else if (res.patient?.id) {
-        const vers = await api.getVerificationItems(res.patient.id);
-        setVerificationItems(vers || []);
       }
-
-      setFeedbackBanner(`Loaded Scenario: ${res.scenario?.name || scenarioId}`);
-      setTimeout(() => setFeedbackBanner(null), 4000);
+      setFeedbackBanner(`Loaded Demo Profile: ${res.patient?.display_name || profileId}`);
+      setTimeout(() => setFeedbackBanner(null), 3500);
       navigate('/dashboard');
     } catch (err) {
-      console.error('Failed to activate scenario:', err);
+      console.error('Failed to switch demo profile:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -250,21 +253,18 @@ export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setJourney,
         verificationItems,
         pendingCount,
-        scenarios,
+        demoProfiles,
+        accountType,
         loading,
         feedbackBanner,
         setFeedbackBanner,
         handleSelectPatient,
-        handleLoadScenario,
+        handleLoadDemoProfile,
         handleStartJourney,
         refreshVerificationItems,
         loadDataForPatient,
         isMobileSidebarOpen,
         setIsMobileSidebarOpen,
-        showOnboarding,
-        setShowOnboarding,
-        showScenarioGuide,
-        setShowScenarioGuide,
         isChatbotOpen,
         setIsChatbotOpen,
         questionsModal,

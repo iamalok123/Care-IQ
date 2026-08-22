@@ -1,52 +1,61 @@
-import React from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Navbar, Sidebar } from './index';
-import { 
-  AiQuestionsModal, 
-  OnboardingWizard, 
-  ScenarioReferenceModal 
-} from '../modals';
+import { AiQuestionsModal } from '../modals';
 import { PolicyRagAssistant } from '../widgets';
 import { useCareIQ } from '../../context/CareIQContext';
+import { useAuth } from '../../context/AuthContext';
 import { Sparkles, CheckCircle2 } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const {
-    loading,
+    loading: careiqLoading,
     feedbackBanner,
     activePolicy,
     isChatbotOpen,
     setIsChatbotOpen,
-    showOnboarding,
-    setShowOnboarding,
-    showScenarioGuide,
-    setShowScenarioGuide,
     questionsModal,
-    closeQuestionsModal,
-    handleLoadScenario
+    closeQuestionsModal
   } = useCareIQ();
+  const { isAuthenticated, isDemoMode, loading: authLoading } = useAuth();
 
-  const showFloatingAssistant = 
-    location.pathname === '/dashboard' || 
+  // Auth Guard: redirect unauthenticated non-demo users to /get-started
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated && !isDemoMode) {
+      navigate('/get-started', { replace: true });
+    }
+  }, [authLoading, isAuthenticated, isDemoMode, navigate]);
+
+  const showFloatingAssistant =
+    location.pathname === '/dashboard' ||
     location.pathname === '/insurance' ||
     location.pathname === '/hospital-matcher';
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
+        <div className="text-center">
+          <Sparkles size={32} className="text-cyan-400 mx-auto animate-spin" />
+          <p className="text-xs text-slate-400 mt-3 font-medium">Initializing CareIQ Session...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex bg-slate-50 font-sans text-slate-900 relative">
-      
       {/* Classical Full-Height Left Sidebar */}
       <Sidebar />
 
       {/* Main Right Area Container (Offset by lg:pl-56) */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen lg:pl-56">
-        
         {/* Top Header Navbar */}
         <Navbar />
 
         {/* Main View Content Canvas */}
         <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-7 max-w-350 w-full mx-auto pb-16">
-          
           {/* Feedback Alert Toast */}
           {feedbackBanner && (
             <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200 shadow-xs mb-3.5 animate-fade-in">
@@ -55,7 +64,7 @@ export const AppLayout: React.FC = () => {
             </div>
           )}
 
-          {loading ? (
+          {careiqLoading ? (
             <div className="text-center py-20 px-4">
               <Sparkles size={36} className="text-teal-600 mx-auto animate-spin" />
               <h3 className="text-lg font-bold text-slate-900 mt-3">
@@ -68,7 +77,6 @@ export const AppLayout: React.FC = () => {
           ) : (
             <Outlet />
           )}
-
         </main>
 
         {/* Footer */}
@@ -77,7 +85,6 @@ export const AppLayout: React.FC = () => {
             <strong>CareIQ</strong> — Decision-Support Platform for Precision Care Challenge 2026. Non-clinical & non-diagnostic. Coverage estimates are indicative.
           </p>
         </footer>
-
       </div>
 
       {/* 🚀 Bottom-Right Floating Action Button (FAB) for Policy Copilot */}
@@ -126,21 +133,6 @@ export const AppLayout: React.FC = () => {
           onClose={closeQuestionsModal}
         />
       )}
-
-      {/* User Onboarding Welcome Wizard */}
-      <OnboardingWizard
-        isOpen={showOnboarding}
-        onClose={() => setShowOnboarding(false)}
-        onSelectScenario={handleLoadScenario}
-      />
-
-      {/* 11 Scenarios Comparative Reference Guide Modal */}
-      <ScenarioReferenceModal
-        isOpen={showScenarioGuide}
-        onClose={() => setShowScenarioGuide(false)}
-        onSelectScenario={handleLoadScenario}
-      />
-
     </div>
   );
 };

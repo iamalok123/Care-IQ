@@ -29,7 +29,6 @@ interface DashboardProps {
   verificationItems?: any[];
   onNavigate?: (tab: string) => void;
   onOpenQuestionsModal?: () => void;
-  onOpenScenarioGuide?: () => void;
   onOpenChatbot?: () => void;
 }
 
@@ -40,7 +39,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   verificationItems: propVerificationItems,
   onNavigate: propOnNavigate,
   onOpenQuestionsModal: propOnOpenQuestionsModal,
-  onOpenScenarioGuide: propOnOpenScenarioGuide,
   onOpenChatbot: propOnOpenChatbot
 }) => {
   const navigate = useNavigate();
@@ -161,7 +159,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const onOpenQuestionsModal = propOnOpenQuestionsModal || (() => context.openQuestionsModal());
-  const onOpenScenarioGuide = propOnOpenScenarioGuide || (() => context.setShowScenarioGuide(true));
   const onOpenChatbot = propOnOpenChatbot || (() => context.setIsChatbotOpen(true));
 
   // Table and Filter State
@@ -259,17 +256,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
-            {onOpenScenarioGuide && (
-              <button
-                type="button"
-                onClick={onOpenScenarioGuide}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition-all cursor-pointer"
-              >
-                <Sparkles size={13} className="text-indigo-600" />
-                <span>Scenarios</span>
-              </button>
-            )}
-
             <button
               type="button"
               onClick={() => setIsShareModalOpen(true)}
