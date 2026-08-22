@@ -40,7 +40,7 @@ const getInsurerMeta = (insurerId: string = '') => {
       borderColor: 'border-emerald-200',
       badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-200',
       accentColor: 'text-emerald-700',
-      logoInitial: '⭐',
+      logoInitial: 'S',
       type: 'Standalone Health Insurer'
     };
   } else if (id.includes('hdfc')) {
@@ -52,7 +52,7 @@ const getInsurerMeta = (insurerId: string = '') => {
       borderColor: 'border-blue-200',
       badgeBg: 'bg-blue-100 text-blue-800 border-blue-200',
       accentColor: 'text-blue-700',
-      logoInitial: '🏦',
+      logoInitial: 'H',
       type: 'General Insurer'
     };
   } else if (id.includes('niva') || id.includes('bupa') || id.includes('max')) {
@@ -64,7 +64,7 @@ const getInsurerMeta = (insurerId: string = '') => {
       borderColor: 'border-amber-200',
       badgeBg: 'bg-amber-100 text-amber-800 border-amber-200',
       accentColor: 'text-amber-700',
-      logoInitial: '🛡️',
+      logoInitial: 'N',
       type: 'Specialized Health Insurer'
     };
   } else if (id.includes('care')) {
@@ -76,7 +76,7 @@ const getInsurerMeta = (insurerId: string = '') => {
       borderColor: 'border-teal-200',
       badgeBg: 'bg-teal-100 text-teal-800 border-teal-200',
       accentColor: 'text-teal-700',
-      logoInitial: '🏥',
+      logoInitial: 'C',
       type: 'Standalone Health Insurer'
     };
   } else if (id.includes('niva') || id.includes('bupa') || id.includes('max')) {
@@ -88,7 +88,7 @@ const getInsurerMeta = (insurerId: string = '') => {
       borderColor: 'border-indigo-200',
       badgeBg: 'bg-indigo-100 text-indigo-800 border-indigo-200',
       accentColor: 'text-indigo-700',
-      logoInitial: '💙',
+      logoInitial: 'N',
       type: 'Standalone Health Insurer'
     };
   } else if (id.includes('pm-jay') || id.includes('ayushman') || id.includes('gov')) {
@@ -100,7 +100,7 @@ const getInsurerMeta = (insurerId: string = '') => {
       borderColor: 'border-emerald-300',
       badgeBg: 'bg-emerald-600 text-white border-emerald-700',
       accentColor: 'text-emerald-800',
-      logoInitial: '🏛️',
+      logoInitial: 'P',
       type: 'National Health Scheme (100% Cashless Package)'
     };
   } else {
@@ -112,7 +112,7 @@ const getInsurerMeta = (insurerId: string = '') => {
       borderColor: 'border-slate-200',
       badgeBg: 'bg-slate-100 text-slate-800 border-slate-200',
       accentColor: 'text-slate-700',
-      logoInitial: '📄',
+      logoInitial: 'I',
       type: 'Health Insurance Policy'
     };
   }
@@ -696,7 +696,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                             </div>
                           </div>
                           <div className="text-[11px] text-amber-800 font-medium pt-1">
-                            💡 <em>Typical out-of-pocket exposure for consumables is estimated at ₹4,000 – ₹12,000 for standard 3-day inpatient stays.</em>
+                            <em>Typical out-of-pocket exposure for consumables is estimated at ₹4,000 – ₹12,000 for standard 3-day inpatient stays.</em>
                           </div>
                         </div>
                       </div>

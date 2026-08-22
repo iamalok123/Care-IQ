@@ -1,15 +1,28 @@
 import { Request, Response } from 'express';
 import { dataRepository } from '../services/dataRepository';
+import { supabaseRepository } from '../services/supabaseRepository';
+import { isSupabaseConfigured } from '../config/supabase';
 import { insurancePolicySchema } from '../schemas/zodSchemas';
 import { DataStatus, VerificationStatus, ConfidenceLevel } from '../types/domain';
 
 export class PolicyController {
   // GET /api/policies
-  public getPolicies(req: Request, res: Response): void {
-    const patientId = req.query.patient_id as string | undefined;
-    const policies = patientId
-      ? dataRepository.getPoliciesByPatientId(patientId)
+  public async getPolicies(req: Request, res: Response): Promise<void> {
+    const scopedPatientId =
+      (req.query.patient_id as string | undefined) ||
+      req.user?.patient?.id ||
+      req.user?.id;
+    let policies = scopedPatientId
+      ? dataRepository.getPoliciesByPatientId(scopedPatientId)
       : dataRepository.getPolicies();
+
+    if (isSupabaseConfigured) {
+      try {
+        policies = await supabaseRepository.fetchPolicies(scopedPatientId);
+      } catch (err) {
+        console.warn('Policy list Supabase fetch failed, using in-memory cache:', err);
+      }
+    }
 
     res.json({
       success: true,
@@ -19,12 +32,23 @@ export class PolicyController {
   }
 
   // GET /api/policies/:id
-  public getPolicyById(req: Request, res: Response): void {
-    const policy = dataRepository.getPolicyById(req.params.id as string);
+  public async getPolicyById(req: Request, res: Response): Promise<void> {
+    let policy = dataRepository.getPolicyById(req.params.id as string);
+    if (!policy && isSupabaseConfigured) {
+      policy = (await supabaseRepository.fetchPolicyById(req.params.id as string)) || undefined;
+      if (policy) dataRepository.addPolicy(policy);
+    }
     if (!policy) {
       res.status(404).json({
         success: false,
         error: { code: 'POLICY_NOT_FOUND', message: 'Policy not found' }
+      });
+      return;
+    }
+    if (req.user?.patient && policy.patient_id !== req.user.patient.id) {
+      res.status(403).json({
+        success: false,
+        error: { code: 'FORBIDDEN', message: 'You are not authorized to view this insurance policy.' }
       });
       return;
     }

@@ -9,8 +9,7 @@ import {
   Building2,
   Briefcase,
   UserPlus,
-  Sparkles,
-  HeartPulse
+  Sparkles
 } from 'lucide-react';
 import { useCareIQ } from '../../context/CareIQContext';
 import { useAuth } from '../../context/AuthContext';
@@ -97,9 +96,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar: propOnTog
         {/* Left: Brand Logo & Title */}
         <div className="flex items-center gap-3">
           {/* Mobile Logo Link */}
-          <Link to="/dashboard" className="flex items-center gap-2 lg:hidden">
-            <div className="w-8 h-8 rounded-lg bg-linear-to-tr from-cyan-600 to-blue-600 flex items-center justify-center p-1.5 shadow-xs text-white">
-              <HeartPulse size={18} />
+          <Link to="/dashboard" className="flex items-center gap-2 lg:hidden group">
+            <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center p-1.5 shadow-xs shrink-0 group-hover:bg-teal-900 transition-colors">
+              <img src="/logo.svg" alt="CareIQ" className="w-full h-full object-contain brightness-0 invert" />
             </div>
             <span className="text-base font-black tracking-tight text-slate-900">CareIQ</span>
           </Link>

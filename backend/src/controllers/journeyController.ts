@@ -1,16 +1,28 @@
 import { Request, Response } from 'express';
 import { dataRepository } from '../services/dataRepository';
+import { supabaseRepository } from '../services/supabaseRepository';
+import { isSupabaseConfigured } from '../config/supabase';
 import { journeyEngine } from '../services/journeyEngine';
 import { journeyEventSchema } from '../schemas/zodSchemas';
 
 export class JourneyController {
   // GET /api/journeys
-  public getJourneys(req: Request, res: Response): void {
-    const patientId = req.query.patient_id as string | undefined;
+  public async getJourneys(req: Request, res: Response): Promise<void> {
+    const patientId =
+      (req.query.patient_id as string | undefined) ||
+      req.user?.patient?.id ||
+      req.user?.id;
     let journeys = dataRepository.getJourneys();
 
     if (patientId) {
       journeys = journeys.filter((j) => j.patient_id === patientId);
+    }
+    if (isSupabaseConfigured) {
+      try {
+        journeys = await supabaseRepository.fetchJourneys(patientId);
+      } catch (err) {
+        console.warn('Journey list Supabase fetch failed, using in-memory cache:', err);
+      }
     }
 
     res.json({
@@ -21,12 +33,23 @@ export class JourneyController {
   }
 
   // GET /api/journeys/:id
-  public getJourneyById(req: Request, res: Response): void {
-    const journey = dataRepository.getJourneyById(req.params.id as string);
+  public async getJourneyById(req: Request, res: Response): Promise<void> {
+    let journey = dataRepository.getJourneyById(req.params.id as string);
+    if (!journey && isSupabaseConfigured) {
+      journey = (await supabaseRepository.fetchJourneyById(req.params.id as string)) || undefined;
+      if (journey) dataRepository.addJourney(journey);
+    }
     if (!journey) {
       res.status(404).json({
         success: false,
         error: { code: 'JOURNEY_NOT_FOUND', message: 'Care journey not found' }
+      });
+      return;
+    }
+    if (req.user?.patient && journey.patient_id !== req.user.patient.id) {
+      res.status(403).json({
+        success: false,
+        error: { code: 'FORBIDDEN', message: 'You are not authorized to view this care journey.' }
       });
       return;
     }

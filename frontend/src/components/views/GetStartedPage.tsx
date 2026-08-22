@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   UserPlus,
   PlayCircle,
@@ -9,10 +9,8 @@ import {
   Briefcase,
   ArrowRight,
   Sparkles,
-  ChevronRight,
-  HeartPulse,
-  Activity,
-  CheckCircle2
+  ChevronDown,
+  ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -20,6 +18,7 @@ export const GetStartedPage: React.FC = () => {
   const navigate = useNavigate();
   const { loginAsDemo } = useAuth();
   const [loadingDemoId, setLoadingDemoId] = useState<string | null>(null);
+  const [showDemoOptions, setShowDemoOptions] = useState<boolean>(false);
 
   const handleSelectDemo = async (demoId: string) => {
     setLoadingDemoId(demoId);
@@ -33,304 +32,239 @@ export const GetStartedPage: React.FC = () => {
     }
   };
 
-  const demoBadges = [
+  const demoOptions = [
     {
       id: 'demo-01-private-insurance',
       badge: 'Private Insurance',
-      badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
       icon: ShieldCheck,
-      iconColor: 'text-emerald-400',
+      iconColor: 'text-emerald-600',
       name: 'Ananya Sharma (38F)',
-      policy: 'Star Health Comprehensive ₹5L',
-      city: 'Bengaluru',
-      procedure: 'Total Knee Replacement',
-      highlight: '0% Copay • Private AC Room • Cashless Admission',
-      scenarioDesc: 'Learn how pre-authorization and network validation protect against out-of-pocket costs.'
+      policy: 'Star Health Comprehensive • ₹5L',
+      detail: 'Knee Replacement • Cashless Admission • Bengaluru'
     },
     {
       id: 'demo-02-gov-scheme',
       badge: 'Government Scheme',
-      badgeColor: 'bg-sky-500/10 text-sky-400 border-sky-500/30',
+      badgeClass: 'bg-sky-50 text-sky-700 border-sky-200',
       icon: Building2,
-      iconColor: 'text-sky-400',
+      iconColor: 'text-sky-600',
       name: 'Rajesh Verma (55M)',
-      policy: 'Ayushman Bharat PM-JAY ₹5L',
-      city: 'Mumbai (KEM Hospital)',
-      procedure: 'Phaco Cataract Surgery',
-      highlight: '100% Package Rate • General Ward • Zero Deposit',
-      scenarioDesc: 'Biometric Ayushman Mitra verification and zero-billing package compliance.'
+      policy: 'Ayushman Bharat PM-JAY • ₹5L',
+      detail: 'Cataract Package • KEM Hospital • Mumbai'
     },
     {
       id: 'demo-03-corporate-plan',
-      badge: 'Employer Provided',
-      badgeColor: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
+      badge: 'Corporate Plan',
+      badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
       icon: Briefcase,
-      iconColor: 'text-purple-400',
+      iconColor: 'text-purple-600',
       name: 'Meera Iyer (32F)',
-      policy: 'ICICI Lombard Corporate ₹7L',
-      city: 'Bengaluru (Apollo Hospital)',
-      procedure: 'General Laparoscopic Surgery',
-      highlight: '10% Copay • Room Upgrade Dilemma • Deductible',
-      scenarioDesc: 'See what-if room category simulations and proportionate deduction warnings.'
+      policy: 'ICICI Lombard Corporate • ₹7L',
+      detail: 'Laparoscopic Surgery • Apollo Hospital • Bengaluru'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-[#070d18] text-slate-100 flex flex-col relative overflow-hidden selection:bg-cyan-500 selection:text-black">
-      {/* Dynamic Background Effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(6,182,212,0.18),transparent)] pointer-events-none" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-size-[4rem_4rem] mask-[radial-gradient(ellipse_60%_50%_at_50%_40%,#000_70%,transparent_100%)] pointer-events-none" />
+    <div className="min-h-screen bg-slate-50/60 text-slate-900 flex flex-col justify-between selection:bg-blue-600 selection:text-white relative">
+      {/* Background Decorative Gradient */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(37,99,235,0.07),transparent)] pointer-events-none" />
 
-      {/* Header */}
-      <header className="relative z-10 border-b border-slate-800/80 bg-slate-900/40 backdrop-blur-md px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform duration-300">
-            <HeartPulse className="w-5 h-5 text-white" />
+      {/* Clean White Top Header */}
+      <header className="relative z-10 border-b border-slate-200/80 bg-white/90 backdrop-blur-md px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-2xs">
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center p-1.5 shadow-xs shrink-0 group-hover:bg-teal-900 transition-colors">
+            <img src="/logo.svg" alt="CareIQ Logo" className="w-full h-full object-contain brightness-0 invert" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-lg tracking-tight bg-clip-text text-transparent bg-linear-to-r from-white via-slate-200 to-cyan-400">
-                CareIQ
-              </span>
-              <span className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                Decision Core
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 hidden sm:block">
-              Hospital & Health Insurance Decision Intelligence
-            </p>
-          </div>
+          <span className="font-bold text-lg tracking-tight text-slate-900">
+            Care<span className="text-blue-600">IQ</span>
+          </span>
         </Link>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <Link
             to="/auth?tab=login"
-            className="text-xs text-slate-300 hover:text-white px-3.5 py-1.5 rounded-lg border border-slate-700 hover:border-slate-600 transition-colors"
+            className="text-xs font-semibold text-slate-700 hover:text-slate-900 px-3.5 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white transition-colors shadow-2xs"
           >
             Sign In
           </Link>
           <Link
             to="/"
-            className="text-xs text-slate-400 hover:text-slate-200 transition-colors"
+            className="text-xs text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1"
           >
-            ← Back to Home
+            <ArrowLeft size={13} />
+            <span className="hidden sm:inline">Home</span>
           </Link>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="relative z-10 flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-12 flex flex-col justify-center">
-        {/* Intro */}
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-medium mb-4"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            Get Started with CareIQ
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-3"
-          >
+      {/* Main Content Area */}
+      <main className="relative z-10 flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-10 flex flex-col justify-center">
+        {/* Minimal Hero Heading */}
+        <div className="text-center max-w-lg mx-auto mb-8">
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 mb-3">
+            <Sparkles size={12} />
+            Get Started
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             How would you like to explore?
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-sm sm:text-base text-slate-400 leading-relaxed"
-          >
-            Register with your own insurance policy and clinical background, or instantly explore with 3 pre-built real-world insurance personas.
-          </motion.p>
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1.5">
+            Create a personalized health profile or try instant interactive demo personas.
+          </p>
         </div>
 
-        {/* Two Core Pathways */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Option 1: New User Account */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="lg:col-span-4 bg-linear-to-b from-slate-900/90 to-slate-900/40 border border-slate-800 hover:border-cyan-500/50 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-xl flex flex-col justify-between group transition-all duration-300 relative overflow-hidden"
-          >
-            <div className="absolute -right-12 -top-12 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl group-hover:bg-cyan-500/20 transition-all" />
-
+        {/* 2 Main Choice Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto w-full">
+          {/* Card 1: Create a New Account */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-blue-300 transition-all flex flex-col justify-between group">
             <div>
-              <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-5 group-hover:scale-110 transition-transform">
-                <UserPlus className="w-6 h-6" />
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                <UserPlus size={20} />
               </div>
-
-              <span className="text-[11px] font-semibold text-cyan-400 uppercase tracking-wider">
-                Personalized Experience
+              <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
+                Personalized
               </span>
-              <h2 className="text-xl font-bold text-white mt-1 mb-3">
-                Create New Account
+              <h2 className="text-lg font-bold text-slate-900 mt-0.5">
+                Create a New Account
               </h2>
-              <p className="text-xs text-slate-400 leading-relaxed mb-6">
-                Set up your personalized patient profile, add your insurance policy, and unlock customized hospital matching in Mumbai and Bengaluru.
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Add your health policy and clinical profile to unlock tailored cashless hospital matches in Mumbai & Bengaluru.
               </p>
-
-              <div className="space-y-2.5 mb-8">
-                {[
-                  'Add custom health policy or scheme',
-                  'Itemized out-of-pocket forecasts',
-                  'AI policy clause evidence binding',
-                  'Automated pre-auth verification tasks'
-                ].map((feature, idx) => (
-                  <div key={idx} className="flex items-center gap-2.5 text-xs text-slate-300">
-                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                    <span>{feature}</span>
-                  </div>
-                ))}
-              </div>
             </div>
 
-            <div>
+            <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
               <button
+                type="button"
                 onClick={() => navigate('/auth?tab=register')}
-                className="w-full py-3 px-4 rounded-xl bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-semibold text-xs tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition-all transform hover:-translate-y-px"
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-slate-900 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
               >
-                <span>Register & Setup Profile</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Create Account</span>
+                <ArrowRight size={14} />
               </button>
-
-              <div className="mt-4 text-center">
-                <span className="text-[11px] text-slate-400">Already registered? </span>
-                <Link
-                  to="/auth?tab=login"
-                  className="text-[11px] text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
-                >
-                  Log in to your account
-                </Link>
-              </div>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Option 2: Explore with Curated Demos */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="lg:col-span-8 bg-linear-to-b from-slate-900/90 to-slate-900/40 border border-slate-800 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-xl flex flex-col justify-between"
+          {/* Card 2: Instant Guest Access */}
+          <div
+            onClick={() => setShowDemoOptions(!showDemoOptions)}
+            className={`bg-white border rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group ${
+              showDemoOptions ? 'border-indigo-400 ring-2 ring-indigo-500/10' : 'border-slate-200/90 hover:border-indigo-300'
+            }`}
           >
             <div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                    <PlayCircle className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">
-                      Instant Guest Access
-                    </span>
-                    <h2 className="text-xl font-bold text-white">
-                      Try 3 Interactive Scenarios
-                    </h2>
-                  </div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <PlayCircle size={20} />
                 </div>
-
-                <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-800/60 px-3 py-1.5 rounded-lg border border-slate-700/50">
-                  <Activity className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>No login required</span>
-                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  No login needed
+                </span>
               </div>
-
-              <p className="text-xs text-slate-400 leading-relaxed mb-6">
-                Select any pre-configured scenario below to explore CareIQ's matching engine, room category deductions, and AI clause citations:
+              <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">
+                Guest Preview
+              </span>
+              <h2 className="text-lg font-bold text-slate-900 mt-0.5">
+                Instant Guest Access
+              </h2>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Explore with 3 pre-built scenarios across Private, PM-JAY Government, and Corporate policies.
               </p>
-
-              {/* 3 Scenario Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                {demoBadges.map((demo) => {
-                  const Icon = demo.icon;
-                  const isLoading = loadingDemoId === demo.id;
-
-                  return (
-                    <div
-                      key={demo.id}
-                      onClick={() => !isLoading && handleSelectDemo(demo.id)}
-                      className={`relative bg-slate-950/70 border border-slate-800 hover:border-slate-600 rounded-xl p-4 cursor-pointer transition-all duration-300 hover:bg-slate-900/80 hover:shadow-lg flex flex-col justify-between group ${
-                        isLoading ? 'opacity-70 pointer-events-none' : ''
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between gap-2 mb-3">
-                          <span
-                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${demo.badgeColor}`}
-                          >
-                            {demo.badge}
-                          </span>
-                          <Icon className={`w-4 h-4 ${demo.iconColor}`} />
-                        </div>
-
-                        <h3 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors mb-1">
-                          {demo.name}
-                        </h3>
-
-                        <div className="text-[11px] text-cyan-400 font-medium mb-2">
-                          {demo.policy}
-                        </div>
-
-                        <p className="text-[11px] text-slate-400 leading-snug mb-3 line-clamp-3">
-                          {demo.scenarioDesc}
-                        </p>
-
-                        <div className="text-[10px] text-slate-500 bg-slate-900/60 p-2 rounded-lg border border-slate-800/80 mb-3">
-                          <span className="text-slate-300 font-medium">Focus: </span>
-                          {demo.highlight}
-                        </div>
-                      </div>
-
-                      <button
-                        disabled={isLoading}
-                        className="w-full py-2 px-3 rounded-lg bg-slate-800 hover:bg-cyan-500 hover:text-black text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-200"
-                      >
-                        {isLoading ? (
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-                            <span>Loading Demo...</span>
-                          </div>
-                        ) : (
-                          <>
-                            <span>Launch Demo</span>
-                            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
             </div>
 
-            {/* Quick Demo Launch Footer */}
-            <div className="border-t border-slate-800/80 pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Zero clinical assumptions. Real Indian hospital & IRDAI datasets.</span>
-              </div>
+            <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
               <button
-                onClick={() => handleSelectDemo('demo-01-private-insurance')}
-                className="text-cyan-400 hover:text-cyan-300 font-medium hover:underline flex items-center gap-1"
+                type="button"
+                className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
               >
-                <span>Quick Launch Default (Ananya Star Health)</span>
-                <ArrowRight className="w-3 h-3" />
+                <span>{showDemoOptions ? 'Hide Scenarios' : 'Select a Demo Scenario'}</span>
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform duration-200 ${showDemoOptions ? 'rotate-180' : ''}`}
+                />
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
+
+        {/* 3 Expanded Option Cards (Revealed when Instant Guest Access is selected) */}
+        <AnimatePresence>
+          {showDemoOptions && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, y: -10 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden max-w-3xl mx-auto w-full mt-6"
+            >
+              <div className="bg-slate-100/70 border border-slate-200 rounded-2xl p-4 sm:p-5">
+                <div className="flex items-center justify-between mb-3 px-1">
+                  <span className="text-xs font-bold text-slate-700">
+                    Select a persona to test:
+                  </span>
+                  <span className="text-[11px] text-slate-500">
+                    Instant one-click launch
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {demoOptions.map((opt) => {
+                    const Icon = opt.icon;
+                    const isLoading = loadingDemoId === opt.id;
+
+                    return (
+                      <div
+                        key={opt.id}
+                        onClick={() => !isLoading && handleSelectDemo(opt.id)}
+                        className={`bg-white border border-slate-200/90 hover:border-slate-400 rounded-xl p-3.5 shadow-2xs hover:shadow-sm transition-all cursor-pointer flex flex-col justify-between group ${
+                          isLoading ? 'opacity-70 pointer-events-none' : ''
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between gap-1 mb-2">
+                            <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-md border ${opt.badgeClass}`}>
+                              {opt.badge}
+                            </span>
+                            <Icon size={14} className={opt.iconColor} />
+                          </div>
+                          <h3 className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                            {opt.name}
+                          </h3>
+                          <div className="text-[11px] font-semibold text-blue-700 mt-0.5">
+                            {opt.policy}
+                          </div>
+                          <p className="text-[10px] text-slate-500 mt-1 leading-snug">
+                            {opt.detail}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={isLoading}
+                          className="mt-3 w-full py-1.5 rounded-lg bg-slate-50 hover:bg-blue-600 hover:text-white text-slate-700 text-[11px] font-bold border border-slate-200 transition-colors flex items-center justify-center gap-1"
+                        >
+                          {isLoading ? (
+                            <span className="animate-spin text-xs">⌛</span>
+                          ) : (
+                            <>
+                              <span>Launch</span>
+                              <ArrowRight size={11} />
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
-      {/* Footer Info */}
-      <footer className="relative z-10 border-t border-slate-800/80 py-4 px-6 text-center text-xs text-slate-500">
-        CareIQ AI Decision Support is built for informational and transparency purposes.
+      {/* Clean Minimal Footer */}
+      <footer className="relative z-10 border-t border-slate-200/80 bg-white/50 py-3.5 px-6 text-center text-xs text-slate-500">
+        CareIQ Indian Hospital & Insurance Decision Support Platform
       </footer>
     </div>
   );

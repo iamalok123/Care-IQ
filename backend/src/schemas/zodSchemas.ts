@@ -35,7 +35,7 @@ export const dataProvenanceSchema = z.object({
 });
 
 export const userSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().optional(),
   role: z.nativeEnum(UserRole).default(UserRole.PATIENT),
   display_name: z.string().min(1, 'Display name is required'),
   email: z.string().email().optional().or(z.literal('')),
@@ -118,8 +118,8 @@ export const demoLoginSchema = z.object({
 });
 
 export const insurancePolicySchema = z.object({
-  id: z.string().uuid().optional(),
-  patient_id: z.string().uuid().optional(),
+  id: z.string().optional(),
+  patient_id: z.string().optional(),
   insurer_id: z.string().min(1, 'Insurer selection is required'),
   policy_name: z.string().min(1, 'Policy name is required'),
   policy_type: z.nativeEnum(PolicyType).default(PolicyType.INDIVIDUAL),
@@ -139,7 +139,7 @@ export const insurancePolicySchema = z.object({
 }).merge(dataProvenanceSchema.partial());
 
 export const policyRuleSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().optional(),
   policy_id: z.string().min(1),
   rule_code: z.string().min(1),
   category: z.nativeEnum(RuleCategory),
@@ -164,7 +164,7 @@ export const hospitalSearchSchema = z.object({
 });
 
 export const journeyEventSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().optional(),
   journey_id: z.string().min(1, 'Journey ID required'),
   stage: z.nativeEnum(JourneyStage),
   event_type: z.string().min(1, 'Event type required'),
@@ -178,7 +178,7 @@ export const journeyEventSchema = z.object({
 });
 
 export const verificationItemSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().optional(),
   patient_id: z.string().min(1),
   journey_id: z.string().optional(),
   category: z.nativeEnum(VerificationCategory),

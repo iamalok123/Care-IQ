@@ -1,11 +1,32 @@
 import { Request, Response } from 'express';
 import { dataRepository } from '../services/dataRepository';
+import { supabaseRepository } from '../services/supabaseRepository';
+import { isSupabaseConfigured } from '../config/supabase';
 import { patientSchema } from '../schemas/zodSchemas';
 
 export class PatientController {
   // GET /api/patients
-  public getPatients(_req: Request, res: Response): void {
-    const patients = dataRepository.getPatients();
+  public async getPatients(req: Request, res: Response): Promise<void> {
+    let patients = dataRepository.getPatients();
+
+    if (isSupabaseConfigured) {
+      try {
+        patients = await supabaseRepository.fetchPatients();
+      } catch (err) {
+        console.warn('Patient list Supabase fetch failed, using in-memory cache:', err);
+      }
+    }
+
+    if (req.user?.patient) {
+      patients = patients.filter((p) => p.id === req.user?.patient?.id);
+    } else if (req.user?.auth_user_id) {
+      patients = patients.filter(
+        (p) => p.auth_user_id === req.user?.auth_user_id || p.user_id === req.user?.auth_user_id
+      );
+    } else if (req.user?.email) {
+      patients = patients.filter((p) => p.email?.toLowerCase() === req.user?.email?.toLowerCase());
+    }
+
     res.json({
       success: true,
       data: patients,
@@ -14,14 +35,31 @@ export class PatientController {
   }
 
   // GET /api/patients/:id
-  public getPatientById(req: Request, res: Response): void {
-    const patient = dataRepository.getPatientById(req.params.id as string);
+  public async getPatientById(req: Request, res: Response): Promise<void> {
+    let patient = dataRepository.getPatientById(req.params.id as string);
+    if (!patient && isSupabaseConfigured) {
+      patient = (await supabaseRepository.fetchPatientById(req.params.id as string)) || undefined;
+      if (patient) dataRepository.addPatient(patient);
+    }
     if (!patient) {
       res.status(404).json({
         success: false,
         error: { code: 'PATIENT_NOT_FOUND', message: 'Patient not found' }
       });
       return;
+    }
+    if (req.user && req.user.account_type !== 'DEMO') {
+      const isOwner =
+        req.user.auth_user_id === patient.auth_user_id ||
+        req.user.auth_user_id === patient.user_id ||
+        (req.user.email && req.user.email === patient.email);
+      if (!isOwner) {
+        res.status(403).json({
+          success: false,
+          error: { code: 'FORBIDDEN', message: 'You are not authorized to view this patient profile.' }
+        });
+        return;
+      }
     }
     const policies = dataRepository.getPoliciesByPatientId(req.params.id as string);
     res.json({

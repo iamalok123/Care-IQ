@@ -20,6 +20,9 @@ import {
   CareJourney,
   JourneyEvent,
   VerificationItem,
+  VerificationCategory,
+  PriorityLevel,
+  VerificationItemStatus,
   Document,
   DocumentExtraction,
   ExtractionEvidence
@@ -483,11 +486,79 @@ export class DataRepository {
   // ==========================================
 
   public getVerificationItems(patientId?: string, journeyId?: string): VerificationItem[] {
-    return this.verificationItems.filter((item) => {
+    let items = this.verificationItems.filter((item) => {
       if (patientId && item.patient_id !== patientId) return false;
       if (journeyId && item.journey_id !== journeyId) return false;
       return true;
     });
+
+    // If querying for a specific patient who has no verification items yet (e.g. newly registered user), generate tailored baseline checkpoints
+    if (patientId && items.length === 0) {
+      const policy = this.getPoliciesByPatientId(patientId)[0] || this.getPolicies()[0];
+      const isGov = policy?.policy_type === 'GOVERNMENT_SCHEME' || policy?.policy_name?.toLowerCase().includes('pm-jay') || policy?.policy_name?.toLowerCase().includes('ayushman');
+      const now = new Date().toISOString();
+
+      const initialItems: VerificationItem[] = [
+        {
+          id: `ver-${patientId}-consumables`,
+          patient_id: patientId,
+          journey_id: journeyId,
+          category: VerificationCategory.COST,
+          title: 'Verify Itemized Non-Payable Consumable Charges',
+          question: 'Ask hospital billing desk for an advance estimate of non-medical consumables, gloves, PPE kits, and administrative file charges.',
+          reason: isGov
+            ? 'Confirm zero-billing under statutory PM-JAY package guidelines.'
+            : 'Surgical admissions typically incur ₹12,000 - ₹18,000 in non-payable disposable exclusions.',
+          priority: PriorityLevel.HIGH,
+          status: VerificationItemStatus.PENDING,
+          created_at: now
+        },
+        {
+          id: `ver-${patientId}-preauth`,
+          patient_id: patientId,
+          journey_id: journeyId,
+          category: VerificationCategory.PREAUTH,
+          title: 'Confirm Preauthorization Status & Differential Approval',
+          question: 'Has the hospital TPA desk submitted pre-authorization and received initial sanction letter?',
+          reason: 'Cashless planned admission requires initial pre-authorization token before admission desk bed allocation.',
+          priority: PriorityLevel.HIGH,
+          status: VerificationItemStatus.PENDING,
+          created_at: now
+        },
+        {
+          id: `ver-${patientId}-room-cap`,
+          patient_id: patientId,
+          journey_id: journeyId,
+          category: VerificationCategory.ROOM,
+          title: 'Room Rent Category Cap & Proportionate Deduction Guard',
+          question: `Is the allocated room category strictly within your ${policy?.room_eligibility || 'Single Private AC'} policy cap?`,
+          reason: 'Upgrading room beyond eligibility triggers proportionate deductions across doctor, surgeon, and OT charges.',
+          priority: PriorityLevel.MEDIUM,
+          status: VerificationItemStatus.PENDING,
+          created_at: now
+        },
+        {
+          id: `ver-${patientId}-claim-window`,
+          patient_id: patientId,
+          journey_id: journeyId,
+          category: VerificationCategory.DOCUMENT,
+          title: 'Post-Hospitalization 60-Day Claim Window Verification',
+          question: 'Have you collected signed discharge summary, implant stickers, diagnostic reports, and original pharmacy receipts?',
+          reason: 'Post-hospitalization OPD/investigation claims must be submitted to the insurer within 60 to 90 days of discharge.',
+          priority: PriorityLevel.LOW,
+          status: VerificationItemStatus.PENDING,
+          created_at: now
+        }
+      ];
+
+      initialItems.forEach((item) => {
+        this.addVerificationItem(item);
+      });
+
+      items = initialItems;
+    }
+
+    return items;
   }
 
   public addVerificationItem(item: VerificationItem): VerificationItem {

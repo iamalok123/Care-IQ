@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  HeartPulse,
   User,
   Activity,
   ShieldCheck,
@@ -79,25 +78,36 @@ export const OnboardingPage: React.FC = () => {
   useEffect(() => {
     if (city.toLowerCase() === 'mumbai') {
       setState('Maharashtra');
-    } else if (city.toLowerCase() === 'bengaluru' || city.toLowerCase() === 'bangalore') {
+    } else {
       setState('Karnataka');
     }
   }, [city]);
 
   // Load insurers list
   useEffect(() => {
-    async function loadInsurers() {
+    const fetchInsurers = async () => {
       try {
-        const list = await api.getInsurers();
-        setInsurers(list || []);
-        if (list && list.length > 0 && !selectedInsurerId) {
-          setSelectedInsurerId(list[0].id);
+        const res: any = await api.getInsurers();
+        if (Array.isArray(res)) {
+          setInsurers(res);
+        } else if (res?.data && Array.isArray(res.data)) {
+          setInsurers(res.data);
         }
       } catch (err) {
-        console.warn('Failed to load insurers list:', err);
+        console.error('Failed to load insurers list:', err);
+        // Fallback insurers
+        setInsurers([
+          { id: 'ins-star-health', name: 'Star Health and Allied Insurance' },
+          { id: 'ins-hdfc-ergo', name: 'HDFC ERGO General Insurance' },
+          { id: 'ins-icici-lombard', name: 'ICICI Lombard General Insurance' },
+          { id: 'ins-care-health', name: 'Care Health Insurance' },
+          { id: 'ins-niva-bupa', name: 'Niva Bupa Health Insurance' },
+          { id: 'sch-pmjay', name: 'Ayushman Bharat PM-JAY' },
+          { id: 'sch-ab-ark', name: 'Arogya Karnataka / AB-ARK' }
+        ]);
       }
-    }
-    loadInsurers();
+    };
+    fetchInsurers();
   }, []);
 
   const handleConditionToggle = (condition: string) => {
@@ -106,17 +116,13 @@ export const OnboardingPage: React.FC = () => {
       return;
     }
 
-    let next = selectedConditions.filter((c) => c !== 'None / Healthy');
-    if (next.includes(condition)) {
-      next = next.filter((c) => c !== condition);
+    const filtered = selectedConditions.filter((c) => c !== 'None / Healthy');
+    if (filtered.includes(condition)) {
+      const remaining = filtered.filter((c) => c !== condition);
+      setSelectedConditions(remaining.length === 0 ? ['None / Healthy'] : remaining);
     } else {
-      next.push(condition);
+      setSelectedConditions([...filtered, condition]);
     }
-
-    if (next.length === 0) {
-      next = ['None / Healthy'];
-    }
-    setSelectedConditions(next);
   };
 
   const handleNext = () => {
@@ -126,17 +132,27 @@ export const OnboardingPage: React.FC = () => {
         setError('Please enter your full name.');
         return;
       }
-      if (!age || Number(age) <= 0 || Number(age) > 120) {
+      if (!age || age < 1 || age > 120) {
         setError('Please enter a valid age between 1 and 120.');
         return;
       }
     }
-    setCurrentStep((prev) => Math.min(prev + 1, 4));
+    if (currentStep === 3) {
+      if (!policyName.trim()) {
+        setError('Please enter your health insurance plan or policy name.');
+        return;
+      }
+      if (!sumInsured || sumInsured <= 0) {
+        setError('Please enter a valid sum insured amount.');
+        return;
+      }
+    }
+    setCurrentStep((prev) => Math.min(4, prev + 1));
   };
 
   const handleBack = () => {
     setError(null);
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => Math.max(1, prev - 1));
   };
 
   const handleCompleteOnboarding = async () => {
@@ -144,9 +160,15 @@ export const OnboardingPage: React.FC = () => {
     setError(null);
 
     try {
-      const patientId = patient?.id || `pat-${Date.now()}`;
+      // 1. Determine Patient ID and Safety for Demo Profiles
+      const isExistingUserPatient = Boolean(
+        patient?.id &&
+        !patient.id.startsWith('pat-demo-') &&
+        patient.account_type === 'NEW_USER'
+      );
+      const patientId = isExistingUserPatient ? patient.id : `pat-${Date.now()}`;
 
-      // 1. Update Patient Profile
+      // 1. Update/Create Patient Profile
       const parsedMedications = medications
         .split(',')
         .map((m) => m.trim())
@@ -157,6 +179,7 @@ export const OnboardingPage: React.FC = () => {
         .filter(Boolean);
 
       const patientPayload = {
+        id: patientId,
         display_name: displayName.trim(),
         age: Number(age),
         gender,
@@ -174,12 +197,16 @@ export const OnboardingPage: React.FC = () => {
       };
 
       let updatedPatient;
-      try {
-        const res = await api.updatePatient(patientId, patientPayload);
-        updatedPatient = res.data || res;
-      } catch {
-        // Fallback create
-        const res = await api.createPatient({ id: patientId, ...patientPayload });
+      if (isExistingUserPatient) {
+        try {
+          const res = await api.updatePatient(patientId, patientPayload);
+          updatedPatient = res.data || res;
+        } catch {
+          const res = await api.createPatient(patientPayload);
+          updatedPatient = res.data || res;
+        }
+      } else {
+        const res = await api.createPatient(patientPayload);
         updatedPatient = res.data || res;
       }
 
@@ -187,6 +214,7 @@ export const OnboardingPage: React.FC = () => {
 
       // 2. Create Insurance Policy
       const policyPayload = {
+        id: `pol-${Date.now()}`,
         patient_id: patientId,
         insurer_id: selectedInsurerId,
         policy_name: policyName.trim() || 'Health Insurance Plan',
@@ -226,28 +254,25 @@ export const OnboardingPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#070d18] text-slate-100 flex flex-col justify-between relative selection:bg-cyan-500 selection:text-black">
-      {/* Background Lighting */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(6,182,212,0.12),transparent)] pointer-events-none" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b12_1px,transparent_1px),linear-gradient(to_bottom,#1e293b12_1px,transparent_1px)] bg-size-[3rem_3rem] mask-[radial-gradient(ellipse_60%_50%_at_50%_40%,#000_70%,transparent_100%)] pointer-events-none" />
+    <div className="min-h-screen bg-slate-50/60 text-slate-900 flex flex-col justify-between relative selection:bg-blue-600 selection:text-white">
+      {/* Background Decorative Subtle Radial Gradient */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(37,99,235,0.07),transparent)] pointer-events-none" />
 
-      {/* Header */}
-      <header className="relative z-10 px-6 py-4 flex items-center justify-between border-b border-slate-800/80 bg-slate-900/40 backdrop-blur-md">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-linear-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-            <HeartPulse className="w-5 h-5 text-white" />
+      {/* Clean White Top Header */}
+      <header className="relative z-10 px-4 sm:px-8 py-3.5 flex items-center justify-between border-b border-slate-200/80 bg-white/90 backdrop-blur-md shadow-2xs">
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center p-1.5 shadow-xs shrink-0 group-hover:bg-teal-900 transition-colors">
+            <img src="/logo.svg" alt="CareIQ Logo" className="w-full h-full object-contain brightness-0 invert" />
           </div>
-          <div>
-            <span className="font-bold text-base tracking-tight bg-clip-text text-transparent bg-linear-to-r from-white to-cyan-400">
-              CareIQ Onboarding
-            </span>
-          </div>
+          <span className="font-bold text-lg tracking-tight text-slate-900">
+            Care<span className="text-blue-600">IQ</span> Onboarding
+          </span>
         </Link>
 
         <button
           type="button"
           onClick={() => navigate('/dashboard')}
-          className="text-xs text-slate-400 hover:text-slate-200 transition-colors"
+          className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
         >
           Skip Setup →
         </button>
@@ -256,57 +281,69 @@ export const OnboardingPage: React.FC = () => {
       {/* Main Form Wizard */}
       <main className="relative z-10 flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-8 flex flex-col justify-center">
         {/* Progress Bar & Step Indicators */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between relative mb-4">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-slate-800 w-full z-0" />
+        <div className="mb-8 max-w-2xl mx-auto w-full px-2 sm:px-4">
+          <div className="relative">
+            {/* Background connecting track: bounded strictly between the first and last circle centers */}
+            <div className="absolute top-4.5 left-4.5 right-4.5 h-0.5 bg-slate-200 z-0" />
+            
+            {/* Active filled connecting track */}
             <div
-              className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-linear-to-r from-cyan-500 to-blue-500 transition-all duration-500 z-0"
-              style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+              className="absolute top-4.5 left-4.5 h-0.5 bg-blue-600 transition-all duration-500 z-0"
+              style={{
+                width: `calc(${((currentStep - 1) / (steps.length - 1))} * (100% - 36px))`
+              }}
             />
 
-            {steps.map((s) => {
-              const Icon = s.icon;
-              const isDone = currentStep > s.num;
-              const isCurrent = currentStep === s.num;
+            {/* 4 Step Circle and Label Columns */}
+            <div className="flex items-start justify-between relative z-10">
+              {steps.map((s) => {
+                const Icon = s.icon;
+                const isDone = currentStep > s.num;
+                const isCurrent = currentStep === s.num;
 
-              return (
-                <div key={s.num} className="relative z-10 flex flex-col items-center">
-                  <div
-                    className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
-                      isDone
-                        ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/30'
-                        : isCurrent
-                        ? 'bg-slate-900 border-2 border-cyan-400 text-cyan-400 shadow-md shadow-cyan-500/20'
-                        : 'bg-slate-900 border border-slate-700 text-slate-500'
-                    }`}
-                  >
-                    {isDone ? <Check className="w-4 h-4 stroke-3" /> : <Icon className="w-4 h-4" />}
+                return (
+                  <div key={s.num} className="flex flex-col items-center">
+                    <div
+                      className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                        isDone
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : isCurrent
+                          ? 'bg-white border-2 border-blue-600 text-blue-600 shadow-sm ring-4 ring-blue-500/10'
+                          : 'bg-white border border-slate-300 text-slate-400'
+                      }`}
+                    >
+                      {isDone ? <Check size={16} strokeWidth={3} /> : <Icon size={15} />}
+                    </div>
+                    <span
+                      className={`text-[11px] font-bold mt-2 text-center transition-colors whitespace-nowrap hidden sm:block ${
+                        isCurrent
+                          ? 'text-blue-700'
+                          : isDone
+                          ? 'text-slate-700'
+                          : 'text-slate-400'
+                      }`}
+                    >
+                      {s.label}
+                    </span>
                   </div>
-                  <span
-                    className={`text-[10px] font-semibold mt-1.5 hidden sm:block ${
-                      isCurrent ? 'text-cyan-400' : isDone ? 'text-slate-300' : 'text-slate-500'
-                    }`}
-                  >
-                    {s.label}
-                  </span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
 
         {/* Wizard Step Card */}
         <motion.div
           key={currentStep}
-          initial={{ opacity: 0, x: 20 }}
+          initial={{ opacity: 0, x: 15 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3 }}
-          className="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl backdrop-blur-2xl p-6 sm:p-8"
+          exit={{ opacity: 0, x: -15 }}
+          transition={{ duration: 0.25 }}
+          className="bg-white border border-slate-200/90 rounded-2xl shadow-xl p-6 sm:p-8"
         >
           {error && (
-            <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="mb-6 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
+              <AlertCircle size={15} className="text-rose-600 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
@@ -315,18 +352,18 @@ export const OnboardingPage: React.FC = () => {
           {currentStep === 1 && (
             <div>
               <div className="mb-6">
-                <span className="text-[10px] font-semibold text-cyan-400 uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
                   Step 1 of 4
                 </span>
-                <h2 className="text-xl font-bold text-white mt-1">Personal Details</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-xl font-bold text-slate-900 mt-0.5">Personal Details</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
                   Helps CareIQ match you with nearby hospitals and determine room category coverage.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Full Name *
                   </label>
                   <input
@@ -335,12 +372,12 @@ export const OnboardingPage: React.FC = () => {
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="e.g. Ananya Sharma"
-                    className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white placeholder:text-slate-600 outline-none"
+                    className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Age *
                   </label>
                   <input
@@ -351,18 +388,18 @@ export const OnboardingPage: React.FC = () => {
                     value={age}
                     onChange={(e) => setAge(e.target.value === '' ? '' : Number(e.target.value))}
                     placeholder="38"
-                    className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white placeholder:text-slate-600 outline-none"
+                    className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Gender
                   </label>
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
-                    className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white outline-none"
+                    className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 outline-none transition-colors"
                   >
                     <option value="Female">Female</option>
                     <option value="Male">Male</option>
@@ -372,13 +409,13 @@ export const OnboardingPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Blood Group
                   </label>
                   <select
                     value={bloodGroup}
                     onChange={(e) => setBloodGroup(e.target.value)}
-                    className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white outline-none"
+                    className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 outline-none transition-colors"
                   >
                     {BLOOD_GROUPS.map((bg) => (
                       <option key={bg} value={bg}>
@@ -389,13 +426,13 @@ export const OnboardingPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     City (Supported Markets)
                   </label>
                   <select
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white outline-none"
+                    className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 outline-none transition-colors"
                   >
                     <option value="Bengaluru">Bengaluru (Bangalore)</option>
                     <option value="Mumbai">Mumbai</option>
@@ -403,31 +440,31 @@ export const OnboardingPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     State
                   </label>
                   <input
                     type="text"
                     disabled
                     value={state}
-                    className="w-full bg-slate-950/50 border border-slate-800 rounded-xl py-2.5 px-3.5 text-xs text-slate-400 outline-none cursor-not-allowed"
+                    className="w-full bg-slate-100 border border-slate-200 rounded-xl py-2.5 px-3.5 text-xs text-slate-500 outline-none cursor-not-allowed"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Date of Birth (Optional)
                   </label>
                   <input
                     type="date"
                     value={dateOfBirth}
                     onChange={(e) => setDateOfBirth(e.target.value)}
-                    className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white outline-none"
+                    className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Pincode
                   </label>
                   <input
@@ -435,7 +472,7 @@ export const OnboardingPage: React.FC = () => {
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value)}
                     placeholder="e.g. 560038"
-                    className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white placeholder:text-slate-600 outline-none"
+                    className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -446,18 +483,18 @@ export const OnboardingPage: React.FC = () => {
           {currentStep === 2 && (
             <div>
               <div className="mb-6">
-                <span className="text-[10px] font-semibold text-cyan-400 uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
                   Step 2 of 4
                 </span>
-                <h2 className="text-xl font-bold text-white mt-1">Medical Background</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-xl font-bold text-slate-900 mt-0.5">Medical Background</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
                   Used exclusively for pre-existing disease waiting period checks & hospital specialty matching.
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-2">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2">
                     Pre-existing Conditions (Select all that apply)
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -468,10 +505,10 @@ export const OnboardingPage: React.FC = () => {
                           key={cond}
                           type="button"
                           onClick={() => handleConditionToggle(cond)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 cursor-pointer ${
                             isSelected
-                              ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-sm shadow-cyan-500/20'
-                              : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                              ? 'bg-blue-50 border-blue-300 text-blue-800 shadow-2xs font-bold'
+                              : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900'
                           }`}
                         >
                           {isSelected && '✓ '}
@@ -483,7 +520,7 @@ export const OnboardingPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Current Medications (Comma separated)
                   </label>
                   <input
@@ -491,12 +528,12 @@ export const OnboardingPage: React.FC = () => {
                     value={medications}
                     onChange={(e) => setMedications(e.target.value)}
                     placeholder="e.g. Metformin 500mg, Montelukast 10mg"
-                    className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white placeholder:text-slate-600 outline-none"
+                    className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Allergies
                   </label>
                   <input
@@ -504,13 +541,13 @@ export const OnboardingPage: React.FC = () => {
                     value={allergies}
                     onChange={(e) => setAllergies(e.target.value)}
                     placeholder="e.g. Penicillin, Dust Mites, None"
-                    className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white placeholder:text-slate-600 outline-none"
+                    className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-colors"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800/80">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Emergency Contact Name
                     </label>
                     <input
@@ -518,12 +555,12 @@ export const OnboardingPage: React.FC = () => {
                       value={emergencyName}
                       onChange={(e) => setEmergencyName(e.target.value)}
                       placeholder="e.g. Vikram Sharma"
-                      className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white placeholder:text-slate-600 outline-none"
+                      className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Emergency Contact Phone
                     </label>
                     <input
@@ -531,7 +568,7 @@ export const OnboardingPage: React.FC = () => {
                       value={emergencyPhone}
                       onChange={(e) => setEmergencyPhone(e.target.value)}
                       placeholder="+91 98765 43210"
-                      className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white placeholder:text-slate-600 outline-none"
+                      className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-colors"
                     />
                   </div>
                 </div>
@@ -543,11 +580,11 @@ export const OnboardingPage: React.FC = () => {
           {currentStep === 3 && (
             <div>
               <div className="mb-6">
-                <span className="text-[10px] font-semibold text-cyan-400 uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
                   Step 3 of 4
                 </span>
-                <h2 className="text-xl font-bold text-white mt-1">Insurance & Health Cover</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-xl font-bold text-slate-900 mt-0.5">Insurance & Health Cover</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
                   Provides exact cashless network hospital matches and out-of-pocket calculations.
                 </p>
               </div>
@@ -555,7 +592,7 @@ export const OnboardingPage: React.FC = () => {
               <div className="space-y-4">
                 {/* 3 Insurance Type Cards */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-2">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2">
                     Insurance Category
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -580,14 +617,14 @@ export const OnboardingPage: React.FC = () => {
                             setCopayPercentage(10);
                           }
                         }}
-                        className={`p-3 rounded-xl border text-left transition-all ${
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                           insuranceType === item.type
-                            ? 'bg-cyan-500/15 border-cyan-400 shadow-sm shadow-cyan-500/20'
-                            : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'
+                            ? 'bg-blue-50 border-blue-400 shadow-2xs'
+                            : 'bg-white border-slate-200 hover:border-slate-300'
                         }`}
                       >
-                        <div className="text-xs font-bold text-white">{item.label}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">{item.desc}</div>
+                        <div className="text-xs font-bold text-slate-900">{item.label}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">{item.desc}</div>
                       </button>
                     ))}
                   </div>
@@ -595,13 +632,13 @@ export const OnboardingPage: React.FC = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Insurance Provider / Scheme
                     </label>
                     <select
                       value={selectedInsurerId}
                       onChange={(e) => setSelectedInsurerId(e.target.value)}
-                      className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white outline-none"
+                      className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 outline-none transition-colors"
                     >
                       {insurers.map((ins) => (
                         <option key={ins.id} value={ins.id}>
@@ -612,7 +649,7 @@ export const OnboardingPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Policy Name
                     </label>
                     <input
@@ -620,12 +657,12 @@ export const OnboardingPage: React.FC = () => {
                       value={policyName}
                       onChange={(e) => setPolicyName(e.target.value)}
                       placeholder="e.g. Star Comprehensive Health Insurance"
-                      className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white placeholder:text-slate-600 outline-none"
+                      className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Sum Insured (₹)
                     </label>
                     <input
@@ -634,18 +671,18 @@ export const OnboardingPage: React.FC = () => {
                       step={50000}
                       value={sumInsured}
                       onChange={(e) => setSumInsured(Number(e.target.value))}
-                      className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white outline-none"
+                      className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 outline-none transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Room Category Eligibility
                     </label>
                     <select
                       value={roomEligibility}
                       onChange={(e) => setRoomEligibility(e.target.value)}
-                      className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white outline-none"
+                      className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 outline-none transition-colors"
                     >
                       <option value="GENERAL">General Ward (No AC)</option>
                       <option value="SEMI_PRIVATE">Semi-Private / Twin Sharing</option>
@@ -655,7 +692,7 @@ export const OnboardingPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Co-pay Percentage (%)
                     </label>
                     <input
@@ -664,12 +701,12 @@ export const OnboardingPage: React.FC = () => {
                       max={100}
                       value={copayPercentage}
                       onChange={(e) => setCopayPercentage(Number(e.target.value))}
-                      className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white outline-none"
+                      className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 outline-none transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Deductible Amount (₹)
                     </label>
                     <input
@@ -678,24 +715,24 @@ export const OnboardingPage: React.FC = () => {
                       step={5000}
                       value={deductibleAmount}
                       onChange={(e) => setDeductibleAmount(Number(e.target.value))}
-                      className="w-full bg-slate-950/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl py-2.5 px-3.5 text-xs text-white outline-none"
+                      className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 outline-none transition-colors"
                     />
                   </div>
 
-                  <div className="sm:col-span-2 flex items-center justify-between p-3.5 rounded-xl bg-slate-950/70 border border-slate-800">
+                  <div className="sm:col-span-2 flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                     <div>
-                      <div className="text-xs font-bold text-white">Cashless Hospitalization Entitlement</div>
-                      <div className="text-[10px] text-slate-400">Policy supports direct TPA/Insurer settlement at network hospitals</div>
+                      <div className="text-xs font-bold text-slate-900">Cashless Hospitalization Entitlement</div>
+                      <div className="text-[10px] text-slate-500">Policy supports direct TPA/Insurer settlement at network hospitals</div>
                     </div>
                     <button
                       type="button"
                       onClick={() => setCashlessSupported(!cashlessSupported)}
                       className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        cashlessSupported ? 'bg-cyan-500' : 'bg-slate-700'
+                        cashlessSupported ? 'bg-blue-600' : 'bg-slate-300'
                       }`}
                     >
                       <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-slate-950 shadow-md ring-0 transition duration-200 ease-in-out ${
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
                           cashlessSupported ? 'translate-x-5' : 'translate-x-0'
                         }`}
                       />
@@ -710,90 +747,90 @@ export const OnboardingPage: React.FC = () => {
           {currentStep === 4 && (
             <div>
               <div className="mb-6">
-                <span className="text-[10px] font-semibold text-cyan-400 uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
                   Step 4 of 4
                 </span>
-                <h2 className="text-xl font-bold text-white mt-1">Review & Confirm Profile</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-xl font-bold text-slate-900 mt-0.5">Review & Confirm Profile</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
                   Confirm your details before launching the CareIQ Intelligence Dashboard.
                 </p>
               </div>
 
-              <div className="space-y-4">
-                <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4">
-                  <h3 className="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-2">
+              <div className="space-y-3.5">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                  <h3 className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">
                     Patient Profile
                   </h3>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                     <div>
-                      <span className="text-slate-500 block text-[10px]">Name</span>
-                      <span className="text-white font-medium">{displayName}</span>
+                      <span className="text-slate-400 block text-[10px]">Name</span>
+                      <span className="text-slate-900 font-semibold">{displayName}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block text-[10px]">Age & Gender</span>
-                      <span className="text-white font-medium">{age} yrs, {gender}</span>
+                      <span className="text-slate-400 block text-[10px]">Age & Gender</span>
+                      <span className="text-slate-900 font-semibold">{age} yrs, {gender}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block text-[10px]">Location</span>
-                      <span className="text-white font-medium">{city}, {state}</span>
+                      <span className="text-slate-400 block text-[10px]">Location</span>
+                      <span className="text-slate-900 font-semibold">{city}, {state}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block text-[10px]">Blood Group</span>
-                      <span className="text-white font-medium">{bloodGroup}</span>
+                      <span className="text-slate-400 block text-[10px]">Blood Group</span>
+                      <span className="text-slate-900 font-semibold">{bloodGroup}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4">
-                  <h3 className="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-2">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                  <h3 className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">
                     Medical Background
                   </h3>
-                  <div className="text-xs text-slate-300">
-                    <span className="text-slate-500">Conditions: </span>
+                  <div className="text-xs text-slate-800">
+                    <span className="text-slate-400">Conditions: </span>
                     {selectedConditions.join(', ')}
                   </div>
                   {medications && (
-                    <div className="text-xs text-slate-300 mt-1">
-                      <span className="text-slate-500">Medications: </span>
+                    <div className="text-xs text-slate-800 mt-1">
+                      <span className="text-slate-400">Medications: </span>
                       {medications}
                     </div>
                   )}
                   {emergencyName && (
-                    <div className="text-xs text-slate-300 mt-1">
-                      <span className="text-slate-500">Emergency Contact: </span>
+                    <div className="text-xs text-slate-800 mt-1">
+                      <span className="text-slate-400">Emergency Contact: </span>
                       {emergencyName} ({emergencyPhone})
                     </div>
                   )}
                 </div>
 
-                <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4">
-                  <h3 className="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-2">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                  <h3 className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">
                     Insurance Details
                   </h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                     <div>
-                      <span className="text-slate-500 block text-[10px]">Plan Name</span>
-                      <span className="text-white font-medium">{policyName}</span>
+                      <span className="text-slate-400 block text-[10px]">Plan Name</span>
+                      <span className="text-slate-900 font-semibold">{policyName}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block text-[10px]">Sum Insured</span>
-                      <span className="text-emerald-400 font-bold">₹{Number(sumInsured).toLocaleString()}</span>
+                      <span className="text-slate-400 block text-[10px]">Sum Insured</span>
+                      <span className="text-blue-600 font-bold">₹{Number(sumInsured).toLocaleString()}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block text-[10px]">Room Category</span>
-                      <span className="text-white font-medium">{roomEligibility.replace('_', ' ')}</span>
+                      <span className="text-slate-400 block text-[10px]">Room Category</span>
+                      <span className="text-slate-900 font-semibold">{roomEligibility.replace('_', ' ')}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block text-[10px]">Co-pay</span>
-                      <span className="text-white font-medium">{copayPercentage}%</span>
+                      <span className="text-slate-400 block text-[10px]">Co-pay</span>
+                      <span className="text-slate-900 font-semibold">{copayPercentage}%</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block text-[10px]">Deductible</span>
-                      <span className="text-white font-medium">₹{Number(deductibleAmount).toLocaleString()}</span>
+                      <span className="text-slate-400 block text-[10px]">Deductible</span>
+                      <span className="text-slate-900 font-semibold">₹{Number(deductibleAmount).toLocaleString()}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block text-[10px]">Cashless Facility</span>
-                      <span className="text-emerald-400 font-medium">Supported</span>
+                      <span className="text-slate-400 block text-[10px]">Cashless Facility</span>
+                      <span className="text-emerald-700 font-semibold">Supported</span>
                     </div>
                   </div>
                 </div>
@@ -802,14 +839,14 @@ export const OnboardingPage: React.FC = () => {
           )}
 
           {/* Navigation Actions */}
-          <div className="mt-8 pt-5 border-t border-slate-800/80 flex items-center justify-between gap-3">
+          <div className="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between gap-3">
             {currentStep > 1 ? (
               <button
                 type="button"
                 onClick={handleBack}
-                className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
+                <ArrowLeft size={14} />
                 <span>Back</span>
               </button>
             ) : (
@@ -820,27 +857,27 @@ export const OnboardingPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleNext}
-                className="py-2.5 px-5 rounded-xl bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-semibold text-xs flex items-center gap-1.5 shadow-lg shadow-cyan-500/20 transition-all"
+                className="py-2.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
               >
                 <span>Continue</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight size={14} />
               </button>
             ) : (
               <button
                 type="button"
                 disabled={loading}
                 onClick={handleCompleteOnboarding}
-                className="py-2.5 px-6 rounded-xl bg-linear-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-black font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50"
+                className="py-2.5 px-6 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     <span>Saving Profile & Matching Hospitals...</span>
                   </div>
                 ) : (
                   <>
                     <span>Complete & Go to Dashboard</span>
-                    <Sparkles className="w-4 h-4" />
+                    <Sparkles size={14} />
                   </>
                 )}
               </button>
@@ -849,8 +886,8 @@ export const OnboardingPage: React.FC = () => {
         </motion.div>
       </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 py-4 text-center text-xs text-slate-500 border-t border-slate-800/80">
+      {/* Clean Footer */}
+      <footer className="relative z-10 py-3.5 text-center text-xs text-slate-500 border-t border-slate-200/80 bg-white/50">
         CareIQ AI Decision Support is strictly for decision assistance and educational transparency.
       </footer>
     </div>

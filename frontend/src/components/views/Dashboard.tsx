@@ -62,8 +62,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     policy?.policy_name?.toLowerCase().includes('ayushman') ||
     policy?.insurer_name?.toLowerCase().includes('ayushman');
 
-  // Dynamic Patient Demographics & Context (No hardcoded arbitrary fallbacks)
-  const patientName = patient?.display_name || 'Active Patient';
+  // Dynamic Patient Demographics & Context
+  const patientName = patient?.display_name || 'No patient selected';
   const patientAge = patient?.age
     ? `${patient.age} yrs`
     : patient?.age_band
@@ -71,13 +71,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
     : 'Age unspecified';
   const patientGender = patient?.gender || 'Gender unspecified';
   const patientCity = patient?.city || 'Location unspecified';
-  const patientDiagnosis =
-    patient?.diagnosis ||
-    journey?.events?.[0]?.description?.split('.')?.[0] ||
-    (isGovScheme ? 'Cardiac Angioplasty (PM-JAY Package)' : 'Planned Inpatient Procedure');
+  const patientDiagnosis = patient?.diagnosis || journey?.events?.[0]?.description?.split('.')?.[0] || 'Diagnosis not recorded';
   const patientAdmissionType =
     patient?.admission_type ||
-    (journey?.events?.[0]?.stage ? `${journey.events[0].stage} Care Stage` : 'Elective Planned');
+    (journey?.events?.[0]?.stage ? `${journey.events[0].stage} Care Stage` : 'Journey not started');
 
   // Account Type
   const accountType =
@@ -96,68 +93,30 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // Dynamic Hospital & Network Resolution
   const activeHospital = context.hospitals.find(
     (h) => h.id === journey?.hospital_id || h.id === patient?.hospital_id
-  ) || context.hospitals[0];
-  const hospitalName = activeHospital?.name || 'Empaneled Network Hospital';
+  );
+  const hospitalName = activeHospital?.name || 'No hospital selected';
   const isHospitalCashless = activeHospital?.cashless_available !== false;
   const hospitalTier = activeHospital?.tier || 'Tier 1';
 
   // Dynamic Policy Values
-  const policyName = policy?.policy_name || (isGovScheme ? 'Ayushman Bharat PM-JAY Package' : 'Comprehensive Health Plan');
-  const insurerName = policy?.insurer_name || (isGovScheme ? 'National Health Authority' : 'Empaneled Insurer');
-  const totalSum = policy?.sum_insured || 500000;
-  const remainingSum = policy?.remaining_sum_insured !== undefined ? policy.remaining_sum_insured : (policy?.sum_insured || 420000);
+  const policyName = policy?.policy_name || 'No policy linked';
+  const insurerName = policy?.insurer_name || (isGovScheme ? 'National Health Authority' : 'Insurer not recorded');
+  const totalSum = policy?.sum_insured || 0;
+  const remainingSum = policy?.remaining_sum_insured !== undefined ? policy.remaining_sum_insured : totalSum;
   const utilizedSum = Math.max(0, totalSum - remainingSum);
   const utilizedPercent = totalSum > 0 ? Math.min(100, Math.round((utilizedSum / totalSum) * 100)) : 0;
-  const roomEligibility = policy?.room_eligibility || (isGovScheme ? 'General Ward Package' : 'Single Private AC');
+  const roomEligibility = policy?.room_eligibility || (isGovScheme ? 'General Ward Package' : 'Not recorded');
   const copayPercentage = policy?.copay_percentage || 0;
 
-  // Fallback scenario-tailored checkpoints if items are not yet initialized
-  const defaultCheckpoints = [
-    {
-      id: 'chk-1',
-      title: 'Verify Itemized Non-Payable Consumable Charges',
-      category: 'COST',
-      priority: 'HIGH',
-      status: 'PENDING',
-      reason: isGovScheme ? 'Confirm zero-billing under statutory PM-JAY cashless package code.' : 'Typical surgical procedures generate ₹12,000 - ₹15,000 in non-medical disposable exclusions.'
-    },
-    {
-      id: 'chk-2',
-      title: 'Confirm Preauthorization Status & Differential Approval',
-      category: 'PREAUTH',
-      priority: 'HIGH',
-      status: 'PENDING',
-      reason: `Initial authorization verified against estimated ₹${((totalSum * 0.4) / 100000).toFixed(2)}L hospital billing schedule.`
-    },
-    {
-      id: 'chk-3',
-      title: 'Room Rent Category Cap & Proportionate Deduction Guard',
-      category: 'ROOM',
-      priority: 'MEDIUM',
-      status: 'VERIFIED',
-      reason: `${roomEligibility} room confirmed to be within policy sub-limit cap.`
-    },
-    {
-      id: 'chk-4',
-      title: 'Post-Hospitalization 60-Day Claim Window Verification',
-      category: 'POLICY',
-      priority: 'NORMAL',
-      status: 'VERIFIED',
-      reason: 'Preserve discharge summary & pharmacy bills for post-hospitalization claim settlement.'
-    }
-  ];
-
-  const verificationItems = rawVerificationItems && rawVerificationItems.length > 0 
-    ? rawVerificationItems 
-    : defaultCheckpoints;
+  const verificationItems = rawVerificationItems || [];
 
   const pendingVerifications = verificationItems.filter((v: any) => v.status === 'PENDING');
   const verifiedCount = verificationItems.filter((v: any) => v.status === 'VERIFIED' || v.status === 'RESOLVED').length;
 
   // Dynamic Room Mismatch & Exposure Calculation
   const hasRoomMismatch = pendingVerifications.some((v) => v.category === 'ROOM' || v.title?.toLowerCase().includes('room'));
-  const roomPenalty = hasRoomMismatch ? 45000 : 0;
-  const nonPayableBase = isGovScheme ? 0 : 14000;
+  const roomPenalty = hasRoomMismatch && policy ? Math.round(totalSum * 0.09) : 0;
+  const nonPayableBase = isGovScheme || !policy ? 0 : Math.min(14000, Math.round(totalSum * 0.028));
   const copayAmount = copayPercentage > 0 ? Math.round(totalSum * (copayPercentage / 100)) : 0;
   const estimatedExposure = nonPayableBase + roomPenalty + copayAmount;
 
@@ -215,10 +174,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // Calculate composite confidence score (0 - 100) dynamically
   const totalItems = verificationItems.length || 1;
   const resolvedPct = Math.round((verifiedCount / totalItems) * 100);
-  const confidenceScore = policy ? Math.min(100, Math.max(70, resolvedPct + 30)) : 70;
+  const confidenceScore = policy && verificationItems.length > 0 ? Math.min(100, Math.max(35, resolvedPct + 30)) : 0;
 
   // Dynamic Itemized Tariff Breakdown (Calculated from real numbers)
-  const baseCost = utilizedSum > 0 ? utilizedSum : Math.round(totalSum * 0.28);
+  const baseCost = utilizedSum > 0 ? utilizedSum : 0;
   const surgeonFee = Math.round(baseCost * 0.50);
   const roomFee = Math.round(baseCost * 0.28);
   const diagFee = Math.round(baseCost * 0.22);
@@ -1144,6 +1103,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
+              {filteredItems.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-8 px-3 text-center">
+                    <div className="text-sm font-bold text-slate-800">No verification items for this profile</div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      Start a care journey or add a verification item to populate this section.
+                    </div>
+                  </td>
+                </tr>
+              )}
               {filteredItems.map((item: any) => {
                 const isPending = item.status === 'PENDING';
                 const isHigh = item.priority === 'HIGH';

@@ -120,8 +120,7 @@ export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (jrns && jrns.length > 0) {
         setJourney(jrns[0]);
       } else {
-        const allJourneys = await api.getJourneys();
-        setJourney(allJourneys && allJourneys.length > 0 ? allJourneys[0] : null);
+        setJourney(null);
       }
 
       setVerificationItems(vers || []);
@@ -146,10 +145,12 @@ export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (authPatient) {
         setActivePatient(authPatient);
         await loadDataForPatient(authPatient);
-      } else if (pts && pts.length > 0) {
-        const firstPatient = pts[0];
-        setActivePatient(firstPatient);
-        await loadDataForPatient(firstPatient);
+      } else {
+        setActivePatient(null);
+        setPolicies([]);
+        setActivePolicy(null);
+        setJourney(null);
+        setVerificationItems([]);
       }
     } catch (err) {
       console.error('Failed to initialize app:', err);
@@ -172,6 +173,8 @@ export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
       if (authJourney) {
         setJourney(authJourney);
+      } else {
+        setJourney(null);
       }
       loadDataForPatient(authPatient);
     }

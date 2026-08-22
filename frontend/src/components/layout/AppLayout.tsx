@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Navbar, Sidebar } from './index';
-import { AiQuestionsModal } from '../modals';
-import { PolicyRagAssistant } from '../widgets';
+import { Navbar } from './Navbar';
+import { Sidebar } from './Sidebar';
+import { AiQuestionsModal } from '../modals/AiQuestionsModal';
+import { PolicyRagAssistant } from '../widgets/PolicyRagAssistant';
 import { useCareIQ } from '../../context/CareIQContext';
 import { useAuth } from '../../context/AuthContext';
 import { Sparkles, CheckCircle2 } from 'lucide-react';

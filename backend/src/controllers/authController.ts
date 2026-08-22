@@ -463,7 +463,23 @@ export class AuthController {
 
       if (token.startsWith('demo-token-') || token === 'demo') {
         const demoProfiles = this.getDemoProfiles();
-        const demoProfile = demoProfiles[0];
+        const cleanToken = token.replace(/^demo-token-/, '').toLowerCase();
+        const demoProfile =
+          demoProfiles.find((dp) => {
+            return (
+              dp.patient.id.toLowerCase() === cleanToken ||
+              dp.patient.id.toLowerCase().includes(cleanToken) ||
+              dp.patient.user_id.toLowerCase() === cleanToken ||
+              dp.patient.display_name.toLowerCase().includes(cleanToken)
+            );
+          }) || demoProfiles[0];
+        if (!demoProfile) {
+          res.status(404).json({
+            success: false,
+            error: { code: 'DEMO_PROFILE_NOT_FOUND', message: 'No demo profile could be restored.' }
+          });
+          return;
+        }
         res.json({
           success: true,
           data: {

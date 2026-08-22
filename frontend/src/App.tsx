@@ -1,19 +1,17 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CareIQProvider } from './context/CareIQContext';
-import { AppLayout } from './components/layout';
-import { LandingPage } from './components/landing';
-import {
-  Dashboard,
-  HospitalMatchView,
-  InsuranceView,
-  CareJourneyView,
-  CostBreakdownView,
-  VerificationCenter,
-  GetStartedPage,
-  AuthPage,
-  OnboardingPage
-} from './components/views';
+import { AppLayout } from './components/layout/AppLayout';
+import { LandingPage } from './components/landing/LandingPage';
+import { Dashboard } from './components/views/Dashboard';
+import { HospitalMatchView } from './components/views/HospitalMatchView';
+import { InsuranceView } from './components/views/InsuranceView';
+import { CareJourneyView } from './components/views/CareJourneyView';
+import { CostBreakdownView } from './components/views/CostBreakdownView';
+import { VerificationCenter } from './components/views/VerificationCenter';
+import { GetStartedPage } from './components/views/GetStartedPage';
+import { AuthPage } from './components/views/AuthPage';
+import { OnboardingPage } from './components/views/OnboardingPage';
 
 export function AppRoutes() {
   return (
