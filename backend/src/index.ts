@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
+import authRoutes from './routes/authRoutes';
 import patientRoutes from './routes/patientRoutes';
 import policyRoutes from './routes/policyRoutes';
 import documentRoutes from './routes/documentRoutes';
@@ -14,6 +15,7 @@ import scenarioRoutes from './routes/scenarioRoutes';
 import { checkSupabaseConnection } from './config/supabase';
 import { dataRepository } from './services/dataRepository';
 import { dbManager } from './db/dbManager';
+import { optionalAuth } from './middleware/authMiddleware';
 
 dotenv.config();
 
@@ -53,12 +55,13 @@ app.get('/api/health', async (req: Request, res: Response) => {
 });
 
 // Mount modular API routes
-app.use('/api/patients', patientRoutes);
-app.use('/api/policies', policyRoutes);
-app.use('/api/documents', documentRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/patients', optionalAuth, patientRoutes);
+app.use('/api/policies', optionalAuth, policyRoutes);
+app.use('/api/documents', optionalAuth, documentRoutes);
 app.use('/api/hospitals', hospitalRoutes);
-app.use('/api/journeys', journeyRoutes);
-app.use('/api/verification-items', verificationRoutes);
+app.use('/api/journeys', optionalAuth, journeyRoutes);
+app.use('/api/verification-items', optionalAuth, verificationRoutes);
 app.use('/api/cost', costRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/scenarios', scenarioRoutes);
@@ -86,9 +89,11 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-app.listen(port, async () => {
-  console.log(`CareIQ Backend Server is listening on http://localhost:${port}`);
-  await dbManager.initializeOnStartup();
-});
+if (process.env.NODE_ENV !== 'test' && (!process.env.TEST_MODE || process.env.TEST_MODE !== 'true')) {
+  app.listen(port, async () => {
+    console.log(`CareIQ Backend Server is listening on http://localhost:${port}`);
+    await dbManager.initializeOnStartup();
+  });
+}
 
 export default app;

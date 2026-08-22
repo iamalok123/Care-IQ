@@ -20,7 +20,8 @@ import {
   VerificationCategory,
   PriorityLevel,
   VerificationItemStatus,
-  RecommendationType
+  RecommendationType,
+  AccountType
 } from '../types/domain';
 
 export const dataProvenanceSchema = z.object({
@@ -44,16 +45,76 @@ export const userSchema = z.object({
 });
 
 export const patientSchema = z.object({
-  id: z.string().uuid().optional(),
-  user_id: z.string().uuid('Valid user ID required'),
+  id: z.string().optional(),
+  user_id: z.string().optional(),
+  auth_user_id: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  account_type: z.nativeEnum(AccountType).default(AccountType.NEW_USER).optional(),
   display_name: z.string().min(1, 'Patient name is required'),
+  age: z.number().int().positive().optional(),
   date_of_birth: z.string().optional(),
   age_band: z.string().optional(),
   gender: z.string().optional(),
+  blood_group: z.string().optional(),
+  medical_conditions: z.array(z.string()).default([]).optional(),
+  current_medications: z.array(z.string()).default([]).optional(),
+  allergies: z.array(z.string()).default([]).optional(),
+  emergency_contact_name: z.string().optional(),
+  emergency_contact_phone: z.string().optional(),
   city: z.string().min(1, 'City is required'),
   state: z.string().min(1, 'State is required'),
   pincode: z.string().optional(),
   preferred_language: z.string().default('English')
+});
+
+export const registerSchema = z.object({
+  email: z.string().email('A valid email address is required'),
+  password: z.string().min(6, 'Password must be at least 6 characters long'),
+  patient: z.object({
+    display_name: z.string().min(1, 'Patient name is required'),
+    age: z.number().int().positive().optional(),
+    date_of_birth: z.string().optional(),
+    gender: z.string().optional(),
+    blood_group: z.string().optional(),
+    medical_conditions: z.array(z.string()).default([]).optional(),
+    current_medications: z.array(z.string()).default([]).optional(),
+    allergies: z.array(z.string()).default([]).optional(),
+    emergency_contact_name: z.string().optional(),
+    emergency_contact_phone: z.string().optional(),
+    city: z.string().min(1, 'City is required'),
+    state: z.string().min(1, 'State is required'),
+    pincode: z.string().optional(),
+    preferred_language: z.string().default('English').optional()
+  }),
+  policy: z
+    .object({
+      insurer_id: z.string().min(1, 'Insurer selection is required'),
+      policy_name: z.string().min(1, 'Policy name is required'),
+      policy_type: z.nativeEnum(PolicyType).default(PolicyType.INDIVIDUAL).optional(),
+      policy_number_masked: z.string().optional(),
+      sum_insured: z.number().positive('Sum insured must be positive'),
+      remaining_sum_insured: z.number().nonnegative().optional(),
+      room_eligibility: z.nativeEnum(RoomCategoryCode).default(RoomCategoryCode.PRIVATE_AC).optional(),
+      copay_percentage: z.number().min(0).max(100).default(0).optional(),
+      deductible_amount: z.number().min(0).default(0).optional(),
+      cashless_supported: z.boolean().default(true).optional(),
+      preauthorization_supported: z.boolean().default(true).optional(),
+      pre_hospitalization_days: z.number().default(30).optional(),
+      post_hospitalization_days: z.number().default(60).optional(),
+      policy_start_date: z.string().optional(),
+      policy_end_date: z.string().optional()
+    })
+    .optional()
+});
+
+export const loginSchema = z.object({
+  email: z.string().email('A valid email address is required'),
+  password: z.string().min(1, 'Password is required')
+});
+
+export const demoLoginSchema = z.object({
+  demo_id: z.string().optional(),
+  profile_id: z.string().optional()
 });
 
 export const insurancePolicySchema = z.object({

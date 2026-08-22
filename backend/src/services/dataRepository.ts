@@ -211,6 +211,15 @@ export class DataRepository {
     return this.patients.find((p) => p.id === id);
   }
 
+  public getPatientByAuthUserId(authUserId: string): Patient | undefined {
+    return this.patients.find((p) => p.auth_user_id === authUserId || p.user_id === authUserId);
+  }
+
+  public getPatientByEmail(email: string): Patient | undefined {
+    if (!email) return undefined;
+    return this.patients.find((p) => p.email?.toLowerCase() === email.toLowerCase());
+  }
+
   public getDemoProfiles(): Patient[] {
     return this.patients.filter((p) => p.account_type === 'DEMO');
   }
@@ -416,6 +425,14 @@ export class DataRepository {
 
   public getJourneyById(id: string): (CareJourney & { events: JourneyEvent[] }) | undefined {
     return this.journeys.find((j) => j.id === id);
+  }
+
+  public getJourneysByPatientId(patientId: string): (CareJourney & { events: JourneyEvent[] })[] {
+    return this.journeys.filter((j) => j.patient_id === patientId);
+  }
+
+  public getJourneyByPatientId(patientId: string): (CareJourney & { events: JourneyEvent[] }) | undefined {
+    return this.journeys.find((j) => j.patient_id === patientId);
   }
 
   public addJourney(journey: CareJourney & { events: JourneyEvent[] }): CareJourney & { events: JourneyEvent[] } {

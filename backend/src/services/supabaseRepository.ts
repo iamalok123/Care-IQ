@@ -153,6 +153,26 @@ export class SupabaseRepository {
     return data;
   }
 
+  public async fetchPatientByAuthUserId(authUserId: string): Promise<Patient | null> {
+    const { data, error } = await supabase
+      .from('patients')
+      .select('*')
+      .eq('auth_user_id', authUserId)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
+  public async fetchPatientByEmail(email: string): Promise<Patient | null> {
+    const { data, error } = await supabase
+      .from('patients')
+      .select('*')
+      .eq('email', email)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
   public async insertPatient(patient: Patient): Promise<Patient> {
     const { data, error } = await supabase
       .from('patients')

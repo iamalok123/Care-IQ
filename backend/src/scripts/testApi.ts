@@ -1,4 +1,5 @@
 import { dataRepository } from '../services/dataRepository';
+import { dbManager } from '../db/dbManager';
 import { matchingEngine } from '../services/matchingEngine';
 import { costEngine } from '../services/costEngine';
 import { rulesEngine } from '../services/rulesEngine';
@@ -11,30 +12,38 @@ import { RoomCategoryCode } from '../types/domain';
 console.log('--- CareIQ Intelligence Layer Verification Test ---');
 
 async function runAllTests() {
+  await dbManager.initializeOnStartup();
+
   // 1. Test Hospital Matching for Ananya (Persona 01 - Simple Match)
   console.log('\n[1] Testing Hospital Matching for Persona 01 (Star Health Policy)...');
 
-const ananyaPolicy = dataRepository.getPolicyById('pol-syn-ananya');
-if (!ananyaPolicy) throw new Error('Ananya policy missing');
+  const ananyaPolicy =
+    dataRepository.getPolicyById('pol-demo-ananya') ||
+    dataRepository.getPolicyById('pol-syn-ananya') ||
+    dataRepository.getPolicies()[0];
+  if (!ananyaPolicy) throw new Error('Ananya policy missing');
 
-const matches = matchingEngine.matchHospitals({
-  city: 'Bengaluru',
-  policyId: ananyaPolicy.id,
-  procedureId: 'proc-knee-replacement',
-  preferredRoomCategory: RoomCategoryCode.PRIVATE_AC
-});
+  const matches = matchingEngine.matchHospitals({
+    city: 'Bengaluru',
+    policyId: ananyaPolicy.id,
+    procedureId: 'proc-knee-replacement',
+    preferredRoomCategory: RoomCategoryCode.PRIVATE_AC
+  });
 
-console.log(`Matched ${matches.length} hospitals in Bengaluru.`);
-const topMatch = matches[0];
-console.log(`Top Rank: ${topMatch.hospital.name} (Score: ${topMatch.matchScore}/100)`);
-console.log(`Network Status: ${topMatch.networkStatus}, Cashless: ${topMatch.cashlessSupported}`);
-console.log(`Estimated Patient Exposure: ₹${topMatch.estimatedPatientExposure.toLocaleString()}`);
-console.log(`Key Reasons:`, topMatch.reasons);
+  console.log(`Matched ${matches.length} hospitals in Bengaluru.`);
+  const topMatch = matches[0];
+  console.log(`Top Rank: ${topMatch.hospital.name} (Score: ${topMatch.matchScore}/100)`);
+  console.log(`Network Status: ${topMatch.networkStatus}, Cashless: ${topMatch.cashlessSupported}`);
+  console.log(`Estimated Patient Exposure: ₹${topMatch.estimatedPatientExposure.toLocaleString()}`);
+  console.log(`Key Reasons:`, topMatch.reasons);
 
-// 2. Test Room Mismatch & Proportionate Deduction (Persona 02 - Rahul Mehta)
-console.log('\n[2] Testing Room Mismatch & Proportionate Deduction for Persona 02 (Rahul Mehta)...');
-const rahulPolicy = dataRepository.getPolicyById('pol-syn-rahul');
-if (!rahulPolicy) throw new Error('Rahul policy missing');
+  // 2. Test Room Mismatch & Proportionate Deduction (Persona 02 - Rahul Mehta / Meera)
+  console.log('\n[2] Testing Room Mismatch & Proportionate Deduction (Meera Corporate / Rahul)...');
+  const rahulPolicy =
+    dataRepository.getPolicyById('pol-demo-meera') ||
+    dataRepository.getPolicyById('pol-syn-rahul') ||
+    dataRepository.getPolicies()[1];
+  if (!rahulPolicy) throw new Error('Corporate policy missing');
 
 const rahulMatches = matchingEngine.matchHospitals({
   city: 'Bengaluru',

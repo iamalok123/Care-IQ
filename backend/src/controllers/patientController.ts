@@ -44,6 +44,7 @@ export class PatientController {
     const newPatient = {
       ...parsed.data,
       id: parsed.data.id || `pat-${Date.now()}`,
+      user_id: parsed.data.user_id || req.user?.auth_user_id || req.user?.id || `usr-${Date.now()}`,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
