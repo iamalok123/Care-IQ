@@ -27,11 +27,19 @@ import {
 import { supabaseRepository } from './supabaseRepository';
 import { isSupabaseConfigured, checkSupabaseConnection } from '../config/supabase';
 
+function resolveDataDir(): string {
+  const candidate1 = path.resolve(__dirname, '../../../../data');
+  if (fs.existsSync(candidate1)) return candidate1;
+  const candidate2 = path.resolve(__dirname, '../../../data');
+  if (fs.existsSync(candidate2)) return candidate2;
+  const candidate3 = path.resolve(__dirname, '../../data');
+  if (fs.existsSync(candidate3)) return candidate3;
+  return path.resolve(process.cwd(), 'data');
+}
+
 export class DataRepository {
   private baseDataDir: string;
   private cleanedDir: string;
-  private syntheticDir: string;
-  private scenariosDir: string;
   private isDatabaseSynced: boolean = false;
 
   public hospitals: Hospital[] = [];
@@ -55,18 +63,12 @@ export class DataRepository {
   public documents: Document[] = [];
   public extractions: DocumentExtraction[] = [];
   public extractionEvidence: ExtractionEvidence[] = [];
-  public scenarios: any[] = [];
 
   constructor() {
-    this.baseDataDir = path.resolve(__dirname, '../../../../data');
-    if (!fs.existsSync(this.baseDataDir)) {
-      this.baseDataDir = path.resolve(__dirname, '../../../data');
-    }
+    this.baseDataDir = resolveDataDir();
     this.cleanedDir = path.join(this.baseDataDir, 'cleaned');
-    this.syntheticDir = path.join(this.baseDataDir, 'synthetic');
-    this.scenariosDir = path.join(this.baseDataDir, 'scenarios');
 
-    // Synchronously load local fallback datasets as baseline
+    // Synchronously load local baseline reference datasets
     this.loadAllData();
   }
 
@@ -82,8 +84,12 @@ export class DataRepository {
     return fallback;
   }
 
+  /**
+   * Loads baseline reference master data from cleaned JSON files.
+   * Runtime patient, policy, and journey data is strictly loaded from Supabase PostgreSQL.
+   */
   public loadAllData(): void {
-    // Load Master Cleaned Data
+    // Load Master Cleaned Reference Data
     this.hospitals = this.readJsonFile<Hospital[]>(path.join(this.cleanedDir, 'hospitals.json'), []);
     this.hospitalRooms = this.readJsonFile<HospitalRoom[]>(path.join(this.cleanedDir, 'hospital_rooms.json'), []);
     this.hospitalSpecialties = this.readJsonFile<HospitalSpecialty[]>(path.join(this.cleanedDir, 'hospital_specialties.json'), []);
@@ -99,19 +105,13 @@ export class DataRepository {
     this.policyRules = this.readJsonFile<PolicyRule[]>(path.join(this.cleanedDir, 'policy_rules.json'), []);
     this.policyExclusions = this.readJsonFile<PolicyExclusion[]>(path.join(this.cleanedDir, 'policy_exclusions.json'), []);
 
-    // Combine Cleaned and Synthetic Policies & Patients
-    const masterPolicies = this.readJsonFile<InsurancePolicy[]>(path.join(this.cleanedDir, 'policies.json'), []);
-    const syntheticPolicies = this.readJsonFile<InsurancePolicy[]>(path.join(this.syntheticDir, 'policies.json'), []);
-    this.policies = [...masterPolicies, ...syntheticPolicies];
+    // Master Reference Policies
+    this.policies = this.readJsonFile<InsurancePolicy[]>(path.join(this.cleanedDir, 'policies.json'), []);
 
-    this.patients = this.readJsonFile<Patient[]>(path.join(this.syntheticDir, 'patients.json'), []);
-    this.journeys = this.readJsonFile<(CareJourney & { events: JourneyEvent[] })[]>(path.join(this.syntheticDir, 'journeys.json'), []);
-    this.verificationItems = this.readJsonFile<VerificationItem[]>(path.join(this.syntheticDir, 'verification_items.json'), []);
-
-    if (fs.existsSync(this.scenariosDir)) {
-      const files = fs.readdirSync(this.scenariosDir).filter((f) => f.endsWith('.json'));
-      this.scenarios = files.map((file) => this.readJsonFile(path.join(this.scenariosDir, file), null)).filter(Boolean);
-    }
+    // Runtime state starts empty and is populated from Supabase
+    this.patients = [];
+    this.journeys = [];
+    this.verificationItems = [];
   }
 
   /**
@@ -143,8 +143,7 @@ export class DataRepository {
         patients,
         journeys,
         verificationItems,
-        documents,
-        scenarios
+        documents
       ] = await Promise.all([
         supabaseRepository.fetchHospitals(),
         supabaseRepository.fetchHospitalRooms(),
@@ -164,8 +163,7 @@ export class DataRepository {
         supabaseRepository.fetchPatients(),
         supabaseRepository.fetchJourneys(),
         supabaseRepository.fetchVerificationItems(),
-        supabaseRepository.fetchDocuments(),
-        supabaseRepository.fetchScenarios()
+        supabaseRepository.fetchDocuments()
       ]);
 
       if (hospitals.length > 0) this.hospitals = hospitals;
@@ -187,7 +185,6 @@ export class DataRepository {
       if (journeys.length > 0) this.journeys = journeys;
       if (verificationItems.length > 0) this.verificationItems = verificationItems;
       if (documents.length > 0) this.documents = documents;
-      if (scenarios.length > 0) this.scenarios = scenarios;
 
       this.isDatabaseSynced = true;
       console.log('✅ CareIQ DataRepository synchronized live from Supabase PostgreSQL!');
@@ -214,6 +211,10 @@ export class DataRepository {
     return this.patients.find((p) => p.id === id);
   }
 
+  public getDemoProfiles(): Patient[] {
+    return this.patients.filter((p) => p.account_type === 'DEMO');
+  }
+
   public addPatient(patient: Patient): Patient {
     const existingIdx = this.patients.findIndex((p) => p.id === patient.id);
     if (existingIdx >= 0) {
@@ -228,6 +229,36 @@ export class DataRepository {
       });
     }
     return patient;
+  }
+
+  public updatePatient(id: string, updateData: Partial<Patient>): Patient | undefined {
+    const idx = this.patients.findIndex((p) => p.id === id);
+    if (idx < 0) return undefined;
+
+    this.patients[idx] = {
+      ...this.patients[idx],
+      ...updateData,
+      updated_at: new Date().toISOString()
+    };
+
+    if (isSupabaseConfigured) {
+      supabaseRepository.updatePatient(id, updateData).catch((err) => {
+        console.error('Failed to sync updated patient to Supabase:', err);
+      });
+    }
+    return this.patients[idx];
+  }
+
+  public deletePatient(id: string): boolean {
+    const initialLen = this.patients.length;
+    this.patients = this.patients.filter((p) => p.id !== id);
+
+    if (isSupabaseConfigured) {
+      supabaseRepository.deletePatient(id).catch((err) => {
+        console.error('Failed to delete patient in Supabase:', err);
+      });
+    }
+    return this.patients.length < initialLen;
   }
 
   // ==========================================
@@ -260,6 +291,36 @@ export class DataRepository {
       });
     }
     return policy;
+  }
+
+  public updatePolicy(id: string, updateData: Partial<InsurancePolicy>): InsurancePolicy | undefined {
+    const idx = this.policies.findIndex((p) => p.id === id);
+    if (idx < 0) return undefined;
+
+    this.policies[idx] = {
+      ...this.policies[idx],
+      ...updateData,
+      updated_at: new Date().toISOString()
+    };
+
+    if (isSupabaseConfigured) {
+      supabaseRepository.updatePolicy(id, updateData).catch((err) => {
+        console.error('Failed to sync updated policy to Supabase:', err);
+      });
+    }
+    return this.policies[idx];
+  }
+
+  public deletePolicy(id: string): boolean {
+    const initialLen = this.policies.length;
+    this.policies = this.policies.filter((p) => p.id !== id);
+
+    if (isSupabaseConfigured) {
+      supabaseRepository.deletePolicy(id).catch((err) => {
+        console.error('Failed to delete policy in Supabase:', err);
+      });
+    }
+    return this.policies.length < initialLen;
   }
 
   public getRulesForPolicy(policyId: string): PolicyRule[] {
@@ -300,6 +361,15 @@ export class DataRepository {
 
   public getHospitalById(id: string): Hospital | undefined {
     return this.hospitals.find((h) => h.id === id);
+  }
+
+  /**
+   * Scoped hospital queries for specific cities (e.g. ['Mumbai', 'Bengaluru']).
+   */
+  public getHospitalsByCity(cities: string[]): Hospital[] {
+    if (!cities || cities.length === 0) return this.hospitals;
+    const lowerCities = cities.map((c) => c.toLowerCase().trim());
+    return this.hospitals.filter((h) => lowerCities.includes(h.city.toLowerCase().trim()));
   }
 
   public getHospitalRooms(hospitalId: string): HospitalRoom[] {
@@ -501,32 +571,6 @@ export class DataRepository {
 
   public getEvidenceByExtractionId(extractionId: string): ExtractionEvidence[] {
     return this.extractionEvidence.filter((ev) => ev.extraction_id === extractionId);
-  }
-
-  // ==========================================
-  // Scenarios
-  // ==========================================
-
-  public listScenarios(): any[] {
-    if (this.scenarios.length > 0) {
-      return this.scenarios;
-    }
-    if (fs.existsSync(this.scenariosDir)) {
-      const files = fs.readdirSync(this.scenariosDir).filter((f) => f.endsWith('.json'));
-      return files.map((file) => this.readJsonFile(path.join(this.scenariosDir, file), null)).filter(Boolean);
-    }
-    return [];
-  }
-
-  public getScenarioById(id: string): any | undefined {
-    const memoryMatch = this.scenarios.find((s) => s.id === id || s.name === id);
-    if (memoryMatch) return memoryMatch;
-
-    const filePath = path.join(this.scenariosDir, `${id}.json`);
-    if (fs.existsSync(filePath)) {
-      return this.readJsonFile(filePath, undefined);
-    }
-    return undefined;
   }
 }
 

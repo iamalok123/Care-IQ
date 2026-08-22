@@ -151,5 +151,41 @@
     "estimated_amount": 8000,
     "coverage_candidate": false,
     "data_status": "SYNTHETIC"
+  },
+  {
+    "id": "cc-kem-cat-proc",
+    "procedure_cost_id": "pc-kem-cataract",
+    "component_code": "PROCEDURE",
+    "component_name": "Phacoemulsification Surgery & Foldable Lens",
+    "estimated_amount": 7000,
+    "coverage_candidate": true,
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "cc-kem-cat-med",
+    "procedure_cost_id": "pc-kem-cataract",
+    "component_code": "MEDICINES",
+    "component_name": "Post-op Eye Drops & Medications",
+    "estimated_amount": 1500,
+    "coverage_candidate": true,
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "cc-kem-knee-imp",
+    "procedure_cost_id": "pc-kem-knee",
+    "component_code": "IMPLANT",
+    "component_name": "Prosthetic Joint Implant",
+    "estimated_amount": 40000,
+    "coverage_candidate": true,
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "cc-kem-knee-ot",
+    "procedure_cost_id": "pc-kem-knee",
+    "component_code": "PROCEDURE",
+    "component_name": "OT and Surgical Charges",
+    "estimated_amount": 25000,
+    "coverage_candidate": true,
+    "data_status": "PUBLIC_REFERENCE"
   }
 ]

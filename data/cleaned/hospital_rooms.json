@@ -361,5 +361,38 @@
     "data_status": "SYNTHETIC",
     "verification_status": "VERIFIED",
     "confidence": "HIGH"
+  },
+  {
+    "id": "hr-mum-001-gen",
+    "hospital_id": "hosp-kem-mumbai",
+    "room_category_id": "rc-general",
+    "tariff_per_day": 200,
+    "total_rooms": 1200,
+    "availability_status": "SIMULATED",
+    "data_status": "SYNTHETIC",
+    "verification_status": "VERIFIED",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "hr-mum-001-semi",
+    "hospital_id": "hosp-kem-mumbai",
+    "room_category_id": "rc-semi-private",
+    "tariff_per_day": 1200,
+    "total_rooms": 100,
+    "availability_status": "SIMULATED",
+    "data_status": "SYNTHETIC",
+    "verification_status": "VERIFIED",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "hr-mum-001-pvt",
+    "hospital_id": "hosp-kem-mumbai",
+    "room_category_id": "rc-private-ac",
+    "tariff_per_day": 3000,
+    "total_rooms": 50,
+    "availability_status": "SIMULATED",
+    "data_status": "SYNTHETIC",
+    "verification_status": "VERIFIED",
+    "confidence": "HIGH"
   }
 ]

@@ -163,6 +163,36 @@ export class SupabaseRepository {
     return data;
   }
 
+  public async updatePatient(id: string, updateData: Partial<Patient>): Promise<Patient | null> {
+    const { data, error } = await supabase
+      .from('patients')
+      .update({ ...updateData, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
+  public async deletePatient(id: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('patients')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    return true;
+  }
+
+  public async fetchDemoProfiles(): Promise<Patient[]> {
+    const { data, error } = await supabase
+      .from('patients')
+      .select('*')
+      .eq('account_type', 'DEMO')
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return data || [];
+  }
+
   // ==========================================
   // Insurance Policies & Rules
   // ==========================================
@@ -195,6 +225,26 @@ export class SupabaseRepository {
       .single();
     if (error) throw error;
     return data;
+  }
+
+  public async updatePolicy(id: string, updateData: Partial<InsurancePolicy>): Promise<InsurancePolicy | null> {
+    const { data, error } = await supabase
+      .from('insurance_policies')
+      .update({ ...updateData, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
+  public async deletePolicy(id: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('insurance_policies')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    return true;
   }
 
   public async fetchPolicyRules(policyId?: string): Promise<PolicyRule[]> {

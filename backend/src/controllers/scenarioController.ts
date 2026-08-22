@@ -4,18 +4,18 @@ import { dataRepository } from '../services/dataRepository';
 export class ScenarioController {
   // GET /api/scenarios
   public listScenarios(_req: Request, res: Response): void {
-    const scenarios = dataRepository.listScenarios();
+    const demos = dataRepository.getDemoProfiles();
     res.json({
       success: true,
-      data: scenarios,
-      meta: { total: scenarios.length }
+      data: demos,
+      meta: { total: demos.length }
     });
   }
 
   // GET /api/scenarios/:id
   public getScenarioById(req: Request, res: Response): void {
-    const scenario = dataRepository.getScenarioById(req.params.id as string);
-    if (!scenario) {
+    const demo = dataRepository.getDemoProfiles().find((p) => p.id === req.params.id);
+    if (!demo) {
       res.status(404).json({
         success: false,
         error: { code: 'SCENARIO_NOT_FOUND', message: 'Scenario not found' }
@@ -25,14 +25,14 @@ export class ScenarioController {
 
     res.json({
       success: true,
-      data: scenario
+      data: demo
     });
   }
 
   // POST /api/scenarios/:id/load
   public loadScenario(req: Request, res: Response): void {
-    const scenario = dataRepository.getScenarioById(req.params.id as string);
-    if (!scenario) {
+    const demo = dataRepository.getDemoProfiles().find((p) => p.id === req.params.id);
+    if (!demo) {
       res.status(404).json({
         success: false,
         error: { code: 'SCENARIO_NOT_FOUND', message: 'Scenario not found' }
@@ -40,32 +40,18 @@ export class ScenarioController {
       return;
     }
 
-    // Reload fresh base data
-    dataRepository.loadAllData();
-
-    const patient = scenario.patientId ? dataRepository.getPatientById(scenario.patientId) : undefined;
-    const policy = scenario.policyId 
-      ? dataRepository.getPolicyById(scenario.policyId) 
-      : scenario.patientId 
-      ? dataRepository.getPoliciesByPatientId(scenario.patientId)[0] 
-      : undefined;
-    const hospital = scenario.hospitalId ? dataRepository.getHospitalById(scenario.hospitalId) : undefined;
-    
-    let journey = scenario.journeyId ? dataRepository.getJourneyById(scenario.journeyId) : undefined;
-    if (!journey && scenario.patientId) {
-      const patientJourneys = dataRepository.getJourneys().filter((j) => j.patient_id === scenario.patientId);
-      if (patientJourneys.length > 0) {
-        journey = patientJourneys[0];
-      }
-    }
-
-    const verificationItems = scenario.patientId ? dataRepository.getVerificationItems(scenario.patientId) : [];
+    const patient = demo;
+    const policy = dataRepository.getPoliciesByPatientId(demo.id)[0];
+    const journeys = dataRepository.getJourneys().filter((j) => j.patient_id === demo.id);
+    const journey = journeys[0];
+    const hospital = journey ? dataRepository.getHospitalById(journey.hospital_id) : undefined;
+    const verificationItems = dataRepository.getVerificationItems(demo.id);
 
     res.json({
       success: true,
-      message: `Activated scenario: ${scenario.name}`,
+      message: `Activated demo: ${demo.display_name}`,
       data: {
-        scenario,
+        scenario: demo,
         patient,
         policy,
         hospital,

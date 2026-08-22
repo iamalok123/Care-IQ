@@ -108,5 +108,27 @@
     "currency": "INR",
     "data_status": "SYNTHETIC",
     "confidence": "HIGH"
+  },
+  {
+    "id": "pc-kem-cataract",
+    "hospital_id": "hosp-kem-mumbai",
+    "procedure_id": "proc-cataract-surgery",
+    "min_cost": 0,
+    "max_cost": 15000,
+    "typical_cost": 8500,
+    "currency": "INR",
+    "data_status": "PUBLIC_REFERENCE",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "pc-kem-knee",
+    "hospital_id": "hosp-kem-mumbai",
+    "procedure_id": "proc-knee-replacement",
+    "min_cost": 45000,
+    "max_cost": 90000,
+    "typical_cost": 65000,
+    "currency": "INR",
+    "data_status": "PUBLIC_REFERENCE",
+    "confidence": "HIGH"
   }
 ]

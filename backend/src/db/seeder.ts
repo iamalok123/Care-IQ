@@ -1,11 +1,21 @@
 import fs from 'fs';
 import path from 'path';
 import { supabase } from '../config/supabase';
+import { DemoProfile } from '../types/domain';
 
-const ROOT_DATA_DIR = path.resolve(__dirname, '../../../../data');
+function resolveDataDir(): string {
+  const candidate1 = path.resolve(__dirname, '../../../../data');
+  if (fs.existsSync(candidate1)) return candidate1;
+  const candidate2 = path.resolve(__dirname, '../../../data');
+  if (fs.existsSync(candidate2)) return candidate2;
+  const candidate3 = path.resolve(__dirname, '../../data');
+  if (fs.existsSync(candidate3)) return candidate3;
+  return path.resolve(process.cwd(), 'data');
+}
+
+const ROOT_DATA_DIR = resolveDataDir();
 const CLEANED_DIR = path.join(ROOT_DATA_DIR, 'cleaned');
 const SYNTHETIC_DIR = path.join(ROOT_DATA_DIR, 'synthetic');
-const SCENARIOS_DIR = path.join(ROOT_DATA_DIR, 'scenarios');
 
 function readJson<T>(filePath: string): T {
   if (!fs.existsSync(filePath)) {
@@ -39,7 +49,120 @@ export class Seeder {
   }
 
   /**
-   * Seeds all master datasets and scenario matrices into Supabase.
+   * Checks if demo profiles are already seeded in the database.
+   */
+  public async hasDemoProfiles(): Promise<boolean> {
+    try {
+      const { count, error } = await supabase
+        .from('patients')
+        .select('*', { count: 'exact', head: true })
+        .eq('account_type', 'DEMO');
+      if (error) return false;
+      return (count ?? 0) >= 3;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Seeds the 3 curated demo profiles (Ananya, Rajesh, Meera) into Supabase PostgreSQL.
+   */
+  public async seedDemoProfiles(): Promise<{
+    success: boolean;
+    results: SeedResult[];
+    totalRowsSeeded: number;
+  }> {
+    const results: SeedResult[] = [];
+    let totalRowsSeeded = 0;
+
+    const demoProfilesPath = path.join(ROOT_DATA_DIR, 'demo_profiles.json');
+    if (!fs.existsSync(demoProfilesPath)) {
+      console.warn(`⚠️  demo_profiles.json not found at ${demoProfilesPath}`);
+      return { success: false, results, totalRowsSeeded: 0 };
+    }
+
+    const demoProfiles = readJson<DemoProfile[]>(demoProfilesPath);
+
+    const patientsToSeed: any[] = [];
+    const policiesToSeed: any[] = [];
+    const journeysToSeed: any[] = [];
+    const eventsToSeed: any[] = [];
+    const verificationItemsToSeed: any[] = [];
+
+    for (const profile of demoProfiles) {
+      if (profile.patient) {
+        patientsToSeed.push({
+          ...profile.patient,
+          account_type: 'DEMO'
+        });
+      }
+      if (profile.policy) {
+        policiesToSeed.push(profile.policy);
+      }
+      if (profile.journey) {
+        const { events, ...journeyPayload } = profile.journey;
+        journeysToSeed.push(journeyPayload);
+        if (events && events.length > 0) {
+          eventsToSeed.push(...events);
+        }
+      }
+      if (profile.verification_items && profile.verification_items.length > 0) {
+        verificationItemsToSeed.push(...profile.verification_items);
+      }
+    }
+
+    const seedTable = async (
+      table: string,
+      data: any[],
+      onConflict: string = 'id'
+    ) => {
+      if (data.length === 0) return;
+      try {
+        const { error } = await supabase.from(table).upsert(data, { onConflict });
+        if (error) throw error;
+        results.push({ table, count: data.length, status: 'SUCCESS' });
+        totalRowsSeeded += data.length;
+      } catch (err: any) {
+        results.push({ table, count: 0, status: 'FAILED', error: err.message });
+        throw new Error(`Failed seeding demo table "${table}": ${err.message}`);
+      }
+    };
+
+    try {
+      if (patientsToSeed.length > 0) {
+        await seedTable('patients', patientsToSeed);
+      }
+      if (policiesToSeed.length > 0) {
+        await seedTable('insurance_policies', policiesToSeed);
+      }
+      if (journeysToSeed.length > 0) {
+        await seedTable('care_journeys', journeysToSeed);
+      }
+      if (eventsToSeed.length > 0) {
+        await seedTable('journey_events', eventsToSeed);
+      }
+      if (verificationItemsToSeed.length > 0) {
+        await seedTable('verification_items', verificationItemsToSeed);
+      }
+
+      console.log(`✓ Seeded ${demoProfiles.length} demo profiles (${totalRowsSeeded} relational rows) into Supabase.`);
+      return {
+        success: true,
+        results,
+        totalRowsSeeded
+      };
+    } catch (err: any) {
+      console.error('❌ Failed to seed demo profiles:', err.message || err);
+      return {
+        success: false,
+        results,
+        totalRowsSeeded
+      };
+    }
+  }
+
+  /**
+   * Seeds all master datasets and demo profiles into Supabase.
    */
   public async seedAll(options: { force?: boolean } = {}): Promise<{
     success: boolean;
@@ -122,55 +245,22 @@ export class Seeder {
       const costComponents = readJson<any[]>(path.join(CLEANED_DIR, 'cost_components.json'));
       await seedTable('cost_components', costComponents);
 
-      // 13. Patients
-      const patients = readJson<any[]>(path.join(SYNTHETIC_DIR, 'patients.json'));
-      await seedTable('patients', patients);
-
-      // 14. Insurance Policies
+      // 13. Master Cleaned Policies
       const masterPolicies = readJson<any[]>(path.join(CLEANED_DIR, 'policies.json'));
-      const syntheticPolicies = readJson<any[]>(path.join(SYNTHETIC_DIR, 'policies.json'));
-      await seedTable('insurance_policies', [...masterPolicies, ...syntheticPolicies]);
+      await seedTable('insurance_policies', masterPolicies);
 
-      // 15. Policy Rules
+      // 14. Policy Rules
       const policyRules = readJson<any[]>(path.join(CLEANED_DIR, 'policy_rules.json'));
       await seedTable('policy_rules', policyRules);
 
-      // 16. Policy Exclusions
+      // 15. Policy Exclusions
       const policyExclusions = readJson<any[]>(path.join(CLEANED_DIR, 'policy_exclusions.json'));
       await seedTable('policy_exclusions', policyExclusions);
 
-      // 17. Care Journeys & Events
-      const journeys = readJson<any[]>(path.join(SYNTHETIC_DIR, 'journeys.json'));
-      for (const jrn of journeys) {
-        const { events, ...jrnPayload } = jrn;
-        await seedTable('care_journeys', [jrnPayload]);
-        if (events && events.length > 0) {
-          await seedTable('journey_events', events);
-        }
-      }
-
-      // 18. Verification Items
-      const verificationItems = readJson<any[]>(path.join(SYNTHETIC_DIR, 'verification_items.json'));
-      await seedTable('verification_items', verificationItems);
-
-      // 19. Scenarios
-      if (fs.existsSync(SCENARIOS_DIR)) {
-        const scenarioFiles = fs.readdirSync(SCENARIOS_DIR).filter((f) => f.endsWith('.json'));
-        const scenarios = scenarioFiles.map((file) => {
-          const data = readJson<any>(path.join(SCENARIOS_DIR, file));
-          return {
-            id: data.id,
-            name: data.name || data.id,
-            patient_id: data.patientId || null,
-            hospital_id: data.hospitalId || null,
-            policy_id: data.policyId || null,
-            procedure_id: data.procedureId || null,
-            room_category: data.roomCategory || null,
-            raw_json: data
-          };
-        });
-        await seedTable('scenarios', scenarios);
-      }
+      // 16. Seed Demo Profiles (DB-first, Zero JSON runtime dependencies)
+      const demoResult = await this.seedDemoProfiles();
+      results.push(...demoResult.results);
+      totalRowsSeeded += demoResult.totalRowsSeeded;
 
       return {
         success: true,

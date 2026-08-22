@@ -308,5 +308,35 @@
     "preauth_required": true,
     "confidence": "HIGH",
     "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-kem-pmjay",
+    "hospital_id": "hosp-kem-mumbai",
+    "insurer_id": "sch-pmjay",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-kem-star",
+    "hospital_id": "hosp-kem-mumbai",
+    "insurer_id": "ins-star-health",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-kem-icici",
+    "hospital_id": "hosp-kem-mumbai",
+    "insurer_id": "ins-icici-lombard",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
   }
 ]

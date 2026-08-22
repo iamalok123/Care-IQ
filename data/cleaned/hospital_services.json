@@ -229,5 +229,26 @@
     "availability_status": true,
     "operating_hours": "24x7",
     "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-kem-mumbai",
+    "service_id": "srv-icu",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-kem-mumbai",
+    "service_id": "srv-mri",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-kem-mumbai",
+    "service_id": "srv-emergency",
+    "availability_status": true,
+    "operating_hours": "24x7",
+    "confidence": "HIGH"
   }
 ]

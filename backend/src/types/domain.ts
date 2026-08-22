@@ -192,19 +192,46 @@ export interface User {
   updated_at: string;
 }
 
+export enum AccountType {
+  DEMO = 'DEMO',
+  NEW_USER = 'NEW_USER'
+}
+
 export interface Patient {
   id: string;
   user_id: string;
   display_name: string;
+  account_type?: AccountType | string;
+  auth_user_id?: string;
+  email?: string;
+  age?: number;
   date_of_birth?: string;
   age_band?: string;
   gender?: string;
+  blood_group?: string;
+  medical_conditions?: string[];
+  current_medications?: string[];
+  allergies?: string[];
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
   city: string;
   state: string;
   pincode?: string;
   preferred_language: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface DemoProfile {
+  id: string;
+  name: string;
+  insurance_type: string;
+  description: string;
+  hospital_id: string;
+  patient: Patient;
+  policy: InsurancePolicy;
+  journey: CareJourney & { events: JourneyEvent[] };
+  verification_items: VerificationItem[];
 }
 
 export interface CaregiverRelationship {

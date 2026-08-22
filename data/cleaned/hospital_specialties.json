@@ -190,5 +190,29 @@
     "specialty_id": "spec-general-surgery",
     "availability_status": true,
     "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-kem-mumbai",
+    "specialty_id": "spec-cardiology",
+    "availability_status": true,
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-kem-mumbai",
+    "specialty_id": "spec-orthopedics",
+    "availability_status": true,
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-kem-mumbai",
+    "specialty_id": "spec-general-surgery",
+    "availability_status": true,
+    "confidence": "HIGH"
+  },
+  {
+    "hospital_id": "hosp-kem-mumbai",
+    "specialty_id": "spec-ophthalmology",
+    "availability_status": true,
+    "confidence": "HIGH"
   }
 ]

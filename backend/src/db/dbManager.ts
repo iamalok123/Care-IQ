@@ -68,6 +68,15 @@ export class DbManager {
         } else {
           console.warn('⚠️  Auto-seeding encountered issues:', seedRes.results.filter((r) => r.status === 'FAILED'));
         }
+      } else {
+        const hasDemo = await seeder.hasDemoProfiles();
+        if (!hasDemo) {
+          console.log('🌱 Demo profiles missing in database. Seeding 3 curated demo profiles...');
+          const demoRes = await seeder.seedDemoProfiles();
+          if (demoRes.success) {
+            console.log(`✓ Auto-seeded ${demoRes.totalRowsSeeded} demo records into database!`);
+          }
+        }
       }
     } catch (seedErr: any) {
       console.warn('⚠️  Auto-seed check error:', seedErr?.message || seedErr);
@@ -111,8 +120,7 @@ export class DbManager {
       'policy_exclusions',
       'care_journeys',
       'journey_events',
-      'verification_items',
-      'scenarios'
+      'verification_items'
     ];
 
     if (check.tablesAvailable) {

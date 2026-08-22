@@ -1,9 +1,0 @@
-{
-  "id": "06_missing_policy",
-  "name": "Persona 06 — Missing Policy Document",
-  "patientId": "pat-03-priya",
-  "expectedResult": {
-    "status": "INPUT_REQUIRED",
-    "message": "Please enter or upload policy details to unlock insurance-aware hospital matching."
-  }
-}

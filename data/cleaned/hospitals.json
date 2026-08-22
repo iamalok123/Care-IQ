@@ -182,5 +182,28 @@
     "data_status": "PUBLIC_REFERENCE",
     "verification_status": "VERIFIED",
     "confidence": "HIGH"
+  },
+  {
+    "id": "hosp-kem-mumbai",
+    "facility_id": "FAC-MUM-001",
+    "name": "King Edward Memorial (KEM) Hospital, Parel",
+    "hospital_type": "TEACHING",
+    "ownership_type": "PUBLIC",
+    "address": "Acharya Donde Marg, Parel",
+    "city": "Mumbai",
+    "district": "Mumbai City",
+    "state": "Maharashtra",
+    "pincode": "400012",
+    "latitude": 19.0028,
+    "longitude": 72.8427,
+    "beds": 1800,
+    "icu_beds": 250,
+    "emergency_available": true,
+    "ambulance_available": true,
+    "open_24x7": true,
+    "website": "https://kem.edu",
+    "data_status": "PUBLIC_REFERENCE",
+    "verification_status": "VERIFIED",
+    "confidence": "HIGH"
   }
 ]
