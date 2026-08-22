@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 export interface QuestionsModalState {
   isOpen: boolean;
@@ -52,6 +53,7 @@ const CareIQContext = createContext<CareIQContextType | undefined>(undefined);
 
 export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
+  const { patient: authPatient, policy: authPolicy, journey: authJourney } = useAuth();
 
   // Navigation / Drawer state
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
@@ -133,7 +135,10 @@ export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setHospitals(hosps || []);
       setScenarios(scens || []);
 
-      if (pts && pts.length > 0) {
+      if (authPatient) {
+        setActivePatient(authPatient);
+        await loadDataForPatient(authPatient);
+      } else if (pts && pts.length > 0) {
         const firstPatient = pts[0];
         setActivePatient(firstPatient);
         await loadDataForPatient(firstPatient);
@@ -147,11 +152,22 @@ export const CareIQProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     initApp();
-    const hasSeen = localStorage.getItem('careiq_onboarding_completed');
-    if (!hasSeen) {
-      setShowOnboarding(true);
-    }
   }, []);
+
+  // Synchronize state when AuthContext loads a new authenticated profile or demo session
+  useEffect(() => {
+    if (authPatient) {
+      setActivePatient(authPatient);
+      if (authPolicy) {
+        setActivePolicy(authPolicy);
+        setPolicies([authPolicy]);
+      }
+      if (authJourney) {
+        setJourney(authJourney);
+      }
+      loadDataForPatient(authPatient);
+    }
+  }, [authPatient?.id, authPolicy?.id, authJourney?.id]);
 
   const handleSelectPatient = async (patient: any) => {
     setActivePatient(patient);

@@ -21,8 +21,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleLaunch = propOnLaunchApp || (() => navigate('/dashboard'));
-  const handleStart = propOnStartJourney || (() => navigate('/hospital-matcher'));
+  const handleLaunch = propOnLaunchApp || (() => navigate('/get-started'));
+  const handleStart = propOnStartJourney || (() => navigate('/get-started'));
 
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans antialiased selection:bg-[#2545CB] selection:text-white">

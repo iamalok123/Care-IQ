@@ -4,3 +4,6 @@ export * from './InsuranceView';
 export * from './CareJourneyView';
 export * from './CostBreakdownView';
 export * from './VerificationCenter';
+export * from './GetStartedPage';
+export * from './AuthPage';
+export * from './OnboardingPage';
