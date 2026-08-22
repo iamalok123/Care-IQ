@@ -7,10 +7,27 @@ export class HospitalController {
   // GET /api/hospitals
   public getHospitals(req: Request, res: Response): void {
     const city = req.query.city as string | undefined;
+    const citiesParam = req.query.cities as string | undefined;
+    const all = req.query.all === 'true';
+
     let hospitals = dataRepository.getHospitals();
 
-    if (city) {
-      hospitals = hospitals.filter((h) => h.city.toLowerCase() === city.toLowerCase());
+    if (all) {
+      // Return all hospitals regardless of city
+    } else if (citiesParam) {
+      const cityList = citiesParam.split(',').map((c) => c.trim().toLowerCase());
+      hospitals = hospitals.filter((h) => cityList.includes(h.city.toLowerCase()));
+    } else if (city) {
+      if (city.includes(',')) {
+        const cityList = city.split(',').map((c) => c.trim().toLowerCase());
+        hospitals = hospitals.filter((h) => cityList.includes(h.city.toLowerCase()));
+      } else {
+        hospitals = hospitals.filter((h) => h.city.toLowerCase() === city.toLowerCase());
+      }
+    } else {
+      // Default to primary supported cities: Mumbai & Bengaluru
+      const defaultCities = ['mumbai', 'bengaluru', 'bangalore'];
+      hospitals = hospitals.filter((h) => defaultCities.includes(h.city.toLowerCase()));
     }
 
     res.json({

@@ -361,6 +361,18 @@ export class DataRepository {
   }
 
   // ==========================================
+  // Insurers
+  // ==========================================
+
+  public getInsurers(): Insurer[] {
+    return this.insurers;
+  }
+
+  public getInsurerById(id: string): Insurer | undefined {
+    return this.insurers.find((i) => i.id === id);
+  }
+
+  // ==========================================
   // Hospitals, Rooms, Networks & Costs
   // ==========================================
 

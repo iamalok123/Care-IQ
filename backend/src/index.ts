@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 
 import authRoutes from './routes/authRoutes';
+import onboardingRoutes from './routes/onboardingRoutes';
 import patientRoutes from './routes/patientRoutes';
 import policyRoutes from './routes/policyRoutes';
 import documentRoutes from './routes/documentRoutes';
@@ -56,6 +57,7 @@ app.get('/api/health', async (req: Request, res: Response) => {
 
 // Mount modular API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/patients', optionalAuth, patientRoutes);
 app.use('/api/policies', optionalAuth, policyRoutes);
 app.use('/api/documents', optionalAuth, documentRoutes);

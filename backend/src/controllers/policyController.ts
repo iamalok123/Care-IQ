@@ -70,6 +70,64 @@ export class PolicyController {
       data: newPolicy
     });
   }
+
+  // PUT /api/policies/:id
+  public updatePolicy(req: Request, res: Response): void {
+    const policyId = req.params.id as string;
+    const policy = dataRepository.getPolicyById(policyId);
+    if (!policy) {
+      res.status(404).json({
+        success: false,
+        error: { code: 'POLICY_NOT_FOUND', message: 'Insurance policy not found.' }
+      });
+      return;
+    }
+
+    const parsed = insurancePolicySchema.partial().safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ')
+        }
+      });
+      return;
+    }
+
+    const updated = dataRepository.updatePolicy(policyId, parsed.data);
+    res.json({
+      success: true,
+      message: 'Insurance policy updated successfully.',
+      data: updated
+    });
+  }
+
+  // DELETE /api/policies/:id
+  public deletePolicy(req: Request, res: Response): void {
+    const policyId = req.params.id as string;
+    const policy = dataRepository.getPolicyById(policyId);
+    if (!policy) {
+      res.status(404).json({
+        success: false,
+        error: { code: 'POLICY_NOT_FOUND', message: 'Insurance policy not found.' }
+      });
+      return;
+    }
+
+    const deleted = dataRepository.deletePolicy(policyId);
+    if (deleted) {
+      res.json({
+        success: true,
+        message: 'Insurance policy deleted successfully.'
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: { code: 'DELETE_FAILED', message: 'Failed to delete insurance policy.' }
+      });
+    }
+  }
 }
 
 export const policyController = new PolicyController();
