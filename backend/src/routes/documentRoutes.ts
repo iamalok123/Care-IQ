@@ -2,14 +2,19 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import { documentController } from '../controllers/documentController';
 
 const router = Router();
 
-// Ensure upload directory exists
-const uploadsDir = path.resolve(__dirname, '../../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// Ensure upload directory exists in serverless-safe writable /tmp directory
+const uploadsDir = path.resolve(os.tmpdir(), 'careiq-uploads');
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (err) {
+  console.warn('Upload directory initialization notice:', err);
 }
 
 const storage = multer.diskStorage({

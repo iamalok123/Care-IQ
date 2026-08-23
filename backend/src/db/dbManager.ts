@@ -34,6 +34,12 @@ export class DbManager {
     console.log('🔄 CareIQ — Database Startup & Auto-Migration Engine');
     console.log('======================================================');
 
+    if (process.env.VERCEL) {
+      console.log('⚡ Serverless runtime detected (Vercel). Connecting via Supabase REST client.');
+      this.isInitialized = true;
+      return;
+    }
+
     if (!isSupabaseConfigured) {
       console.warn('⚠️  Supabase not configured in .env. Running in local JSON fallback mode.');
       this.isInitialized = true;

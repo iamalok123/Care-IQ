@@ -29,17 +29,12 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Serverless cold-start initialization middleware
-let initPromise: Promise<void> | null = null;
-app.use(async (req: Request, res: Response, next: NextFunction) => {
-  if (!initPromise) {
-    initPromise = dbManager.initializeOnStartup().catch((err) => {
-      console.warn('Database init notice:', err?.message || err);
-    });
-  }
-  await initPromise;
-  next();
-});
+// Startup initialization (non-blocking in serverless)
+if (!process.env.VERCEL) {
+  dbManager.initializeOnStartup().catch((err) => {
+    console.warn('Database init notice:', err?.message || err);
+  });
+}
 
 // Request logging middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -137,7 +132,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-if (process.env.NODE_ENV !== 'test' && (!process.env.TEST_MODE || process.env.TEST_MODE !== 'true')) {
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test' && (!process.env.TEST_MODE || process.env.TEST_MODE !== 'true')) {
   app.listen(port, async () => {
     console.log(`CareIQ Backend Server is listening on http://localhost:${port}`);
     await dbManager.initializeOnStartup();
