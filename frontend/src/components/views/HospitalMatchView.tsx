@@ -103,34 +103,34 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
   }, [city, specialty, procedureId, roomCategory, networkOnly, policy?.id]);
 
   return (
-    <div className="flex flex-col gap-5 relative pb-16">
+    <div className="flex flex-col gap-5 relative pb-24 sm:pb-16">
       
       {/* 1. Top Search & Filter Bar */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 shadow-xs">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 md:p-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5">
           <div className="flex items-center gap-2">
-            <Filter size={18} className="text-teal-600" />
-            <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
-              Hospital Search & Insurance Constraint Filters
+            <Filter size={16} className="text-teal-600 shrink-0" />
+            <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider">
+              Hospital Search & Insurance Filters
             </h3>
           </div>
           
-          <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+          <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer select-none">
             <input
               type="checkbox"
               checked={networkOnly}
               onChange={(e) => setNetworkOnly(e.target.checked)}
               className="rounded text-teal-600 focus:ring-teal-500 w-4 h-4 cursor-pointer"
             />
-            Show Cashless In-Network Only
+            <span>Cashless In-Network Only</span>
           </label>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
           
           {/* City */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+            <label className="block text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
               Location / City
             </label>
             <select
@@ -255,7 +255,7 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
             return (
               <div
                 key={h.id}
-                className={`border rounded-2xl p-5 md:p-6 shadow-xs transition-all relative ${
+                className={`border rounded-2xl p-4 sm:p-5 md:p-6 shadow-xs transition-all relative ${
                   isSelectedForCompare
                     ? 'bg-indigo-50/40 border-indigo-400 ring-2 ring-indigo-500/20'
                     : isTopRank
@@ -263,72 +263,77 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
                     : 'bg-white border-slate-200 hover:shadow-md'
                 }`}
               >
-                <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-3.5 sm:gap-4">
                   
-                  {/* Hospital Info & Badges */}
-                  <div className="flex-1 min-w-70">
-                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                      <h3 className="text-lg md:text-xl font-extrabold text-slate-900">
-                        {h.name}
-                      </h3>
-                      {isTopRank && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-900 text-white shadow-xs">
-                          <Star size={12} className="text-amber-400 fill-amber-400 shrink-0" />
-                          Highest Compatibility
-                        </span>
-                      )}
+                  {/* Left Column: Hospital Info & Badges */}
+                  <div className="flex-1 min-w-0">
+                    
+                    {/* Top Row: Title + Highest Compatibility Badge */}
+                    <div className="flex items-start sm:items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-base sm:text-lg md:text-xl font-extrabold text-slate-900 tracking-tight leading-snug">
+                          {h.name}
+                        </h3>
+                        {isTopRank && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-slate-900 text-white shadow-xs">
+                            <Star size={11} className="text-amber-400 fill-amber-400 shrink-0" />
+                            Highest Compatibility
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    <p className="text-xs text-slate-500 flex items-center gap-1.5 mb-3">
-                      <MapPin size={14} className="text-slate-400 shrink-0" />
-                      {h.address}, {h.city} ({h.pincode})
+                    {/* Address */}
+                    <p className="text-xs text-slate-500 flex items-start gap-1.5 mb-2.5">
+                      <MapPin size={13} className="text-slate-400 shrink-0 mt-0.5" />
+                      <span className="line-clamp-2 sm:line-clamp-1">{h.address}, {h.city} ({h.pincode})</span>
                     </p>
 
-                    {/* Status Badges Row */}
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                    {/* Status Badges Row (Wrapped pills with tight compact spacing on mobile) */}
+                    <div className="flex flex-wrap items-center gap-1.5 mb-3">
                       {item.networkStatus === 'IN_NETWORK' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <CheckCircle2 size={12} />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <CheckCircle2 size={11} />
                           In-Network {item.cashlessSupported ? '(Cashless Confirmed)' : '(Reimbursement)'}
                         </span>
                       ) : item.networkStatus === 'UNKNOWN' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                          <AlertTriangle size={12} />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                          <AlertTriangle size={11} />
                           Network Unconfirmed
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
-                          <AlertTriangle size={12} />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">
+                          <AlertTriangle size={11} />
                           Out-of-Network
                         </span>
                       )}
 
                       {item.roomCategoryMatch ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                          <BedDouble size={12} />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                          <BedDouble size={11} />
                           Room: {roomCategory} (Compatible)
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                          <AlertTriangle size={12} />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                          <AlertTriangle size={11} />
                           Room: {roomCategory} (Exceeds Policy Limit)
                         </span>
                       )}
 
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                        <Activity size={12} />
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                        <Activity size={11} />
                         Beds: {h.beds || 'N/A'} (ICU: {h.icu_beds || 'N/A'})
                       </span>
                     </div>
                   </div>
 
-                  {/* Match Score & Financial Summary */}
-                  <div className="flex items-center gap-4 sm:gap-5 shrink-0">
+                  {/* Financial Estimate & Match Score Section (Highlighted Callout on Mobile, Right Aligned on Desktop) */}
+                  <div className="bg-slate-50/90 sm:bg-transparent border sm:border-0 border-slate-200/70 rounded-xl p-3 sm:p-0 flex items-center justify-between sm:justify-end gap-3 sm:gap-5 shrink-0">
                     
                     {/* Financial Estimate */}
-                    <div className="text-right">
-                      <div className="text-[11px] font-semibold text-slate-500">Indicative Patient Exposure</div>
-                      <div className={`text-xl font-extrabold ${item.estimatedPatientExposure > 30000 ? 'text-amber-600' : 'text-teal-700'}`}>
+                    <div className="text-left sm:text-right">
+                      <div className="text-[10px] sm:text-[11px] font-semibold text-slate-500">Indicative Patient Exposure</div>
+                      <div className={`text-lg sm:text-xl font-extrabold ${item.estimatedPatientExposure > 30000 ? 'text-amber-600' : 'text-teal-700'}`}>
                         ₹{item.estimatedPatientExposure.toLocaleString()}
                       </div>
                       <div className="text-[10px] text-slate-400">
@@ -338,7 +343,7 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
 
                     {/* Match Score Badge */}
                     <div
-                      className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center text-white shadow-xs ${
+                      className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center text-white shadow-xs shrink-0 ${
                         item.matchScore >= 90
                           ? 'bg-teal-700'
                           : item.matchScore >= 70
@@ -346,8 +351,8 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
                           : 'bg-red-600'
                       }`}
                     >
-                      <span className="text-lg font-extrabold leading-none">{item.matchScore}</span>
-                      <span className="text-[9px] font-bold opacity-90 mt-0.5">MATCH</span>
+                      <span className="text-base sm:text-lg font-extrabold leading-none">{item.matchScore}</span>
+                      <span className="text-[8px] sm:text-[9px] font-bold opacity-90 mt-0.5">MATCH</span>
                     </div>
 
                   </div>
@@ -355,50 +360,53 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
                 </div>
 
                 {/* Actions & Expand Toggle */}
-                <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
+                <div className="mt-3.5 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between sm:justify-start gap-2">
                     <button
+                      type="button"
                       onClick={() => setExpandedHospitalId(isExpanded ? null : h.id)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer transition-colors"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer transition-colors"
                     >
                       {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                      {isExpanded ? 'Hide Factor Breakdown' : 'Why am I seeing this?'}
+                      <span>{isExpanded ? 'Hide Breakdown' : 'Why am I seeing this?'}</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => toggleCompare(h.id)}
-                      className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         isSelectedForCompare
                           ? 'bg-indigo-600 text-white shadow-2xs'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
                       }`}
                     >
                       <ArrowLeftRight size={13} />
-                      {isSelectedForCompare ? '✓ Selected to Compare' : 'Compare'}
+                      <span>{isSelectedForCompare ? '✓ In Compare' : 'Compare'}</span>
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="grid grid-cols-2 sm:flex items-center gap-2">
                     <button
+                      type="button"
                       onClick={() => onOpenQuestions(h.name, !item.roomCategoryMatch)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 cursor-pointer transition-colors"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-xl text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 cursor-pointer transition-colors"
                     >
-                      <HelpCircle size={14} />
-                      What to Ask Desk
+                      <HelpCircle size={13} className="shrink-0" />
+                      <span className="truncate">What to Ask Desk</span>
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => onStartJourney({
                         hospitalId: h.id,
                         procedureId: procedureId,
                         selectedRoomCategory: roomCategory as RoomCategoryCode
                       })}
-                      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-xs shadow-teal-600/30 cursor-pointer transition-colors"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-xs shadow-teal-600/30 cursor-pointer transition-colors"
                     >
-                      <Sparkles size={14} />
-                      Track Journey Here
+                      <Sparkles size={13} className="shrink-0" />
+                      <span className="truncate">Track Journey Here</span>
                     </button>
                   </div>
 
