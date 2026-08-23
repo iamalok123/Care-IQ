@@ -24,13 +24,13 @@ import {
 } from '../types/domain';
 
 function resolveDemoProfilesPath(): string {
-  const candidate1 = path.resolve(__dirname, '../../../../data/demo_profiles.json');
-  if (fs.existsSync(candidate1)) return candidate1;
-  const candidate2 = path.resolve(__dirname, '../../../data/demo_profiles.json');
-  if (fs.existsSync(candidate2)) return candidate2;
-  const candidate3 = path.resolve(__dirname, '../../data/demo_profiles.json');
-  if (fs.existsSync(candidate3)) return candidate3;
-  return path.resolve(process.cwd(), 'data/demo_profiles.json');
+  const local1 = path.resolve(__dirname, '../data/demo_profiles.json');
+  if (fs.existsSync(local1)) return local1;
+  const local2 = path.resolve(__dirname, '../../data/demo_profiles.json');
+  if (fs.existsSync(local2)) return local2;
+  const local3 = path.resolve(process.cwd(), 'data/demo_profiles.json');
+  if (fs.existsSync(local3)) return local3;
+  return path.resolve(process.cwd(), 'backend/data/demo_profiles.json');
 }
 
 export class AuthController {

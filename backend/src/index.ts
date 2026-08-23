@@ -47,6 +47,39 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
+// 🌟 Root API Index & Live Verification Pings
+app.get(['/', '/api'], async (req: Request, res: Response) => {
+  const dbStatus = await checkSupabaseConnection();
+  res.json({
+    success: true,
+    data: {
+      service: 'CareIQ Decision-Support Backend API',
+      status: 'ONLINE',
+      version: '1.0.0',
+      environment: process.env.NODE_ENV || 'production',
+      aiEngine: {
+        provider: 'Google Gemini AI',
+        configured: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.length > 5),
+        model: process.env.GEMINI_MODEL || 'gemini-2.0-flash'
+      },
+      database: {
+        provider: 'Supabase PostgreSQL',
+        connected: dbStatus.connected,
+        tablesAvailable: dbStatus.tablesAvailable,
+        isDatabaseSynced: dataRepository.getIsDatabaseSynced(),
+        message: dbStatus.message
+      },
+      quickTestEndpoints: {
+        healthCheck: '/api/health',
+        hospitalMatchSample: '/api/hospitals/match?city=Bengaluru',
+        demoProfiles: '/api/onboarding/demo-profiles',
+        clinicalScenarios: '/api/scenarios'
+      },
+      timestamp: new Date().toISOString()
+    }
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', async (req: Request, res: Response) => {
   const dbStatus = await checkSupabaseConnection();
@@ -55,6 +88,7 @@ app.get('/api/health', async (req: Request, res: Response) => {
     data: {
       status: 'ok',
       service: 'CareIQ Decision-Support Backend API',
+      aiConfigured: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.length > 5),
       database: {
         provider: 'Supabase PostgreSQL',
         connected: dbStatus.connected,
