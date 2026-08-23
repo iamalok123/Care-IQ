@@ -131,7 +131,7 @@ export const AuthPage: React.FC = () => {
 
         <div className="flex items-center gap-2.5">
           <Link
-            to="/get-started"
+            to="/demo"
             className="text-xs font-semibold text-slate-700 hover:text-slate-900 px-3.5 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white transition-colors shadow-2xs"
           >
             Explore Demos
@@ -372,14 +372,23 @@ export const AuthPage: React.FC = () => {
             <p className="text-xs text-slate-400 mb-2.5">
               Want to test CareIQ without signing up?
             </p>
-            <button
-              type="button"
-              onClick={handleDemoQuickAccess}
-              className="w-full py-2 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <PlayCircle size={15} className="text-indigo-600" />
-              <span>Try Instant Demo Persona</span>
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={handleDemoQuickAccess}
+                className="flex-1 py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <PlayCircle size={14} className="text-indigo-600" />
+                <span>Instant Demo</span>
+              </button>
+              <Link
+                to="/demo"
+                className="flex-1 py-2 px-3 rounded-xl bg-indigo-50/60 hover:bg-indigo-100/60 border border-indigo-200 text-indigo-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <span>Browse Scenarios</span>
+                <ArrowRight size={13} />
+              </Link>
+            </div>
           </div>
         </motion.div>
       </main>

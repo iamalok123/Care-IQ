@@ -10,6 +10,7 @@ import { CareJourneyView } from './components/views/CareJourneyView';
 import { CostBreakdownView } from './components/views/CostBreakdownView';
 import { VerificationCenter } from './components/views/VerificationCenter';
 import { GetStartedPage } from './components/views/GetStartedPage';
+import { DemoPage } from './components/views/DemoPage';
 import { AuthPage } from './components/views/AuthPage';
 import { OnboardingPage } from './components/views/OnboardingPage';
 
@@ -18,6 +19,7 @@ export function AppRoutes() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/get-started" element={<GetStartedPage />} />
+      <Route path="/demo" element={<DemoPage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/onboarding" element={<OnboardingPage />} />
 

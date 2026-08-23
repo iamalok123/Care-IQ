@@ -1,12 +1,11 @@
 import React, { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
 import { AiQuestionsModal } from '../modals/AiQuestionsModal';
 import { PolicyRagAssistant } from '../widgets/PolicyRagAssistant';
 import { useCareIQ } from '../../context/CareIQContext';
 import { useAuth } from '../../context/AuthContext';
-import { Sparkles, CheckCircle2 } from 'lucide-react';
+import { Sparkles, CheckCircle2, Menu } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
   const location = useLocation();
@@ -18,7 +17,8 @@ export const AppLayout: React.FC = () => {
     isChatbotOpen,
     setIsChatbotOpen,
     questionsModal,
-    closeQuestionsModal
+    closeQuestionsModal,
+    setIsMobileSidebarOpen
   } = useCareIQ();
   const { isAuthenticated, isDemoMode, loading: authLoading } = useAuth();
 
@@ -47,14 +47,21 @@ export const AppLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex bg-slate-50 font-sans text-slate-900 relative">
+      {/* Mobile Floating Menu Button so drawer can still be toggled on mobile */}
+      <button
+        type="button"
+        onClick={() => setIsMobileSidebarOpen(true)}
+        className="fixed top-3.5 left-3.5 z-30 lg:hidden p-2 rounded-xl bg-white/90 backdrop-blur-md border border-slate-200/90 text-slate-800 shadow-md hover:bg-slate-100 transition-colors cursor-pointer"
+        aria-label="Open Sidebar Menu"
+      >
+        <Menu size={18} strokeWidth={2.2} />
+      </button>
+
       {/* Classical Full-Height Left Sidebar */}
       <Sidebar />
 
-      {/* Main Right Area Container (Offset by lg:pl-56) */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen lg:pl-56">
-        {/* Top Header Navbar */}
-        <Navbar />
-
+      {/* Main Right Area Container (Offset by lg:pl-64) */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen lg:pl-64">
         {/* Main View Content Canvas */}
         <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-7 max-w-350 w-full mx-auto pb-16">
           {/* Feedback Alert Toast */}
@@ -137,3 +144,5 @@ export const AppLayout: React.FC = () => {
     </div>
   );
 };
+
+export default AppLayout;
