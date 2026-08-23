@@ -30,7 +30,14 @@ import type {
   WhatIfComparison
 } from '../types/domain';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const rawApiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').trim();
+const API_BASE = rawApiUrl === '/api'
+  ? '/api'
+  : rawApiUrl.endsWith('/api')
+  ? rawApiUrl
+  : rawApiUrl.endsWith('/')
+  ? `${rawApiUrl}api`
+  : `${rawApiUrl}/api`;
 
 export function getAuthHeaders(): Record<string, string> {
   const token = localStorage.getItem('careiq_token');
