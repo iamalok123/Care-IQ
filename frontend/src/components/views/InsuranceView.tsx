@@ -204,7 +204,12 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
         post_hospitalization_days: 90
       });
       setShowAddModal(false);
-      setPolicyName('');
+      setPolicyName('Star Comprehensive Health Insurance');
+      if (activePatient) {
+        await context.loadDataForPatient(activePatient);
+      } else {
+        await api.getPolicies();
+      }
       onPolicyAdded();
     } catch (err) {
       console.error('Failed to add policy:', err);

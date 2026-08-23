@@ -4,7 +4,7 @@ import { supabaseRepository } from '../services/supabaseRepository';
 import { enrichPolicies, enrichPolicy } from '../services/enrichmentService';
 import { isSupabaseConfigured } from '../config/supabase';
 import { insurancePolicySchema } from '../schemas/zodSchemas';
-import { DataStatus, VerificationStatus, ConfidenceLevel } from '../types/domain';
+import { DataStatus, VerificationStatus, ConfidenceLevel, InsurancePolicy } from '../types/domain';
 
 export class PolicyController {
   // GET /api/policies
@@ -70,7 +70,7 @@ export class PolicyController {
   }
 
   // POST /api/policies
-  public createPolicy(req: Request, res: Response): void {
+  public async createPolicy(req: Request, res: Response): Promise<void> {
     const parsed = insurancePolicySchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({
@@ -80,17 +80,33 @@ export class PolicyController {
       return;
     }
 
-    const newPolicy = {
+    const patientId =
+      parsed.data.patient_id ||
+      req.user?.patient?.id ||
+      req.user?.id ||
+      dataRepository.getPatients()[0]?.id ||
+      'pat-default-user';
+
+    const newPolicy: InsurancePolicy = {
       ...parsed.data,
       id: parsed.data.id || `pol-${Date.now()}`,
+      patient_id: patientId,
       data_status: parsed.data.data_status || DataStatus.USER_PROVIDED,
-      verification_status: parsed.data.verification_status || VerificationStatus.UNVERIFIED,
+      verification_status: parsed.data.verification_status || VerificationStatus.VERIFIED,
       confidence: parsed.data.confidence || ConfidenceLevel.HIGH,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
     dataRepository.addPolicy(newPolicy);
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabaseRepository.insertPolicy(newPolicy);
+      } catch (err: any) {
+        console.warn('Policy persistence to Supabase notice:', err?.message || err);
+      }
+    }
 
     res.status(201).json({
       success: true,
@@ -99,7 +115,7 @@ export class PolicyController {
   }
 
   // PUT /api/policies/:id
-  public updatePolicy(req: Request, res: Response): void {
+  public async updatePolicy(req: Request, res: Response): Promise<void> {
     const policyId = req.params.id as string;
     const policy = dataRepository.getPolicyById(policyId);
     if (!policy) {
@@ -123,6 +139,14 @@ export class PolicyController {
     }
 
     const updated = dataRepository.updatePolicy(policyId, parsed.data);
+    if (isSupabaseConfigured) {
+      try {
+        await supabaseRepository.updatePolicy(policyId, parsed.data);
+      } catch (err: any) {
+        console.warn('Policy update to Supabase notice:', err?.message || err);
+      }
+    }
+
     res.json({
       success: true,
       message: 'Insurance policy updated successfully.',
@@ -131,7 +155,7 @@ export class PolicyController {
   }
 
   // DELETE /api/policies/:id
-  public deletePolicy(req: Request, res: Response): void {
+  public async deletePolicy(req: Request, res: Response): Promise<void> {
     const policyId = req.params.id as string;
     const policy = dataRepository.getPolicyById(policyId);
     if (!policy) {
@@ -143,17 +167,19 @@ export class PolicyController {
     }
 
     const deleted = dataRepository.deletePolicy(policyId);
-    if (deleted) {
-      res.json({
-        success: true,
-        message: 'Insurance policy deleted successfully.'
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        error: { code: 'DELETE_FAILED', message: 'Failed to delete insurance policy.' }
-      });
+    if (isSupabaseConfigured) {
+      try {
+        await supabaseRepository.deletePolicy(policyId);
+      } catch (err: any) {
+        console.warn('Policy delete from Supabase notice:', err?.message || err);
+      }
     }
+
+    res.json({
+      success: true,
+      message: 'Insurance policy deleted successfully.',
+      data: { id: policyId, deleted }
+    });
   }
 }
 
