@@ -35,12 +35,26 @@ import { supabaseRepository } from './supabaseRepository';
 import { isSupabaseConfigured, checkSupabaseConnection } from '../config/supabase';
 
 function resolveDataDir(): string {
-  const candidate1 = path.resolve(__dirname, '../../../../data');
-  if (fs.existsSync(candidate1)) return candidate1;
-  const candidate2 = path.resolve(__dirname, '../../../data');
-  if (fs.existsSync(candidate2)) return candidate2;
-  const candidate3 = path.resolve(__dirname, '../../data');
-  if (fs.existsSync(candidate3)) return candidate3;
+  const candidates = [
+    path.resolve(__dirname, '../../data'),
+    path.resolve(__dirname, '../data'),
+    path.resolve(__dirname, '../../../data'),
+    path.resolve(__dirname, '../../../../data'),
+    path.resolve(process.cwd(), 'backend/data'),
+    path.resolve(process.cwd(), 'data'),
+    path.resolve(__dirname, 'data')
+  ];
+
+  for (const c of candidates) {
+    if (fs.existsSync(path.join(c, 'cleaned/hospitals.json')) || fs.existsSync(path.join(c, 'hospitals.json'))) {
+      return c;
+    }
+  }
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      return c;
+    }
+  }
   return path.resolve(process.cwd(), 'data');
 }
 
@@ -87,7 +101,9 @@ export class DataRepository {
 
   constructor() {
     this.baseDataDir = resolveDataDir();
-    this.cleanedDir = path.join(this.baseDataDir, 'cleaned');
+    this.cleanedDir = fs.existsSync(path.join(this.baseDataDir, 'cleaned'))
+      ? path.join(this.baseDataDir, 'cleaned')
+      : this.baseDataDir;
 
     // Synchronously load local baseline reference datasets
     this.loadAllData();
@@ -110,6 +126,13 @@ export class DataRepository {
    * Runtime patient, policy, and journey data is strictly loaded from Supabase PostgreSQL.
    */
   public loadAllData(): void {
+    if (!fs.existsSync(this.cleanedDir)) {
+      this.baseDataDir = resolveDataDir();
+      this.cleanedDir = fs.existsSync(path.join(this.baseDataDir, 'cleaned'))
+        ? path.join(this.baseDataDir, 'cleaned')
+        : this.baseDataDir;
+    }
+
     // Load Master Cleaned Reference Data
     this.hospitals = this.readJsonFile<Hospital[]>(path.join(this.cleanedDir, 'hospitals.json'), []);
     this.hospitalRooms = this.readJsonFile<HospitalRoom[]>(path.join(this.cleanedDir, 'hospital_rooms.json'), []);
@@ -122,7 +145,7 @@ export class DataRepository {
     this.procedureCosts = this.readJsonFile<ProcedureCost[]>(path.join(this.cleanedDir, 'procedure_costs.json'), []);
     this.costComponents = this.readJsonFile<CostComponent[]>(path.join(this.cleanedDir, 'cost_components.json'), []);
     this.hospitalNetworks = this.readJsonFile<HospitalNetwork[]>(path.join(this.cleanedDir, 'hospital_networks.json'), []);
-    this.insurers = this.readJsonFile<Insurer[]>(path.join(this.cleanedDir, 'insurers.json'), []);
+    this.insurers = this.readJsonFile<Insurer[]>(path.join(this.cleanedDir, 'insurers.json'), [...BASELINE_INSURERS]);
     this.policyRules = this.readJsonFile<PolicyRule[]>(path.join(this.cleanedDir, 'policy_rules.json'), []);
     this.policyExclusions = this.readJsonFile<PolicyExclusion[]>(path.join(this.cleanedDir, 'policy_exclusions.json'), []);
 
@@ -133,6 +156,15 @@ export class DataRepository {
     this.patients = [];
     this.journeys = [];
     this.verificationItems = [];
+  }
+
+  public async ensureDataLoaded(): Promise<void> {
+    if (this.hospitals.length === 0) {
+      this.loadAllData();
+      if (this.hospitals.length === 0) {
+        await this.syncFromSupabase();
+      }
+    }
   }
 
   /**
@@ -398,10 +430,16 @@ export class DataRepository {
   // ==========================================
 
   public getHospitals(): Hospital[] {
+    if (this.hospitals.length === 0) {
+      this.loadAllData();
+    }
     return this.hospitals;
   }
 
   public getHospitalById(id: string): Hospital | undefined {
+    if (this.hospitals.length === 0) {
+      this.loadAllData();
+    }
     return this.hospitals.find((h) => h.id === id);
   }
 
@@ -409,16 +447,25 @@ export class DataRepository {
    * Scoped hospital queries for specific cities (e.g. ['Mumbai', 'Bengaluru']).
    */
   public getHospitalsByCity(cities: string[]): Hospital[] {
+    if (this.hospitals.length === 0) {
+      this.loadAllData();
+    }
     if (!cities || cities.length === 0) return this.hospitals;
     const lowerCities = cities.map((c) => c.toLowerCase().trim());
     return this.hospitals.filter((h) => lowerCities.includes(h.city.toLowerCase().trim()));
   }
 
   public getHospitalRooms(hospitalId: string): HospitalRoom[] {
+    if (this.hospitalRooms.length === 0) {
+      this.loadAllData();
+    }
     return this.hospitalRooms.filter((r) => r.hospital_id === hospitalId);
   }
 
   public getHospitalSpecialties(hospitalId: string): Specialty[] {
+    if (this.hospitalSpecialties.length === 0) {
+      this.loadAllData();
+    }
     const activeSpecialtyIds = this.hospitalSpecialties
       .filter((hs) => hs.hospital_id === hospitalId && hs.availability_status)
       .map((hs) => hs.specialty_id);
@@ -426,6 +473,9 @@ export class DataRepository {
   }
 
   public getHospitalServices(hospitalId: string): Service[] {
+    if (this.hospitalServices.length === 0) {
+      this.loadAllData();
+    }
     const activeServiceIds = this.hospitalServices
       .filter((hs) => hs.hospital_id === hospitalId && hs.availability_status)
       .map((hs) => hs.service_id);
@@ -433,18 +483,27 @@ export class DataRepository {
   }
 
   public getNetworkRelationship(hospitalId: string, insurerId: string): HospitalNetwork | undefined {
+    if (this.hospitalNetworks.length === 0) {
+      this.loadAllData();
+    }
     return this.hospitalNetworks.find(
       (n) => n.hospital_id === hospitalId && n.insurer_id === insurerId
     );
   }
 
   public getProcedureCost(hospitalId: string, procedureId: string): ProcedureCost | undefined {
+    if (this.procedureCosts.length === 0) {
+      this.loadAllData();
+    }
     return this.procedureCosts.find(
       (pc) => pc.hospital_id === hospitalId && pc.procedure_id === procedureId
     );
   }
 
   public getProcedures(): Procedure[] {
+    if (this.procedures.length === 0) {
+      this.loadAllData();
+    }
     return this.procedures;
   }
 

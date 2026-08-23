@@ -25,24 +25,45 @@ export class MatchingEngine {
     const policy = params.policyId ? dataRepository.getPolicyById(params.policyId) : undefined;
     const preferredRoom = params.preferredRoomCategory || (policy ? policy.room_eligibility : RoomCategoryCode.PRIVATE_AC);
 
-    // 1. City Filter
-    let candidates = allHospitals.filter(
-      (h) => !params.city || h.city.toLowerCase() === params.city.toLowerCase()
-    );
+    // 1. City Filter with Bangalore/Bengaluru normalization
+    const targetCity = (params.city || '').toLowerCase().trim();
+    let candidates = allHospitals.filter((h) => {
+      if (!targetCity) return true;
+      const hCity = (h.city || '').toLowerCase().trim();
+      if (hCity === targetCity) return true;
+      if ((targetCity === 'bengaluru' || targetCity === 'bangalore') && (hCity === 'bengaluru' || hCity === 'bangalore')) return true;
+      if ((targetCity === 'mumbai' || targetCity === 'bombay') && (hCity === 'mumbai' || hCity === 'bombay')) return true;
+      return hCity.includes(targetCity) || targetCity.includes(hCity);
+    });
+
+    // If no exact city match found in dataset, fallback to all hospitals rather than returning 0
+    if (candidates.length === 0) {
+      candidates = allHospitals;
+    }
 
     // 2. Specialty & Service Filters
     if (params.specialtyCode) {
-      candidates = candidates.filter((h) => {
+      const specFilter = params.specialtyCode.toLowerCase().trim();
+      const specCandidates = candidates.filter((h) => {
         const specs = dataRepository.getHospitalSpecialties(h.id);
-        return specs.some((s) => s.code.toLowerCase() === params.specialtyCode!.toLowerCase());
+        if (specs.length === 0) return true; // Multispecialty default
+        return specs.some((s) => s.code.toLowerCase() === specFilter || s.id?.toLowerCase().includes(specFilter) || s.name?.toLowerCase().includes(specFilter));
       });
+      if (specCandidates.length > 0) {
+        candidates = specCandidates;
+      }
     }
 
     if (params.serviceCode) {
-      candidates = candidates.filter((h) => {
+      const srvFilter = params.serviceCode.toLowerCase().trim();
+      const srvCandidates = candidates.filter((h) => {
         const srvs = dataRepository.getHospitalServices(h.id);
-        return srvs.some((s) => s.code.toLowerCase() === params.serviceCode!.toLowerCase());
+        if (srvs.length === 0) return true;
+        return srvs.some((s) => s.code.toLowerCase() === srvFilter || s.id?.toLowerCase().includes(srvFilter) || s.name?.toLowerCase().includes(srvFilter));
       });
+      if (srvCandidates.length > 0) {
+        candidates = srvCandidates;
+      }
     }
 
     const results: HospitalMatchResult[] = candidates.map((hospital) => {

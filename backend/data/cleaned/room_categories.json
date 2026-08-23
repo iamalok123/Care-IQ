@@ -1,0 +1,37 @@
+[
+  {
+    "id": "rc-general",
+    "code": "GENERAL",
+    "name": "General Ward (Multi-Occupancy)",
+    "rank": 1,
+    "description": "Shared room with 4 to 8 beds and common washroom"
+  },
+  {
+    "id": "rc-semi-private",
+    "code": "SEMI_PRIVATE",
+    "name": "Semi-Private Room (Twin Sharing)",
+    "rank": 2,
+    "description": "Twin sharing room with curtain partition and shared washroom"
+  },
+  {
+    "id": "rc-private-ac",
+    "code": "PRIVATE_AC",
+    "name": "Single Private AC Room",
+    "rank": 3,
+    "description": "Independent single room with attached washroom, AC, and attendant couch"
+  },
+  {
+    "id": "rc-deluxe",
+    "code": "DELUXE",
+    "name": "Deluxe Private Room",
+    "rank": 4,
+    "description": "Spacious single AC room with extra seating, refrigerator, and TV"
+  },
+  {
+    "id": "rc-suite",
+    "code": "SUITE",
+    "name": "Executive / Luxury Suite",
+    "rank": 5,
+    "description": "Multi-room suite with living area for caregiver, kitchenette, and premium amenities"
+  }
+]

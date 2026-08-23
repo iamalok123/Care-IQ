@@ -25,12 +25,9 @@ import {
 } from '../types/domain';
 
 export class SupabaseRepository {
-  // ==========================================
-  // Master Reference Data
-  // ==========================================
 
   public async fetchRoomCategories(): Promise<RoomCategory[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('room_categories')
       .select('*')
       .order('rank', { ascending: true });
@@ -39,7 +36,7 @@ export class SupabaseRepository {
   }
 
   public async fetchSpecialties(): Promise<Specialty[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('specialties')
       .select('*')
       .order('name', { ascending: true });
@@ -48,7 +45,7 @@ export class SupabaseRepository {
   }
 
   public async fetchServices(): Promise<Service[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('services')
       .select('*')
       .order('name', { ascending: true });
@@ -57,7 +54,7 @@ export class SupabaseRepository {
   }
 
   public async fetchInsurers(): Promise<Insurer[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('insurers')
       .select('*')
       .order('name', { ascending: true });
@@ -66,7 +63,7 @@ export class SupabaseRepository {
   }
 
   public async fetchHospitals(): Promise<Hospital[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('hospitals')
       .select('*')
       .order('name', { ascending: true });
@@ -75,7 +72,7 @@ export class SupabaseRepository {
   }
 
   public async fetchHospitalSpecialties(): Promise<HospitalSpecialty[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('hospital_specialties')
       .select('*');
     if (error) throw error;
@@ -83,7 +80,7 @@ export class SupabaseRepository {
   }
 
   public async fetchHospitalServices(): Promise<HospitalService[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('hospital_services')
       .select('*');
     if (error) throw error;
@@ -91,7 +88,7 @@ export class SupabaseRepository {
   }
 
   public async fetchHospitalRooms(): Promise<HospitalRoom[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('hospital_rooms')
       .select('*');
     if (error) throw error;
@@ -99,7 +96,7 @@ export class SupabaseRepository {
   }
 
   public async fetchHospitalNetworks(): Promise<HospitalNetwork[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('hospital_networks')
       .select('*');
     if (error) throw error;
@@ -107,7 +104,7 @@ export class SupabaseRepository {
   }
 
   public async fetchProcedures(): Promise<Procedure[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('procedures')
       .select('*');
     if (error) throw error;
@@ -115,7 +112,7 @@ export class SupabaseRepository {
   }
 
   public async fetchProcedureCosts(): Promise<ProcedureCost[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('procedure_costs')
       .select('*');
     if (error) throw error;
@@ -123,7 +120,7 @@ export class SupabaseRepository {
   }
 
   public async fetchCostComponents(): Promise<CostComponent[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('cost_components')
       .select('*');
     if (error) throw error;

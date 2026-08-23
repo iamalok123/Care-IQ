@@ -36,6 +36,7 @@ export class DbManager {
 
     if (process.env.VERCEL) {
       console.log('⚡ Serverless runtime detected (Vercel). Connecting via Supabase REST client.');
+      await dataRepository.syncFromSupabase().catch(() => {});
       this.isInitialized = true;
       return;
     }

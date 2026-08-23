@@ -1,0 +1,342 @@
+[
+  {
+    "id": "hn-man-star",
+    "hospital_id": "hosp-manipal-old-airport",
+    "insurer_id": "ins-star-health",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-man-hdfc",
+    "hospital_id": "hosp-manipal-old-airport",
+    "insurer_id": "ins-hdfc-ergo",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-man-niva",
+    "hospital_id": "hosp-manipal-old-airport",
+    "insurer_id": "ins-niva-bupa",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-man-care",
+    "hospital_id": "hosp-manipal-old-airport",
+    "insurer_id": "ins-care-health",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-man-icici",
+    "hospital_id": "hosp-manipal-old-airport",
+    "insurer_id": "ins-icici-lombard",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-man-newindia",
+    "hospital_id": "hosp-manipal-old-airport",
+    "insurer_id": "ins-new-india",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-man-pmjay",
+    "hospital_id": "hosp-manipal-old-airport",
+    "insurer_id": "sch-pmjay",
+    "network_status": "OUT_OF_NETWORK",
+    "cashless_status": false,
+    "preauth_required": false,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-man-abark",
+    "hospital_id": "hosp-manipal-old-airport",
+    "insurer_id": "sch-arogya-karnataka",
+    "network_status": "OUT_OF_NETWORK",
+    "cashless_status": false,
+    "preauth_required": false,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-apo-star",
+    "hospital_id": "hosp-apollo-bannerghatta",
+    "insurer_id": "ins-star-health",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-apo-hdfc",
+    "hospital_id": "hosp-apollo-bannerghatta",
+    "insurer_id": "ins-hdfc-ergo",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-apo-niva",
+    "hospital_id": "hosp-apollo-bannerghatta",
+    "insurer_id": "ins-niva-bupa",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-apo-newindia",
+    "hospital_id": "hosp-apollo-bannerghatta",
+    "insurer_id": "ins-new-india",
+    "network_status": "OUT_OF_NETWORK",
+    "cashless_status": false,
+    "preauth_required": false,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-for-star",
+    "hospital_id": "hosp-fortis-cunningham",
+    "insurer_id": "ins-star-health",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-for-hdfc",
+    "hospital_id": "hosp-fortis-cunningham",
+    "insurer_id": "ins-hdfc-ergo",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-for-care",
+    "hospital_id": "hosp-fortis-cunningham",
+    "insurer_id": "ins-care-health",
+    "network_status": "UNKNOWN",
+    "cashless_status": false,
+    "preauth_required": true,
+    "confidence": "LOW",
+    "data_status": "SYNTHETIC"
+  },
+  {
+    "id": "hn-nar-star",
+    "hospital_id": "hosp-narayana-health-city",
+    "insurer_id": "ins-star-health",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-nar-hdfc",
+    "hospital_id": "hosp-narayana-health-city",
+    "insurer_id": "ins-hdfc-ergo",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-nar-pmjay",
+    "hospital_id": "hosp-narayana-health-city",
+    "insurer_id": "sch-pmjay",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-nar-abark",
+    "hospital_id": "hosp-narayana-health-city",
+    "insurer_id": "sch-arogya-karnataka",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-nar-yesh",
+    "hospital_id": "hosp-narayana-health-city",
+    "insurer_id": "sch-yeshasvini",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-vic-pmjay",
+    "hospital_id": "hosp-victoria-government",
+    "insurer_id": "sch-pmjay",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": false,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-vic-abark",
+    "hospital_id": "hosp-victoria-government",
+    "insurer_id": "sch-arogya-karnataka",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": false,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-vic-esi",
+    "hospital_id": "hosp-victoria-government",
+    "insurer_id": "sch-esi",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": false,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-vic-star",
+    "hospital_id": "hosp-victoria-government",
+    "insurer_id": "ins-star-health",
+    "network_status": "OUT_OF_NETWORK",
+    "cashless_status": false,
+    "preauth_required": false,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-ast-star",
+    "hospital_id": "hosp-aster-cmi",
+    "insurer_id": "ins-star-health",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-ast-niva",
+    "hospital_id": "hosp-aster-cmi",
+    "insurer_id": "ins-niva-bupa",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-ast-hdfc",
+    "hospital_id": "hosp-aster-cmi",
+    "insurer_id": "ins-hdfc-ergo",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-sak-star",
+    "hospital_id": "hosp-sakra-world",
+    "insurer_id": "ins-star-health",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-sak-icici",
+    "hospital_id": "hosp-sakra-world",
+    "insurer_id": "ins-icici-lombard",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-stj-star",
+    "hospital_id": "hosp-st-johns",
+    "insurer_id": "ins-star-health",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-stj-pmjay",
+    "hospital_id": "hosp-st-johns",
+    "insurer_id": "sch-pmjay",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-kem-pmjay",
+    "hospital_id": "hosp-kem-mumbai",
+    "insurer_id": "sch-pmjay",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-kem-star",
+    "hospital_id": "hosp-kem-mumbai",
+    "insurer_id": "ins-star-health",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  },
+  {
+    "id": "hn-kem-icici",
+    "hospital_id": "hosp-kem-mumbai",
+    "insurer_id": "ins-icici-lombard",
+    "network_status": "IN_NETWORK",
+    "cashless_status": true,
+    "preauth_required": true,
+    "confidence": "HIGH",
+    "data_status": "PUBLIC_REFERENCE"
+  }
+]

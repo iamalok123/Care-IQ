@@ -30,11 +30,9 @@ app.use(cors({
 app.use(express.json());
 
 // Startup initialization (non-blocking in serverless)
-if (!process.env.VERCEL) {
-  dbManager.initializeOnStartup().catch((err) => {
-    console.warn('Database init notice:', err?.message || err);
-  });
-}
+dbManager.initializeOnStartup().catch((err) => {
+  console.warn('Database init notice:', err?.message || err);
+});
 
 // Request logging middleware
 app.use((req: Request, res: Response, next: NextFunction) => {

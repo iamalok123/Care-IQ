@@ -1,0 +1,102 @@
+[
+  {
+    "id": "ins-star-health",
+    "name": "Star Health and Allied Insurance",
+    "short_name": "Star Health",
+    "insurer_type": "PRIVATE",
+    "website": "https://www.starhealth.in",
+    "data_status": "PUBLIC_REFERENCE",
+    "verification_status": "VERIFIED",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "ins-hdfc-ergo",
+    "name": "HDFC ERGO General Insurance",
+    "short_name": "HDFC ERGO",
+    "insurer_type": "PRIVATE",
+    "website": "https://www.hdfcergo.com",
+    "data_status": "PUBLIC_REFERENCE",
+    "verification_status": "VERIFIED",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "ins-niva-bupa",
+    "name": "Niva Bupa Health Insurance",
+    "short_name": "Niva Bupa",
+    "insurer_type": "PRIVATE",
+    "website": "https://www.nivabupa.com",
+    "data_status": "PUBLIC_REFERENCE",
+    "verification_status": "VERIFIED",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "ins-care-health",
+    "name": "Care Health Insurance",
+    "short_name": "Care Health",
+    "insurer_type": "PRIVATE",
+    "website": "https://www.careinsurance.com",
+    "data_status": "PUBLIC_REFERENCE",
+    "verification_status": "VERIFIED",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "ins-icici-lombard",
+    "name": "ICICI Lombard General Insurance",
+    "short_name": "ICICI Lombard",
+    "insurer_type": "PRIVATE",
+    "website": "https://www.icicilombard.com",
+    "data_status": "PUBLIC_REFERENCE",
+    "verification_status": "VERIFIED",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "ins-new-india",
+    "name": "New India Assurance Co. Ltd.",
+    "short_name": "New India Assurance",
+    "insurer_type": "PUBLIC",
+    "website": "https://www.newindia.co.in",
+    "data_status": "PUBLIC_REFERENCE",
+    "verification_status": "VERIFIED",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "sch-pmjay",
+    "name": "Ayushman Bharat PM-JAY",
+    "short_name": "PM-JAY",
+    "insurer_type": "SCHEME_ADMINISTRATOR",
+    "website": "https://pmjay.gov.in",
+    "data_status": "PUBLIC_REFERENCE",
+    "verification_status": "VERIFIED",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "sch-arogya-karnataka",
+    "name": "Arogya Karnataka / AB-ARK",
+    "short_name": "Arogya Karnataka",
+    "insurer_type": "SCHEME_ADMINISTRATOR",
+    "website": "https://arogya.karnataka.gov.in",
+    "data_status": "PUBLIC_REFERENCE",
+    "verification_status": "VERIFIED",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "sch-esi",
+    "name": "Employees State Insurance Corporation (ESI)",
+    "short_name": "ESI Scheme",
+    "insurer_type": "SCHEME_ADMINISTRATOR",
+    "website": "https://www.esic.gov.in",
+    "data_status": "PUBLIC_REFERENCE",
+    "verification_status": "VERIFIED",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "sch-yeshasvini",
+    "name": "Yeshasvini Co-operative Farmers Healthcare Scheme",
+    "short_name": "Yeshasvini",
+    "insurer_type": "SCHEME_ADMINISTRATOR",
+    "website": "https://sahakara.kar.gov.in",
+    "data_status": "PUBLIC_REFERENCE",
+    "verification_status": "VERIFIED",
+    "confidence": "HIGH"
+  }
+]

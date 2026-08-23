@@ -1,0 +1,134 @@
+[
+  {
+    "id": "pc-manipal-knee",
+    "hospital_id": "hosp-manipal-old-airport",
+    "procedure_id": "proc-knee-replacement",
+    "min_cost": 210000,
+    "max_cost": 280000,
+    "typical_cost": 240000,
+    "currency": "INR",
+    "data_status": "SYNTHETIC",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "pc-apollo-knee",
+    "hospital_id": "hosp-apollo-bannerghatta",
+    "procedure_id": "proc-knee-replacement",
+    "min_cost": 230000,
+    "max_cost": 310000,
+    "typical_cost": 265000,
+    "currency": "INR",
+    "data_status": "SYNTHETIC",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "pc-narayana-knee",
+    "hospital_id": "hosp-narayana-health-city",
+    "procedure_id": "proc-knee-replacement",
+    "min_cost": 150000,
+    "max_cost": 210000,
+    "typical_cost": 180000,
+    "currency": "INR",
+    "data_status": "SYNTHETIC",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "pc-victoria-knee",
+    "hospital_id": "hosp-victoria-government",
+    "procedure_id": "proc-knee-replacement",
+    "min_cost": 40000,
+    "max_cost": 85000,
+    "typical_cost": 60000,
+    "currency": "INR",
+    "data_status": "PUBLIC_REFERENCE",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "pc-manipal-angioplasty",
+    "hospital_id": "hosp-manipal-old-airport",
+    "procedure_id": "proc-angioplasty",
+    "min_cost": 180000,
+    "max_cost": 260000,
+    "typical_cost": 215000,
+    "currency": "INR",
+    "data_status": "SYNTHETIC",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "pc-narayana-angioplasty",
+    "hospital_id": "hosp-narayana-health-city",
+    "procedure_id": "proc-angioplasty",
+    "min_cost": 130000,
+    "max_cost": 190000,
+    "typical_cost": 155000,
+    "currency": "INR",
+    "data_status": "SYNTHETIC",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "pc-manipal-mri",
+    "hospital_id": "hosp-manipal-old-airport",
+    "procedure_id": "proc-mri-brain",
+    "min_cost": 7500,
+    "max_cost": 12000,
+    "typical_cost": 9500,
+    "currency": "INR",
+    "data_status": "SYNTHETIC",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "pc-apollo-mri",
+    "hospital_id": "hosp-apollo-bannerghatta",
+    "procedure_id": "proc-mri-brain",
+    "min_cost": 8000,
+    "max_cost": 13500,
+    "typical_cost": 10500,
+    "currency": "INR",
+    "data_status": "SYNTHETIC",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "pc-manipal-appendectomy",
+    "hospital_id": "hosp-manipal-old-airport",
+    "procedure_id": "proc-appendectomy",
+    "min_cost": 75000,
+    "max_cost": 115000,
+    "typical_cost": 90000,
+    "currency": "INR",
+    "data_status": "SYNTHETIC",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "pc-fortis-appendectomy",
+    "hospital_id": "hosp-fortis-cunningham",
+    "procedure_id": "proc-appendectomy",
+    "min_cost": 80000,
+    "max_cost": 125000,
+    "typical_cost": 98000,
+    "currency": "INR",
+    "data_status": "SYNTHETIC",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "pc-kem-cataract",
+    "hospital_id": "hosp-kem-mumbai",
+    "procedure_id": "proc-cataract-surgery",
+    "min_cost": 0,
+    "max_cost": 15000,
+    "typical_cost": 8500,
+    "currency": "INR",
+    "data_status": "PUBLIC_REFERENCE",
+    "confidence": "HIGH"
+  },
+  {
+    "id": "pc-kem-knee",
+    "hospital_id": "hosp-kem-mumbai",
+    "procedure_id": "proc-knee-replacement",
+    "min_cost": 45000,
+    "max_cost": 90000,
+    "typical_cost": 65000,
+    "currency": "INR",
+    "data_status": "PUBLIC_REFERENCE",
+    "confidence": "HIGH"
+  }
+]
