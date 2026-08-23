@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export class GeminiService {
   private genAI: GoogleGenerativeAI | null = null;
-  private modelName: string = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+  private modelName: string = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
 
   constructor() {
     this.init();
@@ -61,6 +61,55 @@ export class GeminiService {
       };
     } catch (err: any) {
       console.warn('Gemini generateText error, falling back to deterministic template:', err?.message || err);
+      return {
+        text: '',
+        model: 'deterministic-fallback',
+        success: false
+      };
+    }
+  }
+
+  /**
+   * Generates streaming text using Gemini Flash SSE tokens.
+   */
+  public async streamText(
+    prompt: string,
+    systemInstruction?: string,
+    onChunk?: (chunk: string) => void
+  ): Promise<{ text: string; model: string; success: boolean }> {
+    if (!this.genAI) {
+      this.init();
+    }
+
+    if (!this.genAI) {
+      return { text: '', model: 'deterministic-fallback', success: false };
+    }
+
+    try {
+      const model = this.genAI.getGenerativeModel({
+        model: this.modelName,
+        systemInstruction:
+          systemInstruction ||
+          'You are CareIQ, an expert Indian Health Insurance & Clinical Trajectory Decision Support AI.'
+      });
+
+      const responseStream = await model.generateContentStream(prompt);
+      let fullText = '';
+      for await (const chunk of responseStream.stream) {
+        const chunkText = chunk.text();
+        if (chunkText) {
+          fullText += chunkText;
+          onChunk?.(chunkText);
+        }
+      }
+
+      return {
+        text: fullText,
+        model: this.modelName,
+        success: true
+      };
+    } catch (err: any) {
+      console.warn('Gemini streamText error, falling back to deterministic template:', err?.message || err);
       return {
         text: '',
         model: 'deterministic-fallback',

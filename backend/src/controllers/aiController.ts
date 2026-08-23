@@ -36,9 +36,12 @@ export class AiController {
   public generateQuestions(req: Request, res: Response): void {
     const { hospital_name, insurer_name, stage, is_room_exceeded } = req.body;
 
+    // No `|| 'the hospital'`. An unnamed hospital is passed through as unnamed,
+    // and the generator writes questions that do not name one, rather than
+    // producing text that reads as though we know which hospital this is.
     const questions = aiExplanationEngine.generateQuestionsToAsk({
-      hospitalName: hospital_name || 'the hospital',
-      insurerName: insurer_name,
+      hospitalName: typeof hospital_name === 'string' && hospital_name.trim() ? hospital_name.trim() : undefined,
+      insurerName: typeof insurer_name === 'string' && insurer_name.trim() ? insurer_name.trim() : undefined,
       stage: stage,
       isRoomExceeded: is_room_exceeded
     });
@@ -69,19 +72,74 @@ export class AiController {
     });
   }
 
+  // POST /api/ai/rag/query/stream (SSE)
+  public async streamRag(req: Request, res: Response): Promise<void> {
+    const { query, policy_id } = req.body;
+
+    if (!query || typeof query !== 'string') {
+      res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_QUERY', message: 'Please provide a valid question or query string' }
+      });
+      return;
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    try {
+      const ragResponse = await documentRagEngine.queryPolicyRAGStream(query, policy_id, (chunk) => {
+        res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+      });
+
+      res.write(
+        `data: ${JSON.stringify({
+          final: true,
+          answer: ragResponse.answer,
+          citations: ragResponse.citations,
+          confidence: ragResponse.confidence,
+          uncertaintyNotes: ragResponse.uncertaintyNotes,
+          disclaimer: ragResponse.disclaimer
+        })}\n\n`
+      );
+      res.end();
+    } catch (err: any) {
+      res.write(`data: ${JSON.stringify({ error: err?.message || 'Stream error' })}\n\n`);
+      res.end();
+    }
+  }
+
 
   // POST /api/ai/coverage-confidence
   public getCoverageConfidence(req: Request, res: Response): void {
-    const { policy_id, hospital_id, patient_id, is_network_cashless, has_room_mismatch, is_preauth_pending, has_consumables_verified } = req.body;
+    const {
+      policy_id,
+      hospital_id,
+      patient_id,
+      selected_room_category,
+      procedure_id,
+      is_network_cashless,
+      has_room_mismatch,
+      is_preauth_pending,
+      has_consumables_verified
+    } = req.body;
 
+    // Booleans are only forwarded when the caller actually sent one. Omitting
+    // them means "derive from the database"; forwarding undefined would be the
+    // same thing, but forwarding a coerced false would be a silent claim.
     const confidence = aiExplanationEngine.calculateCoverageConfidence({
       policyId: policy_id,
       hospitalId: hospital_id,
       patientId: patient_id,
-      isNetworkCashless: is_network_cashless,
-      hasRoomMismatch: has_room_mismatch,
-      isPreauthPending: is_preauth_pending,
-      hasConsumablesVerified: has_consumables_verified
+      selectedRoomCategory: selected_room_category,
+      procedureId: procedure_id,
+      ...(typeof is_network_cashless === 'boolean' ? { isNetworkCashless: is_network_cashless } : {}),
+      ...(typeof has_room_mismatch === 'boolean' ? { hasRoomMismatch: has_room_mismatch } : {}),
+      ...(typeof is_preauth_pending === 'boolean' ? { isPreauthPending: is_preauth_pending } : {}),
+      ...(typeof has_consumables_verified === 'boolean'
+        ? { hasConsumablesVerified: has_consumables_verified }
+        : {})
     });
 
     res.json({

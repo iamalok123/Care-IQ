@@ -21,9 +21,15 @@ import { api } from '../../services/api';
 import { ExtractionReviewModal } from '../modals/ExtractionReviewModal';
 import { useCareIQ } from '../../context/CareIQContext';
 
+import type {
+  EnrichedInsurancePolicy,
+  Patient,
+  RoomCategoryCode
+} from '../../types/domain';
+
 interface InsuranceViewProps {
-  policies?: any[];
-  activePatient?: any;
+  policies?: EnrichedInsurancePolicy[];
+  activePatient?: Patient | null;
   onPolicyAdded?: () => void;
   onOpenChatbot?: () => void;
 }
@@ -189,7 +195,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
         policy_type: 'INDIVIDUAL',
         sum_insured: Number(sumInsured),
         remaining_sum_insured: Number(sumInsured),
-        room_eligibility: roomEligibility,
+        room_eligibility: (roomEligibility as RoomCategoryCode) || 'PRIVATE_AC',
         copay_percentage: Number(copay),
         deductible_amount: Number(deductible),
         cashless_supported: true,
@@ -204,6 +210,17 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       console.error('Failed to add policy:', err);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeletePolicy = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
+      try {
+        await api.deletePolicy(id);
+        onPolicyAdded();
+      } catch (err) {
+        console.error('Failed to delete policy:', err);
+      }
     }
   };
 
@@ -469,21 +486,25 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
 
                       <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
                         <span className="font-semibold text-slate-700">{insurer.name}</span>
-                        <span>•</span>
-                        <span className="font-mono text-slate-600">
-                          {p.policy_number_masked || 'POL-IND-XXXX-9912'}
-                        </span>
-                        <button
-                          onClick={() => handleCopyPolicyNumber(p.policy_number_masked || 'POL-IND-XXXX-9912', p.id)}
-                          className="text-slate-400 hover:text-slate-700 p-0.5 rounded transition-colors"
-                          title="Copy policy number"
-                        >
-                          {copiedPolicyId === p.id ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5" />
-                          )}
-                        </button>
+                        {p.policy_number_masked && (
+                          <>
+                            <span>•</span>
+                            <span className="font-mono text-slate-600">
+                              {p.policy_number_masked}
+                            </span>
+                            <button
+                              onClick={() => handleCopyPolicyNumber(p.policy_number_masked!, p.id)}
+                              className="text-slate-400 hover:text-slate-700 p-0.5 rounded transition-colors"
+                              title="Copy policy number"
+                            >
+                              {copiedPolicyId === p.id ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -573,13 +594,22 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                     </span>
                   </div>
 
-                  <button
-                    onClick={() => setExpandedPolicyId(isExpanded ? null : p.id)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 transition-colors cursor-pointer"
-                  >
-                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                    {isExpanded ? 'Hide Policy Rules & Exclusions' : 'Inspect Rules, Exclusions & TPA Guidelines'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePolicy(p.id, p.policy_name)}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 hover:text-rose-800 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onClick={() => setExpandedPolicyId(isExpanded ? null : p.id)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 transition-colors cursor-pointer"
+                    >
+                      {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      {isExpanded ? 'Hide Policy Rules & Exclusions' : 'Inspect Rules, Exclusions & TPA Guidelines'}
+                    </button>
+                  </div>
                 </div>
 
                 {/* 📖 Expanded Interactive Policy Drawer */}

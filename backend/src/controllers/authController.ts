@@ -5,6 +5,7 @@ import { supabase, supabaseAdmin, isSupabaseConfigured } from '../config/supabas
 import { dataRepository } from '../services/dataRepository';
 import { supabaseRepository } from '../services/supabaseRepository';
 import { registerSchema, loginSchema, demoLoginSchema } from '../schemas/zodSchemas';
+import { enrichPolicies, enrichPolicy } from '../services/enrichmentService';
 import {
   Patient,
   InsurancePolicy,
@@ -163,9 +164,7 @@ export class AuthController {
       };
 
       if (isSupabaseConfigured) {
-        await supabaseRepository.insertPatient(newPatient).catch((err) => {
-          console.error('Failed to sync patient to Supabase:', err);
-        });
+        await supabaseRepository.insertPatient(newPatient);
       }
       dataRepository.addPatient(newPatient);
 
@@ -179,7 +178,7 @@ export class AuthController {
           insurer_id: policyInput.insurer_id,
           policy_name: policyInput.policy_name,
           policy_type: policyInput.policy_type || PolicyType.INDIVIDUAL,
-          policy_number_masked: policyInput.policy_number_masked || `POL-${Math.floor(1000 + Math.random() * 9000)}-XXXX`,
+          policy_number_masked: policyInput.policy_number_masked || `POL-IND-••••-${Date.now().toString().slice(-4)}`,
           sum_insured: policyInput.sum_insured,
           remaining_sum_insured: policyInput.remaining_sum_insured ?? policyInput.sum_insured,
           room_eligibility: policyInput.room_eligibility || RoomCategoryCode.PRIVATE_AC,
@@ -199,9 +198,7 @@ export class AuthController {
         };
 
         if (isSupabaseConfigured) {
-          await supabaseRepository.insertPolicy(newPolicy).catch((err) => {
-            console.error('Failed to sync policy to Supabase:', err);
-          });
+          await supabaseRepository.insertPolicy(newPolicy);
         }
         dataRepository.addPolicy(newPolicy);
       }
@@ -209,11 +206,14 @@ export class AuthController {
       // 4. Initialize onboarding Journey
       const journeyId = `jrn-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       const now = new Date().toISOString();
-      const defaultHospital = dataRepository.getHospitals()[0];
+      const matchingHospital = dataRepository.getHospitals().find(
+        (h) => h.city.toLowerCase() === newPatient.city.toLowerCase()
+      ) || dataRepository.getHospitals()[0];
+
       const newJourney: CareJourney & { events: JourneyEvent[] } = {
         id: journeyId,
         patient_id: patientId,
-        hospital_id: defaultHospital?.id || 'hosp-manipal-old-airport',
+        hospital_id: matchingHospital?.id || 'hosp-manipal-old-airport',
         policy_id: newPolicy?.id,
         current_stage: JourneyStage.ADMISSION,
         journey_status: JourneyStatus.ACTIVE,
@@ -237,9 +237,7 @@ export class AuthController {
       };
 
       if (isSupabaseConfigured) {
-        await supabaseRepository.insertJourney(newJourney).catch((err) => {
-          console.error('Failed to sync journey to Supabase:', err);
-        });
+        await supabaseRepository.insertJourney(newJourney);
       }
       dataRepository.addJourney(newJourney);
 
@@ -254,7 +252,7 @@ export class AuthController {
           },
           session: authSession,
           patient: newPatient,
-          policy: newPolicy || null,
+          policy: newPolicy ? enrichPolicy(newPolicy) : null,
           journey: newJourney
         }
       });
@@ -301,7 +299,7 @@ export class AuthController {
           return;
         }
 
-        const policies = dataRepository.getPoliciesByPatientId(fallbackPatient.id);
+        const policies = enrichPolicies(dataRepository.getPoliciesByPatientId(fallbackPatient.id));
         const journeys = dataRepository.getJourneysByPatientId(fallbackPatient.id);
 
         res.json({
@@ -356,7 +354,7 @@ export class AuthController {
         }
       }
 
-      const policies = patient ? dataRepository.getPoliciesByPatientId(patient.id) : [];
+      const policies = enrichPolicies(patient ? dataRepository.getPoliciesByPatientId(patient.id) : []);
       const journeys = patient ? dataRepository.getJourneysByPatientId(patient.id) : [];
 
       res.json({
@@ -423,7 +421,7 @@ export class AuthController {
             (req.user.email ? dataRepository.getPatientByEmail(req.user.email) : undefined);
         }
 
-        const policies = patient ? dataRepository.getPoliciesByPatientId(patient.id) : [];
+        const policies = enrichPolicies(patient ? dataRepository.getPoliciesByPatientId(patient.id) : []);
         const journeys = patient ? dataRepository.getJourneysByPatientId(patient.id) : [];
         const verificationItems = patient ? dataRepository.getVerificationItems(patient.id) : [];
 
@@ -489,8 +487,8 @@ export class AuthController {
               account_type: 'DEMO'
             },
             patient: demoProfile.patient,
-            policy: demoProfile.policy,
-            policies: [demoProfile.policy],
+            policy: enrichPolicy(demoProfile.policy),
+            policies: enrichPolicies([demoProfile.policy]),
             journey: demoProfile.journey,
             verification_items: demoProfile.verification_items || [],
             isDemo: true
@@ -527,7 +525,7 @@ export class AuthController {
           }
         }
 
-        const policies = patient ? dataRepository.getPoliciesByPatientId(patient.id) : [];
+        const policies = enrichPolicies(patient ? dataRepository.getPoliciesByPatientId(patient.id) : []);
         const journeys = patient ? dataRepository.getJourneysByPatientId(patient.id) : [];
         const verificationItems = patient ? dataRepository.getVerificationItems(patient.id) : [];
 
@@ -586,10 +584,15 @@ export class AuthController {
             dp.patient.display_name.toLowerCase().includes(cleanQuery)
           );
         });
-      }
 
-      if (!targetProfile) {
-        // Default to first profile (Ananya Sharma)
+        if (!targetProfile) {
+          res.status(404).json({
+            success: false,
+            error: { code: 'DEMO_PROFILE_NOT_FOUND', message: `Demo profile '${queryId}' not found.` }
+          });
+          return;
+        }
+      } else {
         targetProfile = demoProfiles[0];
       }
 
@@ -605,7 +608,7 @@ export class AuthController {
           return;
         }
 
-        const policies = dataRepository.getPoliciesByPatientId(fallbackPatient.id);
+        const policies = enrichPolicies(dataRepository.getPoliciesByPatientId(fallbackPatient.id));
         const journeys = dataRepository.getJourneysByPatientId(fallbackPatient.id);
         const verificationItems = dataRepository.getVerificationItems(fallbackPatient.id);
 
@@ -670,8 +673,8 @@ export class AuthController {
             }
           },
           patient: targetProfile.patient,
-          policy: targetProfile.policy,
-          policies: targetProfile.policy ? [targetProfile.policy] : [],
+          policy: enrichPolicy(targetProfile.policy),
+          policies: targetProfile.policy ? enrichPolicies([targetProfile.policy]) : [],
           journey: targetProfile.journey,
           verification_items: targetProfile.verification_items || [],
           isDemo: true

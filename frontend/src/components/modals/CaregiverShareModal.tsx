@@ -40,16 +40,16 @@ export const CaregiverShareModal: React.FC<CaregiverShareModalProps> = ({
 
   if (!isOpen) return null;
 
-  const patientName = patient?.name || 'Ananya Sharma';
-  const hospitalName = hospital?.name || 'Manipal Hospital, Old Airport Road';
-  const policyName = policy?.policy_name || 'Star Comprehensive Health Insurance';
-  const currentStage = journey?.current_stage || 'PROCEDURE';
+  const patientName = patient?.display_name || 'Active Patient';
+  const hospitalName = hospital?.name || 'Hospital not selected';
+  const policyName = policy?.policy_name || 'Policy not linked';
+  const currentStage = journey?.current_stage || 'ADMISSION';
   const lastUpdated = journey?.updated_at 
     ? new Date(journey.updated_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
     : new Date().toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
 
-  const estimatedOop = costEstimate?.indicativePatientExposure || 14000;
-  const estimatedCovered = costEstimate?.estimatedCoveredAmount || 226000;
+  const estimatedOop = costEstimate?.indicativePatientExposure ?? 0;
+  const estimatedCovered = costEstimate?.estimatedCoveredAmount ?? (policy?.remaining_sum_insured ?? 0);
 
   const unresolvedItems = verificationItems.filter((i) => i.status !== 'RESOLVED');
 

@@ -3,6 +3,8 @@ import { dataRepository } from '../services/dataRepository';
 import { supabaseRepository } from '../services/supabaseRepository';
 import { isSupabaseConfigured } from '../config/supabase';
 import { journeyEngine } from '../services/journeyEngine';
+import { getRoomTariff } from '../services/tariffService';
+import { RoomCategoryCode } from '../types/domain';
 import { journeyEventSchema } from '../schemas/zodSchemas';
 
 export class JourneyController {
@@ -71,7 +73,15 @@ export class JourneyController {
 
   // POST /api/journeys
   public createJourney(req: Request, res: Response): void {
-    const { patient_id, hospital_id, policy_id } = req.body;
+    const {
+      patient_id,
+      hospital_id,
+      policy_id,
+      procedure_id,
+      selected_room_category,
+      admission_date,
+      diagnosis
+    } = req.body;
 
     if (!patient_id || !hospital_id) {
       res.status(400).json({
@@ -81,7 +91,40 @@ export class JourneyController {
       return;
     }
 
-    const journey = journeyEngine.createJourney(patient_id, hospital_id, policy_id);
+    if (!dataRepository.getHospitalById(hospital_id)) {
+      res.status(404).json({
+        success: false,
+        error: { code: 'HOSPITAL_NOT_FOUND', message: `No hospital found with id "${hospital_id}".` }
+      });
+      return;
+    }
+
+    if (procedure_id && !dataRepository.procedures.some((p) => p.id === procedure_id)) {
+      res.status(404).json({
+        success: false,
+        error: { code: 'PROCEDURE_NOT_FOUND', message: `No procedure found with id "${procedure_id}".` }
+      });
+      return;
+    }
+
+    // The room's tariff is read from the hospital's own card, never from the
+    // request. A client that could name its own tariff could name any number,
+    // and the cost engine would then price a room that does not exist.
+    const roomTariff =
+      selected_room_category
+        ? getRoomTariff(hospital_id, selected_room_category as RoomCategoryCode)?.tariff_per_day
+        : undefined;
+
+    const journey = journeyEngine.createJourney({
+      patientId: patient_id,
+      hospitalId: hospital_id,
+      policyId: policy_id,
+      procedureId: procedure_id,
+      selectedRoomCategory: selected_room_category,
+      selectedRoomTariff: roomTariff,
+      admissionDate: admission_date,
+      diagnosis
+    });
 
     res.status(201).json({
       success: true,

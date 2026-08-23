@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { dataRepository } from '../services/dataRepository';
 import { supabaseRepository } from '../services/supabaseRepository';
+import { enrichPolicies } from '../services/enrichmentService';
 import { isSupabaseConfigured } from '../config/supabase';
 import { patientSchema } from '../schemas/zodSchemas';
 
@@ -64,7 +65,7 @@ export class PatientController {
     const policies = dataRepository.getPoliciesByPatientId(req.params.id as string);
     res.json({
       success: true,
-      data: { ...patient, policies }
+      data: { ...patient, policies: enrichPolicies(policies) }
     });
   }
 

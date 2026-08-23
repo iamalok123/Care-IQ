@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase';
+import { supabase, supabaseAdmin } from '../config/supabase';
 import {
   Hospital,
   HospitalRoom,
@@ -174,7 +174,7 @@ export class SupabaseRepository {
   }
 
   public async insertPatient(patient: Patient): Promise<Patient> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('patients')
       .upsert(patient, { onConflict: 'id' })
       .select()
@@ -184,7 +184,7 @@ export class SupabaseRepository {
   }
 
   public async updatePatient(id: string, updateData: Partial<Patient>): Promise<Patient | null> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('patients')
       .update({ ...updateData, updated_at: new Date().toISOString() })
       .eq('id', id)
@@ -195,7 +195,7 @@ export class SupabaseRepository {
   }
 
   public async deletePatient(id: string): Promise<boolean> {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('patients')
       .delete()
       .eq('id', id);
@@ -238,7 +238,7 @@ export class SupabaseRepository {
   }
 
   public async insertPolicy(policy: InsurancePolicy): Promise<InsurancePolicy> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('insurance_policies')
       .upsert(policy, { onConflict: 'id' })
       .select()
@@ -248,7 +248,7 @@ export class SupabaseRepository {
   }
 
   public async updatePolicy(id: string, updateData: Partial<InsurancePolicy>): Promise<InsurancePolicy | null> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('insurance_policies')
       .update({ ...updateData, updated_at: new Date().toISOString() })
       .eq('id', id)
@@ -259,7 +259,7 @@ export class SupabaseRepository {
   }
 
   public async deletePolicy(id: string): Promise<boolean> {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('insurance_policies')
       .delete()
       .eq('id', id);
@@ -279,7 +279,7 @@ export class SupabaseRepository {
 
   public async insertPolicyRules(rules: PolicyRule[]): Promise<PolicyRule[]> {
     if (!rules.length) return [];
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('policy_rules')
       .upsert(rules, { onConflict: 'id' })
       .select();
@@ -299,7 +299,7 @@ export class SupabaseRepository {
 
   public async insertPolicyExclusions(exclusions: PolicyExclusion[]): Promise<PolicyExclusion[]> {
     if (!exclusions.length) return [];
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('policy_exclusions')
       .upsert(exclusions, { onConflict: 'id' })
       .select();
@@ -337,7 +337,7 @@ export class SupabaseRepository {
 
   public async insertJourney(journey: CareJourney & { events?: JourneyEvent[] }): Promise<CareJourney> {
     const { events, ...journeyPayload } = journey;
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('care_journeys')
       .upsert(journeyPayload, { onConflict: 'id' })
       .select()
@@ -345,14 +345,14 @@ export class SupabaseRepository {
     if (error) throw error;
 
     if (events && events.length > 0) {
-      await supabase.from('journey_events').upsert(events, { onConflict: 'id' });
+      await supabaseAdmin.from('journey_events').upsert(events, { onConflict: 'id' });
     }
 
     return data;
   }
 
   public async insertJourneyEvent(journeyId: string, event: JourneyEvent): Promise<JourneyEvent> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('journey_events')
       .upsert({ ...event, journey_id: journeyId }, { onConflict: 'id' })
       .select()
@@ -360,7 +360,7 @@ export class SupabaseRepository {
     if (error) throw error;
 
     // Update journey current_stage
-    await supabase
+    await supabaseAdmin
       .from('care_journeys')
       .update({ current_stage: event.stage, updated_at: new Date().toISOString() })
       .eq('id', journeyId);
@@ -383,7 +383,7 @@ export class SupabaseRepository {
   }
 
   public async insertVerificationItem(item: VerificationItem): Promise<VerificationItem> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('verification_items')
       .upsert(item, { onConflict: 'id' })
       .select()
@@ -393,7 +393,7 @@ export class SupabaseRepository {
   }
 
   public async resolveVerificationItem(id: string): Promise<VerificationItem | null> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('verification_items')
       .update({
         status: 'RESOLVED',
@@ -430,7 +430,7 @@ export class SupabaseRepository {
   }
 
   public async insertDocument(doc: Document): Promise<Document> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('documents')
       .upsert(doc, { onConflict: 'id' })
       .select()
@@ -443,7 +443,7 @@ export class SupabaseRepository {
     id: string,
     status: 'PENDING' | 'EXTRACTED' | 'FAILED' | 'CONFIRMED'
   ): Promise<Document | null> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('documents')
       .update({ extraction_status: status, updated_at: new Date().toISOString() })
       .eq('id', id)
@@ -455,7 +455,7 @@ export class SupabaseRepository {
 
   public async insertExtraction(extraction: DocumentExtraction): Promise<DocumentExtraction> {
     const { evidences, ...extractionPayload } = extraction;
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('document_extractions')
       .upsert(extractionPayload, { onConflict: 'id' })
       .select()
@@ -482,7 +482,7 @@ export class SupabaseRepository {
 
   public async insertExtractionEvidences(evidences: ExtractionEvidence[]): Promise<ExtractionEvidence[]> {
     if (!evidences.length) return [];
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('extraction_evidences')
       .upsert(evidences, { onConflict: 'id' })
       .select();

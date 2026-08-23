@@ -92,7 +92,7 @@ const scenarios: ScenarioCase[] = [
     name: 'Preauthorization Pending Check',
     expectedBehavior: 'Flags preauthorization warning on planned admission',
     run: () => {
-      const journey = journeyEngine.createJourney('pat-ananya', 'hosp-manipal-old-airport', 'pol-syn-ananya');
+      const journey = journeyEngine.createJourney({ patientId: 'pat-ananya', hospitalId: 'hosp-manipal-old-airport', policyId: 'pol-syn-ananya' });
       const items = dataRepository.getVerificationItems('pat-ananya', journey.id);
       return items.some((item) => item.category === 'PREAUTH' && item.priority === 'HIGH');
     }

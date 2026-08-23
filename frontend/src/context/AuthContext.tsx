@@ -1,51 +1,95 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { api } from '../services/api';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { api, ApiError } from '../services/api';
+import type { RegisterPayload } from '../services/api';
+import type {
+  AuthSession,
+  AuthUser,
+  CareJourney,
+  EnrichedInsurancePolicy,
+  Patient
+} from '../types/domain';
 
-export interface AuthUser {
-  id: string;
-  email?: string;
-  role?: string;
-  account_type?: 'DEMO' | 'NEW_USER';
-}
+export type { AuthUser };
 
 export interface AuthContextType {
   user: AuthUser | null;
-  patient: any | null;
-  policy: any | null;
-  journey: any | null;
+  patient: Patient | null;
+  policy: EnrichedInsurancePolicy | null;
+  journey: CareJourney | null;
   token: string | null;
   isAuthenticated: boolean;
   isDemoMode: boolean;
   loading: boolean;
   error: string | null;
-  login: (email: string, password: string) => Promise<any>;
-  register: (payload: any) => Promise<any>;
+  login: (email: string, password: string) => Promise<AuthSession>;
+  register: (payload: RegisterPayload) => Promise<AuthSession>;
   logout: () => Promise<void>;
-  loginAsDemo: (demoId?: string) => Promise<any>;
-  setPatientProfile: (patient: any) => void;
+  loginAsDemo: (demoId: string) => Promise<AuthSession>;
+  setPatientProfile: (patient: Patient) => void;
   clearError: () => void;
   refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const TOKEN_KEY = 'careiq_token';
+const DEMO_KEY = 'careiq_is_demo';
+
+function errorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) return err.message;
+  if (err instanceof Error && err.message) return err.message;
+  return fallback;
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [patient, setPatient] = useState<any | null>(null);
-  const [policy, setPolicy] = useState<any | null>(null);
-  const [journey, setJourney] = useState<any | null>(null);
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('careiq_token'));
-  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => localStorage.getItem('careiq_is_demo') === 'true');
+  const [patient, setPatient] = useState<Patient | null>(null);
+  const [policy, setPolicy] = useState<EnrichedInsurancePolicy | null>(null);
+  const [journey, setJourney] = useState<CareJourney | null>(null);
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(
+    () => localStorage.getItem(DEMO_KEY) === 'true'
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const clearError = () => setError(null);
+  const clearError = useCallback(() => setError(null), []);
 
-  // Verify stored session on initial mount
-  const refreshSession = async () => {
-    const storedToken = localStorage.getItem('careiq_token');
-    const storedIsDemo = localStorage.getItem('careiq_is_demo') === 'true';
+  /** Applies a session payload to state. One path for login, register and demo. */
+  const applySession = useCallback((res: AuthSession, demo: boolean) => {
+    const accessToken = res.session?.access_token;
+    if (accessToken) {
+      localStorage.setItem(TOKEN_KEY, accessToken);
+      setToken(accessToken);
+    }
+    localStorage.setItem(DEMO_KEY, demo ? 'true' : 'false');
+    setIsDemoMode(demo);
+    setUser(res.user ?? null);
+    setPatient(res.patient ?? null);
+    setPolicy(res.policy ?? res.policies?.[0] ?? null);
+    setJourney(res.journey ?? null);
+  }, []);
 
+  const clearSession = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(DEMO_KEY);
+    setToken(null);
+    setUser(null);
+    setPatient(null);
+    setPolicy(null);
+    setJourney(null);
+    setIsDemoMode(false);
+  }, []);
+
+  /**
+   * Verifies a stored token on mount.
+   *
+   * A failed verification ends the session. The previous version fell back to
+   * silently signing the visitor in as a demo persona, so an expired real
+   * account landed on Ananya Sharma's medical record believing it was their own.
+   */
+  const refreshSession = useCallback(async () => {
+    const storedToken = localStorage.getItem(TOKEN_KEY);
     if (!storedToken) {
       setLoading(false);
       return;
@@ -53,145 +97,95 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       const data = await api.getMe();
-      if (data) {
-        setUser(data.user || null);
-        setPatient(data.patient || null);
-        setPolicy(data.policy || (data.policies && data.policies[0]) || null);
-        setJourney(data.journey || null);
-        setIsDemoMode(data.isDemo || storedIsDemo);
-      }
-    } catch (err: any) {
-      console.warn('Session verification notice:', err?.message || err);
-      if (storedIsDemo) {
-        // Recover default demo session
-        try {
-          const demoRes = await api.demoLogin();
-          if (demoRes) {
-            setUser(demoRes.user);
-            setPatient(demoRes.patient);
-            setPolicy(demoRes.policy);
-            setJourney(demoRes.journey);
-            setIsDemoMode(true);
-          }
-        } catch {
-          localStorage.removeItem('careiq_token');
-          localStorage.removeItem('careiq_is_demo');
-          setToken(null);
-          setIsDemoMode(false);
-        }
-      } else {
-        localStorage.removeItem('careiq_token');
-        setToken(null);
-      }
+      setUser(data.user ?? null);
+      setPatient(data.patient ?? null);
+      setPolicy(data.policy ?? data.policies?.[0] ?? null);
+      setJourney(data.journey ?? null);
+      setIsDemoMode(Boolean(data.isDemo));
+      localStorage.setItem(DEMO_KEY, data.isDemo ? 'true' : 'false');
+    } catch (err) {
+      console.warn('Stored session could not be verified:', errorMessage(err, 'unknown error'));
+      clearSession();
     } finally {
       setLoading(false);
     }
-  };
+  }, [clearSession]);
 
   useEffect(() => {
     refreshSession();
-  }, []);
+  }, [refreshSession]);
 
-  const login = async (email: string, password: string) => {
-    setLoading(true);
-    setError(null);
+  const login = useCallback(
+    async (email: string, password: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.login({ email, password });
+        applySession(res, false);
+        return res;
+      } catch (err) {
+        const msg = errorMessage(err, 'Could not sign in. Check your email and password.');
+        setError(msg);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [applySession]
+  );
+
+  const register = useCallback(
+    async (payload: RegisterPayload) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.register(payload);
+        applySession(res, false);
+        return res;
+      } catch (err) {
+        const msg = errorMessage(err, 'Could not create the account.');
+        setError(msg);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [applySession]
+  );
+
+  const loginAsDemo = useCallback(
+    async (demoId: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.demoLogin(demoId);
+        applySession(res, true);
+        return res;
+      } catch (err) {
+        const msg = errorMessage(err, 'Could not load that demo profile.');
+        setError(msg);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [applySession]
+  );
+
+  const logout = useCallback(async () => {
     try {
-      const res = await api.login({ email, password });
-      const accessToken = res.session?.access_token || `session-${res.user?.id || Date.now()}`;
-      
-      localStorage.setItem('careiq_token', accessToken);
-      localStorage.setItem('careiq_is_demo', 'false');
-      
-      setToken(accessToken);
-      setIsDemoMode(false);
-      setUser(res.user);
-      setPatient(res.patient);
-      setPolicy(res.policy);
-      setJourney(res.journey);
-
-      return res;
-    } catch (err: any) {
-      const msg = err.message || 'Invalid email or password. Please try again.';
-      setError(msg);
-      throw new Error(msg);
+      await api.logout().catch(() => {
+        // A failed server-side sign-out must not keep the client signed in.
+      });
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const register = async (payload: any) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await api.register(payload);
-      const accessToken = res.session?.access_token || `session-${res.user?.id || Date.now()}`;
-      
-      localStorage.setItem('careiq_token', accessToken);
-      localStorage.setItem('careiq_is_demo', 'false');
-      
-      setToken(accessToken);
-      setIsDemoMode(false);
-      setUser(res.user);
-      setPatient(res.patient);
-      setPolicy(res.policy);
-      setJourney(res.journey);
-
-      return res;
-    } catch (err: any) {
-      const msg = err.message || 'Registration failed. Please try again.';
-      setError(msg);
-      throw new Error(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loginAsDemo = async (demoId?: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await api.demoLogin(demoId);
-      const accessToken = res.session?.access_token || `demo-token-${res.patient?.id || 'demo'}`;
-      
-      localStorage.setItem('careiq_token', accessToken);
-      localStorage.setItem('careiq_is_demo', 'true');
-      
-      setToken(accessToken);
-      setIsDemoMode(true);
-      setUser(res.user);
-      setPatient(res.patient);
-      setPolicy(res.policy);
-      setJourney(res.journey);
-
-      return res;
-    } catch (err: any) {
-      const msg = err.message || 'Failed to load demo profile.';
-      setError(msg);
-      throw new Error(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await api.logout().catch(() => {});
-    } finally {
-      localStorage.removeItem('careiq_token');
-      localStorage.removeItem('careiq_is_demo');
-      setToken(null);
-      setUser(null);
-      setPatient(null);
-      setPolicy(null);
-      setJourney(null);
-      setIsDemoMode(false);
+      clearSession();
       setError(null);
     }
-  };
+  }, [clearSession]);
 
-  const setPatientProfile = (updatedPatient: any) => {
+  const setPatientProfile = useCallback((updatedPatient: Patient) => {
     setPatient(updatedPatient);
-  };
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -201,7 +195,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         policy,
         journey,
         token,
-        isAuthenticated: Boolean(token || isDemoMode),
+        isAuthenticated: Boolean(token),
         isDemoMode,
         loading,
         error,

@@ -426,6 +426,24 @@ export class DataRepository {
     );
   }
 
+  public getProcedures(): Procedure[] {
+    return this.procedures;
+  }
+
+  public getProcedureById(procedureId: string): Procedure | undefined {
+    return this.procedures.find((p) => p.id === procedureId);
+  }
+
+  /** Procedures this hospital has published a price for, alphabetical. */
+  public getProceduresAtHospital(hospitalId: string): Procedure[] {
+    const priced = new Set(
+      this.procedureCosts.filter((pc) => pc.hospital_id === hospitalId).map((pc) => pc.procedure_id)
+    );
+    return this.procedures
+      .filter((p) => priced.has(p.id))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
   public getCostComponents(procedureCostId: string): CostComponent[] {
     return this.costComponents.filter((cc) => cc.procedure_cost_id === procedureCostId);
   }

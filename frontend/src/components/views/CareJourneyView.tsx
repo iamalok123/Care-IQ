@@ -10,10 +10,18 @@ import { StageGuidanceCard } from '../widgets/StageGuidanceCard';
 
 import { useCareIQ } from '../../context/CareIQContext';
 
+import type {
+  CareJourney,
+  EnrichedInsurancePolicy,
+  Hospital,
+  JourneyStage
+} from '../../types/domain';
+import { JOURNEY_STAGES, resolveJourneyStage } from '../../lib/journey';
+
 interface CareJourneyViewProps {
-  journey?: any;
-  hospital?: any;
-  policy?: any;
+  journey?: CareJourney | null;
+  hospital?: Hospital | null;
+  policy?: EnrichedInsurancePolicy | null;
   onEventAdded?: () => void;
 }
 
@@ -31,16 +39,17 @@ export const CareJourneyView: React.FC<CareJourneyViewProps> = ({
     : context.hospitals.find((h) => h.id === journey?.hospital_id);
   const onEventAdded = propOnEventAdded || (() => context.activePatient && context.loadDataForPatient(context.activePatient));
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
-  const [stage, setStage] = useState<string>('PROCEDURE');
+  const [stage, setStage] = useState<JourneyStage>('PROCEDURE');
   const [eventType, setEventType] = useState<string>('SURGICAL_PROCEDURE');
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
 
-  const stages = ['ADMISSION', 'INVESTIGATION', 'PROCEDURE', 'RECOVERY', 'DISCHARGE'];
-  const currentStage = journey?.current_stage || 'PROCEDURE';
-  const stageIndex = stages.indexOf(currentStage) >= 0 ? stages.indexOf(currentStage) : 2;
-  const [focusedStage, setFocusedStage] = useState<string>(currentStage);
+  const stages: JourneyStage[] = [...JOURNEY_STAGES];
+  const resolved = resolveJourneyStage(journey);
+  const currentStage: JourneyStage = resolved.stage || 'ADMISSION';
+  const stageIndex = resolved.index >= 0 ? resolved.index : 0;
+  const [focusedStage, setFocusedStage] = useState<JourneyStage>(currentStage);
 
   const handleAddEvent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +106,7 @@ export const CareJourneyView: React.FC<CareJourneyViewProps> = ({
               Hospital Care Progress & Real-Time Policy Signals
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Facility: <strong>{hospital?.name || 'Manipal Hospital, Old Airport Road'}</strong> • Policy: <strong>{policy?.policy_name || 'Star Comprehensive'}</strong>
+              Facility: <strong>{hospital?.name || 'No hospital selected'}</strong> • Policy: <strong>{policy?.policy_name || 'No policy linked'}</strong>
             </p>
           </div>
 
@@ -220,8 +229,8 @@ export const CareJourneyView: React.FC<CareJourneyViewProps> = ({
         </h3>
 
         <div className="flex flex-col gap-3.5">
-          {journey?.events?.map((evt: any, idx: number) => {
-            const isLatest = idx === journey.events.length - 1;
+          {(journey?.events ?? []).map((evt: any, idx: number) => {
+            const isLatest = idx === (journey?.events?.length ?? 0) - 1;
 
             return (
               <div
@@ -234,7 +243,7 @@ export const CareJourneyView: React.FC<CareJourneyViewProps> = ({
               >
                 <div className="flex flex-wrap items-start justify-between gap-2 mb-1.5">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">
                       {evt.stage}
                     </span>
                     <h4 className="text-sm md:text-base font-extrabold text-slate-900">
@@ -294,7 +303,7 @@ export const CareJourneyView: React.FC<CareJourneyViewProps> = ({
                 <select
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-hidden focus:border-teal-500 focus:bg-white"
                   value={stage}
-                  onChange={(e) => setStage(e.target.value)}
+                  onChange={(e) => setStage(e.target.value as JourneyStage)}
                 >
                   <option value="ADMISSION">Admission Desk</option>
                   <option value="INVESTIGATION">Diagnostic Investigation / Lab</option>

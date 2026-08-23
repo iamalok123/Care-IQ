@@ -292,6 +292,54 @@ Do not fabricate facts or coverage limits not present in the sources.`;
 
     return baseResponse;
   }
+
+  /**
+   * Streams answers using Gemini SSE tokens from retrieved policy chunks.
+   */
+  public async queryPolicyRAGStream(
+    query: string,
+    policyId: string | undefined,
+    onChunk: (chunk: string) => void
+  ): Promise<RagQueryResponse> {
+    const baseResponse = this.queryPolicyRAG(query, policyId);
+    if (!geminiService.isAvailable() || baseResponse.citations.length === 0) {
+      onChunk(baseResponse.answer);
+      return baseResponse;
+    }
+
+    const contextText = baseResponse.citations
+      .map(
+        (c, idx) =>
+          `[Source ${idx + 1}] Policy: ${c.policyName} | Section: ${c.sectionTitle} | Page: ${c.pageNumber}\nClause Text: "${c.quoteExcerpt}"`
+      )
+      .join('\n\n');
+
+    const prompt = `You are CareIQ, an expert Indian Health Insurance Policy Decision Support AI.
+The user is asking: "${query}"
+
+Here are the retrieved verbatim policy clauses from the patient's insurance document:
+${contextText}
+
+Synthesize a clear, empathetic, and 100% grounded answer for the patient/caregiver.
+Strictly adhere to the facts in the retrieved sources. Explicitly reference the policy name and page citations in your answer.
+Do not fabricate facts or coverage limits not present in the sources.`;
+
+    let accumulatedText = '';
+    const aiRes = await geminiService.streamText(prompt, undefined, (chunk) => {
+      accumulatedText += chunk;
+      onChunk(chunk);
+    });
+
+    if (aiRes.success && accumulatedText.trim().length > 0) {
+      return {
+        ...baseResponse,
+        answer: accumulatedText.trim(),
+        disclaimer: `This response is synthesized by Gemini (${aiRes.model}) from verified policy citations for informational decision support only.`
+      };
+    }
+
+    return baseResponse;
+  }
 }
 
 export const documentRagEngine = new DocumentRagEngine();

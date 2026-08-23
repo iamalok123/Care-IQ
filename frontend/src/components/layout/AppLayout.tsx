@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
+import { MobileTabBar } from './MobileTabBar';
 import { AiQuestionsModal } from '../modals/AiQuestionsModal';
 import { PolicyRagAssistant } from '../widgets/PolicyRagAssistant';
 import { useCareIQ } from '../../context/CareIQContext';
@@ -98,7 +99,7 @@ export const AppLayout: React.FC = () => {
       {/* 🚀 Bottom-Right Floating Action Button (FAB) for Policy Copilot */}
       {showFloatingAssistant && (
         <>
-          <div className="fixed bottom-5 right-5 z-40">
+          <div className="fixed bottom-16 sm:bottom-5 right-4 sm:right-5 z-40">
             <button
               type="button"
               onClick={() => setIsChatbotOpen(!isChatbotOpen)}
@@ -141,6 +142,9 @@ export const AppLayout: React.FC = () => {
           onClose={closeQuestionsModal}
         />
       )}
+
+      {/* Mobile Bottom Tab Bar */}
+      <MobileTabBar />
     </div>
   );
 };

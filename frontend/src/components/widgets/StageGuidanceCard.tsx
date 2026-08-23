@@ -1,59 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Sparkles, 
-  ShieldAlert, 
-  CheckCircle2, 
-  AlertTriangle, 
-  FileText, 
-  HelpCircle, 
-  Clock, 
-  Copy, 
-  Check, 
+/**
+ * Stage-by-stage guidance for the current point in an admission.
+ *
+ * Removed: `patientName = 'Ananya Sharma'` and
+ * `procedureName = 'Total Knee Replacement'` as prop defaults. Every caller
+ * that did not pass them — which was every caller — sent one demo patient's
+ * name and a knee replacement to the guidance engine, so the advice returned
+ * was written about someone else's operation. Both are optional now and the
+ * request simply omits what we do not know.
+ *
+ * Also removed: a hardcoded '✨ Gemini 3.5 Flash' badge shown whenever
+ * isAiGenerated was true, regardless of which model actually answered. The
+ * badge now prints guidance.modelUsed.
+ */
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  AlertTriangle,
+  Check,
+  CheckCircle2,
+  Clock,
+  Copy,
+  FileText,
+  HelpCircle,
+  Info,
   RefreshCw,
-  Info
+  ShieldAlert,
+  Sparkles
 } from 'lucide-react';
-import { api } from '../../services/api';
-
+import { api, ApiError } from '../../services/api';
+import { JOURNEY_STAGES, STAGE_LABELS } from '../../lib/journey';
+import type {
+  EnrichedInsurancePolicy,
+  Hospital,
+  JourneyStage,
+  StageGuidance
+} from '../../types/domain';
 
 interface StageGuidanceCardProps {
-  stage: string;
-  policy?: any;
-  hospital?: any;
+  stage: JourneyStage;
+  policy?: EnrichedInsurancePolicy | null;
+  hospital?: Hospital | null;
+  /** Omit when unknown. Never substitute another patient's name. */
   patientName?: string;
   procedureName?: string;
   isRoomMismatch?: boolean;
-  onSelectStage?: (stage: string) => void;
+  onSelectStage?: (stage: JourneyStage) => void;
 }
-
-const STAGES = [
-  { key: 'ADMISSION', label: '1. Admission Desk' },
-  { key: 'INVESTIGATION', label: '2. Diagnostics' },
-  { key: 'PROCEDURE', label: '3. OT & Surgery' },
-  { key: 'RECOVERY', label: '4. Inpatient Ward' },
-  { key: 'DISCHARGE', label: '5. Final Discharge' }
-];
 
 export const StageGuidanceCard: React.FC<StageGuidanceCardProps> = ({
   stage: initialStage,
   policy,
   hospital,
-  patientName = 'Ananya Sharma',
-  procedureName = 'Total Knee Replacement',
+  patientName,
+  procedureName,
   isRoomMismatch = false,
   onSelectStage
 }) => {
-  const [activeStage, setActiveStage] = useState<string>(initialStage || 'ADMISSION');
-  const [guidance, setGuidance] = useState<any>(null);
+  const [activeStage, setActiveStage] = useState<JourneyStage>(initialStage);
+  const [guidance, setGuidance] = useState<StageGuidance | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [copiedQuestions, setCopiedQuestions] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<boolean>(false);
 
   useEffect(() => {
-    if (initialStage) {
-      setActiveStage(initialStage);
-    }
+    setActiveStage(initialStage);
   }, [initialStage]);
 
-  const fetchGuidance = async () => {
+  const fetchGuidance = useCallback(async () => {
     setLoading(true);
     try {
       const data = await api.getStageGuidance({
@@ -65,206 +77,252 @@ export const StageGuidanceCard: React.FC<StageGuidanceCardProps> = ({
         is_room_mismatch: isRoomMismatch
       });
       setGuidance(data);
+      setError(null);
     } catch (err) {
-      console.error('Failed to fetch stage guidance:', err);
+      setGuidance(null);
+      setError(
+        err instanceof ApiError || err instanceof Error
+          ? err.message
+          : 'Could not load guidance for this stage.'
+      );
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchGuidance();
   }, [activeStage, policy?.id, hospital?.id, patientName, procedureName, isRoomMismatch]);
 
-  const handleCopyQuestions = () => {
-    if (!guidance?.billingDeskQuestions) return;
-    const text = `Questions to ask during ${guidance.stageTitle}:\n\n` + 
-      guidance.billingDeskQuestions.map((q: string, idx: number) => `${idx + 1}. ${q}`).join('\n');
-    navigator.clipboard.writeText(text);
-    setCopiedQuestions(true);
-    setTimeout(() => setCopiedQuestions(false), 2500);
+  useEffect(() => {
+    void fetchGuidance();
+  }, [fetchGuidance]);
+
+  const handleCopyQuestions = async () => {
+    if (!guidance || guidance.billingDeskQuestions.length === 0) return;
+    const text =
+      `Questions to ask during ${guidance.stageTitle}:\n\n` +
+      guidance.billingDeskQuestions.map((q, idx) => `${idx + 1}. ${q}`).join('\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setError('Your browser blocked clipboard access. Select the questions to copy them.');
+    }
   };
 
   return (
-    <div className="bg-white border-2 border-teal-100 rounded-3xl p-5 md:p-7 shadow-sm transition-all">
-      
-      {/* Header & Stage Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-linear-to-br from-teal-600 to-indigo-600 text-white rounded-2xl shadow-xs">
-            <Sparkles size={22} />
+    <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-6 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-5 pb-4 border-b border-slate-100">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="p-2.5 bg-teal-700 text-white rounded-xl shrink-0">
+            <Sparkles size={20} />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-teal-700">
-                Care Journey Intelligence
-              </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 flex items-center gap-1">
-                {guidance?.isAiGenerated ? '✨ Gemini 3.5 Flash' : '⚡ Deterministic Insurance Rules'}
-              </span>
-            </div>
-            <h3 className="text-lg md:text-xl font-black text-slate-900 leading-tight">
-              {guidance?.stageTitle || `${activeStage} Insurance Guidance`}
+          <div className="min-w-0">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
+              {guidance?.stageTitle ?? `${STAGE_LABELS[activeStage] ?? activeStage} guidance`}
             </h3>
+            {guidance && (
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                {guidance.isAiGenerated
+                  ? `Written by ${guidance.modelUsed}`
+                  : 'Written by the deterministic rules engine'}
+              </p>
+            )}
           </div>
         </div>
 
         <button
           type="button"
-          onClick={fetchGuidance}
+          onClick={() => void fetchGuidance()}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer self-start sm:self-center"
-          title="Refresh AI Guidance"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 cursor-pointer self-start shrink-0 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
         >
-          <RefreshCw size={13} className={loading ? 'animate-spin text-teal-600' : ''} />
-          {loading ? 'Analyzing...' : 'Refresh'}
+          <RefreshCw size={13} className={loading ? 'animate-spin text-teal-700' : ''} />
+          {loading ? 'Loading…' : 'Refresh'}
         </button>
       </div>
 
-      {/* Stage Selector Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-6 scrollbar-none">
-        {STAGES.map((s) => {
-          const isSelected = activeStage === s.key;
+      {/* Stage tabs. Labels come from the shared stage vocabulary so the tab
+          text and the journey stepper can never drift apart. */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-5">
+        {JOURNEY_STAGES.map((s, idx) => {
+          const isSelected = activeStage === s;
           return (
             <button
-              key={s.key}
+              key={s}
               type="button"
+              aria-pressed={isSelected}
               onClick={() => {
-                setActiveStage(s.key);
-                if (onSelectStage) onSelectStage(s.key);
+                setActiveStage(s);
+                onSelectStage?.(s);
               }}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
                 isSelected
-                  ? 'bg-teal-600 text-white shadow-xs'
+                  ? 'bg-teal-700 text-white'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              {s.label}
+              {idx + 1}. {STAGE_LABELS[s]}
             </button>
           );
         })}
       </div>
 
-      {/* Guidance Content */}
-      {guidance && (
-        <div className="space-y-5">
-          
-          {/* Key Stage Guidance Banner */}
-          <div className="p-4.5 rounded-2xl bg-linear-to-r from-teal-50 to-indigo-50/60 border border-teal-200/80 text-slate-900">
-            <div className="flex items-start gap-3">
-              <Info size={20} className="text-teal-700 shrink-0 mt-0.5" />
-              <div>
-                <span className="text-xs font-extrabold uppercase text-teal-900 tracking-wider block mb-1">
-                  Stage Objective & Policy Protocol
-                </span>
-                <p className="text-xs md:text-sm font-semibold text-slate-800 leading-relaxed">
-                  {guidance.keyGuidance}
-                </p>
-                
-                <div className="mt-3 pt-2.5 border-t border-teal-200/60 flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600">
-                  <div className="flex items-center gap-1.5 text-teal-800">
-                    <Clock size={14} className="text-teal-600" />
-                    <strong>Timeline:</strong> {guidance.estimatedTimeline}
-                  </div>
-                  <div className="flex items-center gap-1.5 text-indigo-900">
-                    <ShieldAlert size={14} className="text-indigo-600" />
-                    <strong>Rule:</strong> {guidance.insuranceCheck}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      {error && !loading && (
+        <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-xl p-3">
+          {error}
+        </p>
+      )}
 
-          {/* Grid: Proactive Tips & Critical Pitfalls */}
+      {loading && !guidance && (
+        <div className="space-y-3" aria-hidden="true">
+          <div className="h-20 rounded-xl bg-slate-100 animate-pulse" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            {/* Proactive Tips */}
-            <div className="p-4.5 rounded-2xl border border-emerald-200 bg-emerald-50/40">
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5 mb-3">
-                <CheckCircle2 size={16} className="text-emerald-600" />
-                Proactive Action Checklist
-              </h4>
-              <ul className="space-y-2 text-xs text-emerald-950 font-medium">
-                {guidance.proactiveTips?.map((tip: string, idx: number) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0 mt-1.5" />
-                    <span className="leading-relaxed">{tip}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Critical Pitfalls */}
-            <div className="p-4.5 rounded-2xl border border-rose-200 bg-rose-50/40">
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-rose-900 flex items-center gap-1.5 mb-3">
-                <AlertTriangle size={16} className="text-rose-600" />
-                Common Traps & Pitfalls to Avoid
-              </h4>
-              <ul className="space-y-2 text-xs text-rose-950 font-medium">
-                {guidance.criticalPitfalls?.map((pitfall: string, idx: number) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-600 shrink-0 mt-1.5" />
-                    <span className="leading-relaxed">{pitfall}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
+            <div className="h-32 rounded-xl bg-slate-100 animate-pulse" />
+            <div className="h-32 rounded-xl bg-slate-100 animate-pulse" />
           </div>
-
-          {/* Documents & Billing Desk Questions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            {/* Required Documents */}
-            <div className="p-4.5 rounded-2xl border border-slate-200 bg-slate-50/60">
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-1.5 mb-3">
-                <FileText size={16} className="text-teal-600" />
-                Required Documents for this Stage
-              </h4>
-              <div className="space-y-1.5">
-                {guidance.requiredDocuments?.map((doc: string, idx: number) => (
-                  <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/80 text-xs text-slate-700 font-semibold shadow-2xs">
-                    <span className="text-teal-600 font-bold">•</span>
-                    <span>{doc}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Billing / TPA Desk Questions */}
-            <div className="p-4.5 rounded-2xl border border-indigo-200 bg-indigo-50/40 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <h4 className="text-xs font-extrabold uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
-                    <HelpCircle size={16} className="text-indigo-600" />
-                    Questions to Ask Hospital Staff
-                  </h4>
-                  <button
-                    type="button"
-                    onClick={handleCopyQuestions}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 hover:text-indigo-900 bg-white px-2 py-0.5 rounded-lg border border-indigo-200 shadow-2xs transition-colors cursor-pointer"
-                  >
-                    {copiedQuestions ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
-                    {copiedQuestions ? 'Copied!' : 'Copy'}
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  {guidance.billingDeskQuestions?.map((q: string, idx: number) => (
-                    <div key={idx} className="p-2.5 bg-white rounded-xl border border-indigo-100 text-xs text-slate-800 leading-relaxed shadow-2xs">
-                      <strong className="text-indigo-700 mr-1.5">Q{idx + 1}:</strong>
-                      {q}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-          </div>
-
         </div>
       )}
 
+      {guidance && (
+        <div className="flex flex-col gap-4">
+          <div className="p-4 rounded-xl bg-teal-50/60 border border-teal-200/80">
+            <div className="flex items-start gap-3">
+              <Info size={18} className="text-teal-700 shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <p className="text-sm text-slate-800 leading-relaxed">{guidance.keyGuidance}</p>
+                <div className="mt-3 pt-2.5 border-t border-teal-200/60 flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-xs text-slate-700">
+                  <span className="flex items-start gap-1.5">
+                    <Clock size={14} className="text-teal-700 shrink-0 mt-0.5" />
+                    <span>
+                      <strong className="font-semibold">Timeline:</strong>{' '}
+                      {guidance.estimatedTimeline}
+                    </span>
+                  </span>
+                  <span className="flex items-start gap-1.5">
+                    <ShieldAlert size={14} className="text-blue-700 shrink-0 mt-0.5" />
+                    <span>
+                      <strong className="font-semibold">Insurance:</strong>{' '}
+                      {guidance.insuranceCheck}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <GuidanceList
+              title="Do this now"
+              icon={<CheckCircle2 size={15} className="text-emerald-700" />}
+              items={guidance.proactiveTips}
+              wrapper="border-emerald-200 bg-emerald-50/40"
+              heading="text-emerald-900"
+              dot="bg-emerald-600"
+              body="text-emerald-950"
+            />
+            <GuidanceList
+              title="Common traps"
+              icon={<AlertTriangle size={15} className="text-rose-700" />}
+              items={guidance.criticalPitfalls}
+              wrapper="border-rose-200 bg-rose-50/40"
+              heading="text-rose-900"
+              dot="bg-rose-600"
+              body="text-rose-950"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {guidance.requiredDocuments.length > 0 && (
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60">
+                <h4 className="text-xs font-bold uppercase tracking-wide text-slate-700 flex items-center gap-1.5 mb-3">
+                  <FileText size={15} className="text-teal-700" />
+                  Documents to have ready
+                </h4>
+                <ul className="space-y-1.5">
+                  {guidance.requiredDocuments.map((doc) => (
+                    <li
+                      key={doc}
+                      className="flex items-start gap-2 p-2 bg-white rounded-lg border border-slate-200/80 text-xs text-slate-700"
+                    >
+                      <span className="text-teal-700 font-bold leading-none mt-0.5">•</span>
+                      <span className="leading-relaxed">{doc}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {guidance.billingDeskQuestions.length > 0 && (
+              <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/40">
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wide text-blue-900 flex items-center gap-1.5">
+                    <HelpCircle size={15} className="text-blue-700" />
+                    Ask the billing desk
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => void handleCopyQuestions()}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-800 hover:text-blue-950 bg-white px-2 py-0.5 rounded-lg border border-blue-200 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                  >
+                    {copied ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                    {copied ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+                <ul className="space-y-2">
+                  {guidance.billingDeskQuestions.map((q, idx) => (
+                    <li
+                      key={q}
+                      className="p-2.5 bg-white rounded-lg border border-blue-100 text-xs text-slate-800 leading-relaxed"
+                    >
+                      <strong className="text-blue-800 mr-1.5">Q{idx + 1}:</strong>
+                      {q}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface GuidanceListProps {
+  title: string;
+  icon: React.ReactNode;
+  items: string[];
+  wrapper: string;
+  heading: string;
+  dot: string;
+  body: string;
+}
+
+const GuidanceList: React.FC<GuidanceListProps> = ({
+  title,
+  icon,
+  items,
+  wrapper,
+  heading,
+  dot,
+  body
+}) => {
+  if (items.length === 0) return null;
+  return (
+    <div className={`p-4 rounded-xl border ${wrapper}`}>
+      <h4
+        className={`text-xs font-bold uppercase tracking-wide flex items-center gap-1.5 mb-3 ${heading}`}
+      >
+        {icon}
+        {title}
+      </h4>
+      <ul className={`space-y-2 text-xs ${body}`}>
+        {items.map((item) => (
+          <li key={item} className="flex items-start gap-2">
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${dot}`} />
+            <span className="leading-relaxed">{item}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

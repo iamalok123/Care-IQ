@@ -104,7 +104,7 @@ results.push({
 });
 
 // 10. Start / view a care journey
-const journey = journeyEngine.createJourney('pat-ananya', 'hosp-manipal-old-airport', 'pol-syn-ananya');
+const journey = journeyEngine.createJourney({ patientId: 'pat-ananya', hospitalId: 'hosp-manipal-old-airport', policyId: 'pol-syn-ananya' });
 results.push({
   step: 10,
   criterion: 'Start / view a care journey',

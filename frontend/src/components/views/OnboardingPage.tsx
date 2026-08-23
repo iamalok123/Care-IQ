@@ -15,6 +15,14 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 
+import type {
+  AccountType,
+  PolicyType,
+  RoomCategoryCode,
+  Patient,
+  EnrichedInsurancePolicy
+} from '../../types/domain';
+
 const COMMON_CONDITIONS = [
   'Hypertension',
   'Type 2 Diabetes',
@@ -39,8 +47,8 @@ export const OnboardingPage: React.FC = () => {
 
   // Form State: Step 1 (Personal Details)
   const [displayName, setDisplayName] = useState<string>(patient?.display_name || user?.email?.split('@')[0] || '');
-  const [age, setAge] = useState<number | ''>(patient?.age || 35);
-  const [gender, setGender] = useState<string>(patient?.gender || 'Female');
+  const [age, setAge] = useState<number | ''>(patient?.age ?? '');
+  const [gender, setGender] = useState<string>(patient?.gender || 'Male');
   const [city, setCity] = useState<string>(patient?.city || 'Bengaluru');
   const [state, setState] = useState<string>(patient?.state || 'Karnataka');
   const [pincode, setPincode] = useState<string>(patient?.pincode || '');
@@ -49,13 +57,13 @@ export const OnboardingPage: React.FC = () => {
 
   // Form State: Step 2 (Medical History)
   const [selectedConditions, setSelectedConditions] = useState<string[]>(
-    patient?.medical_conditions || ['None / Healthy']
+    patient?.medical_conditions || []
   );
   const [medications, setMedications] = useState<string>(
     patient?.current_medications?.join(', ') || ''
   );
   const [allergies, setAllergies] = useState<string>(
-    patient?.allergies?.join(', ') || 'None known'
+    patient?.allergies?.join(', ') || ''
   );
   const [emergencyName, setEmergencyName] = useState<string>(
     patient?.emergency_contact_name || ''
@@ -67,7 +75,7 @@ export const OnboardingPage: React.FC = () => {
   // Form State: Step 3 (Insurance Details)
   const [insuranceType, setInsuranceType] = useState<'PRIVATE' | 'GOVERNMENT' | 'EMPLOYER'>('PRIVATE');
   const [selectedInsurerId, setSelectedInsurerId] = useState<string>('ins-star-health');
-  const [policyName, setPolicyName] = useState<string>('Star Health Comprehensive ₹5L');
+  const [policyName, setPolicyName] = useState<string>('');
   const [sumInsured, setSumInsured] = useState<number>(500000);
   const [roomEligibility, setRoomEligibility] = useState<string>('PRIVATE_AC');
   const [copayPercentage, setCopayPercentage] = useState<number>(0);
@@ -166,7 +174,7 @@ export const OnboardingPage: React.FC = () => {
         !patient.id.startsWith('pat-demo-') &&
         patient.account_type === 'NEW_USER'
       );
-      const patientId = isExistingUserPatient ? patient.id : `pat-${Date.now()}`;
+      const patientId = isExistingUserPatient && patient?.id ? patient.id : `pat-${Date.now()}`;
 
       // 1. Update/Create Patient Profile
       const parsedMedications = medications
@@ -178,10 +186,10 @@ export const OnboardingPage: React.FC = () => {
         .map((a) => a.trim())
         .filter(Boolean);
 
-      const patientPayload = {
+      const patientPayload: Partial<Patient> = {
         id: patientId,
         display_name: displayName.trim(),
-        age: Number(age),
+        age: Number(age) || 30,
         gender,
         city,
         state,
@@ -193,40 +201,38 @@ export const OnboardingPage: React.FC = () => {
         allergies: parsedAllergies,
         emergency_contact_name: emergencyName.trim() || undefined,
         emergency_contact_phone: emergencyPhone.trim() || undefined,
-        account_type: 'NEW_USER'
+        account_type: 'NEW_USER' as AccountType
       };
 
-      let updatedPatient;
+      let updatedPatient: Patient;
       if (isExistingUserPatient) {
         try {
-          const res = await api.updatePatient(patientId, patientPayload);
-          updatedPatient = res.data || res;
+          updatedPatient = await api.updatePatient(patientId, patientPayload);
         } catch {
-          const res = await api.createPatient(patientPayload);
-          updatedPatient = res.data || res;
+          updatedPatient = await api.createPatient(patientPayload);
         }
       } else {
-        const res = await api.createPatient(patientPayload);
-        updatedPatient = res.data || res;
+        updatedPatient = await api.createPatient(patientPayload);
       }
 
       setPatientProfile(updatedPatient);
 
       // 2. Create Insurance Policy
-      const policyPayload = {
+      const policyPayload: Partial<EnrichedInsurancePolicy> = {
         id: `pol-${Date.now()}`,
         patient_id: patientId,
         insurer_id: selectedInsurerId,
         policy_name: policyName.trim() || 'Health Insurance Plan',
-        policy_type:
+        policy_type: (
           insuranceType === 'GOVERNMENT'
             ? 'GOVERNMENT_SCHEME'
             : insuranceType === 'EMPLOYER'
             ? 'GROUP'
-            : 'INDIVIDUAL',
+            : 'INDIVIDUAL'
+        ) as PolicyType,
         sum_insured: Number(sumInsured) || 500000,
         remaining_sum_insured: Number(sumInsured) || 500000,
-        room_eligibility: roomEligibility,
+        room_eligibility: (roomEligibility as RoomCategoryCode) || 'PRIVATE_AC',
         copay_percentage: Number(copayPercentage) || 0,
         deductible_amount: Number(deductibleAmount) || 0,
         cashless_supported: cashlessSupported,

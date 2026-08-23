@@ -18,8 +18,10 @@ import {
   ChevronUp,
   X
 } from 'lucide-react';
-import { api } from '../../services/api';
+import { api, ApiError } from '../../services/api';
+import type { RagCitation } from '../../types/domain';
 import { InfoPopover } from '../common/InfoPopover';
+import { AiMarkdown } from '../common/AiMarkdown';
 
 export interface PolicyRagAssistantProps {
   selectedPolicyId?: string;
@@ -34,13 +36,7 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
-  citations?: {
-    pageNumber: number;
-    sectionTitle: string;
-    quoteExcerpt: string;
-    policyName: string;
-    relevanceScore: number;
-  }[];
+  citations?: RagCitation[];
   confidence?: 'HIGH' | 'MEDIUM' | 'LOW';
   uncertaintyNotes?: string[];
   disclaimer?: string;
@@ -122,33 +118,54 @@ export const PolicyRagAssistant: React.FC<PolicyRagAssistantProps> = ({
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const assistantMsgId = `ai-${Date.now()}`;
+    const initialAssistantMsg: ChatMessage = {
+      id: assistantMsgId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      citations: [],
+      confidence: 'MEDIUM'
+    };
+
+    setMessages((prev) => [...prev, userMsg, initialAssistantMsg]);
     setInputQuery('');
     setLoading(true);
     setError(null);
 
     try {
-      const data = await api.queryPolicyRag(trimmed, selectedPolicyId);
+      let accumulated = '';
+      const data = await api.streamPolicyRag(trimmed, selectedPolicyId, (chunk) => {
+        accumulated += chunk;
+        setMessages((prev) =>
+          prev.map((msg) => (msg.id === assistantMsgId ? { ...msg, content: accumulated } : msg))
+        );
+      });
 
-      const assistantMsgId = `ai-${Date.now()}`;
-      const assistantMsg: ChatMessage = {
-        id: assistantMsgId,
-        role: 'assistant',
-        content: data.answer || 'No direct clause match found for this query in the policy schedule.',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        citations: data.citations || [],
-        confidence: data.confidence || 'HIGH',
-        uncertaintyNotes: data.uncertaintyNotes || [],
-        disclaimer: data.disclaimer || 'Non-clinical decision support. Citations are verified against policy terms.'
-      };
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMsgId
+            ? {
+                ...msg,
+                content: data.answer || accumulated || 'No direct clause match found for this query in the policy schedule.',
+                citations: data.citations ?? [],
+                confidence: data.confidence,
+                uncertaintyNotes: data.uncertaintyNotes ?? [],
+                disclaimer: data.disclaimer
+              }
+            : msg
+        )
+      );
 
-      setMessages((prev) => [...prev, assistantMsg]);
-      // Default to showing citations if present
       if (data.citations && data.citations.length > 0) {
         setExpandedCitations((prev) => ({ ...prev, [assistantMsgId]: true }));
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to retrieve grounded answer from policy RAG.');
+    } catch (err) {
+      setError(
+        err instanceof ApiError || err instanceof Error
+          ? err.message
+          : 'Could not reach the policy copilot. Try again in a moment.'
+      );
     } finally {
       setLoading(false);
     }
@@ -184,7 +201,7 @@ export const PolicyRagAssistant: React.FC<PolicyRagAssistantProps> = ({
   }
 
   const containerClasses = isFloating
-    ? 'fixed bottom-20 sm:bottom-24 right-3 sm:right-6 z-50 w-[94vw] sm:w-[480px] md:w-[520px] max-h-[82vh] h-[640px] bg-white rounded-3xl border border-slate-300/80 shadow-2xl overflow-hidden flex flex-col animate-fade-in'
+    ? 'fixed inset-x-2 bottom-16 top-16 sm:top-auto sm:inset-x-auto sm:bottom-20 sm:right-6 z-50 sm:w-[480px] md:w-[520px] sm:max-h-[82vh] sm:h-[640px] bg-white rounded-2xl sm:rounded-3xl border border-slate-300/80 shadow-2xl overflow-hidden flex flex-col animate-fade-in'
     : 'bg-white rounded-3xl border border-slate-200/90 shadow-md overflow-hidden flex flex-col transition-all duration-300';
 
   return (
@@ -202,18 +219,18 @@ export const PolicyRagAssistant: React.FC<PolicyRagAssistantProps> = ({
                 CareIQ Policy Copilot
               </h3>
               <span className="hidden sm:inline-flex items-center gap-1 text-[9px] bg-teal-500/20 text-teal-300 px-1.5 py-0.2 rounded-full font-mono font-semibold border border-teal-400/30">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                Grounded PDF
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                Clause-cited
               </span>
               <InfoPopover
-                title="Policy Copilot Grounding Architecture"
+                title="How the copilot answers"
                 size="xs"
                 variant="indigo"
-                content="CareIQ Policy Copilot indexes the uploaded policy document clauses into semantic vector embeddings. Every AI response retrieves exact verbatim quotes, clause numbers, and page references."
+                content="Your question is matched by keyword against the policy clauses we hold on record. The matching clauses are quoted verbatim with their page numbers, and Gemini rewrites them into plain language. It cannot answer from anything outside those clauses."
                 details={[
-                  { label: 'Grounding', value: '100% Page & Clause Citations' },
-                  { label: 'Hallucination Rate', value: '0.0% Verified by Benchmark' },
-                  { label: 'Safety Bound', value: 'Non-clinical insurance guidance' }
+                  { label: 'Grounding', value: 'Quoted clauses with page numbers' },
+                  { label: 'Retrieval', value: 'Keyword match, not semantic embeddings' },
+                  { label: 'Scope', value: 'Non-clinical insurance guidance only' }
                 ]}
               />
             </div>
@@ -337,10 +354,18 @@ export const PolicyRagAssistant: React.FC<PolicyRagAssistantProps> = ({
                           className={`inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${
                             msg.confidence === 'HIGH'
                               ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-amber-50 text-amber-700 border-amber-200'
+                              : msg.confidence === 'MEDIUM'
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-slate-100 text-slate-600 border-slate-200'
                           }`}
                         >
-                          {msg.confidence === 'HIGH' ? 'Verified' : 'Review'}
+                          {/* How well the question matched a clause — not a
+                              claim that the answer was checked by anyone. */}
+                          {msg.confidence === 'HIGH'
+                            ? 'Strong clause match'
+                            : msg.confidence === 'MEDIUM'
+                              ? 'Partial match'
+                              : 'No clause matched'}
                         </span>
                       )}
                     </div>
@@ -374,10 +399,8 @@ export const PolicyRagAssistant: React.FC<PolicyRagAssistantProps> = ({
                   </div>
 
                   {/* Main Answer Content */}
-                  <div className="text-slate-800 leading-relaxed space-y-1.5">
-                    {msg.content.split('\n\n').map((para, pIdx) => (
-                      <p key={pIdx}>{para}</p>
-                    ))}
+                  <div className="text-slate-800 leading-relaxed">
+                    <AiMarkdown content={msg.content} />
                   </div>
 
                   {/* Uncertainty notes if any */}

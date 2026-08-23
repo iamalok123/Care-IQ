@@ -1,5 +1,17 @@
-import { HospitalMatchResult, CostEstimateResult, CareJourney } from '../types/domain';
+import {
+  HospitalMatchResult,
+  CostEstimateResult,
+  CareJourney,
+  NetworkStatus,
+  RoomCategoryCode,
+  VerificationCategory,
+  VerificationItemStatus
+} from '../types/domain';
 import { geminiService } from './geminiService';
+import { dataRepository } from './dataRepository';
+import { rulesEngine } from './rulesEngine';
+import { getHospitalCoverage } from './enrichmentService';
+import { getEligibleRoomTariff, getRoomTariff } from './tariffService';
 
 export interface ExplanationResponse {
   summary: string;
@@ -96,15 +108,28 @@ Respond ONLY with valid JSON conforming to this schema:
   /**
    * Generates actionable questions for caregiver to ask hospital staff.
    */
+  /**
+   * The checklist a caregiver takes to each desk.
+   *
+   * `hospitalName` and `stage` used to be accepted and then ignored — every
+   * caller got the same nine questions regardless of which hospital or which
+   * point in the admission, while the controller substituted 'the hospital' for
+   * a missing name. Both are now optional and both actually change the output:
+   * an unnamed hospital produces questions that do not name one, and the stage
+   * decides which questions are worth asking today.
+   */
   public generateQuestionsToAsk(context: {
-    hospitalName: string;
+    hospitalName?: string;
     insurerName?: string;
     stage?: string;
     isRoomExceeded?: boolean;
   }): QuestionsToAskResponse {
+    const insurer = context.insurerName || 'my insurance policy';
+    const at = context.hospitalName ? ` at ${context.hospitalName}` : '';
+
     const billingDeskQuestions = [
-      `Is cashless processing actively supported for ${context.insurerName || 'my insurance policy'} today?`,
-      'Can I get an advance estimate of non-payable consumables and administrative charges?',
+      `Is cashless processing actively supported for ${insurer} today?`,
+      `Can I get an advance estimate of non-payable consumables and administrative charges${at}?`,
       'What is the daily billing cutoff time for inpatient room rent calculation?'
     ];
 
@@ -118,6 +143,44 @@ Respond ONLY with valid JSON conforming to this schema:
       'What room category is recorded in the patient admission file?',
       'Are routine disposables (gloves, sanitizers, thermometer) billed per item or bundled in room nursing?'
     ];
+
+    // Stage-specific additions. What matters at admission is not what matters
+    // on discharge day, and asking the discharge questions on day one is how a
+    // checklist gets ignored.
+    switch (context.stage) {
+      case 'INVESTIGATION':
+        billingDeskQuestions.push(
+          'Are in-house diagnostic tests billed inside the pre-auth package, or claimed separately?'
+        );
+        break;
+      case 'PROCEDURE':
+        billingDeskQuestions.push(
+          'Are surgeon and anaesthetist fees within the pre-authorised package limit?'
+        );
+        nursingAdminQuestions.push(
+          'Will I be given the implant invoice with the barcode or serial stickers?'
+        );
+        break;
+      case 'RECOVERY':
+        insuranceCoordinatorQuestions.push(
+          'Has an enhancement request gone to the TPA if the running bill now exceeds the sanctioned amount?'
+        );
+        nursingAdminQuestions.push(
+          'Can I see an interim billing summary of consumables charged so far?'
+        );
+        break;
+      case 'DISCHARGE':
+      case 'CLAIM_SUPPORT':
+        billingDeskQuestions.push(
+          'What is the final approved cashless amount, and what balance do I settle myself?'
+        );
+        insuranceCoordinatorQuestions.push(
+          'Have the final bill and discharge summary been uploaded to the TPA portal?'
+        );
+        break;
+      default:
+        break;
+    }
 
     if (context.isRoomExceeded) {
       billingDeskQuestions.unshift(
@@ -133,49 +196,224 @@ Respond ONLY with valid JSON conforming to this schema:
   }
 
   /**
-   * Calculates deterministic coverage confidence score (0-100) and factors breakdown.
+   * Coverage confidence = how much of this patient's coverage picture is
+   * actually on record, scored 0-100.
+   *
+   * The previous version defaulted every unknown to the favourable answer
+   * (`isNetworkCashless ?? true`, `hasConsumablesVerified ?? true`), so an
+   * empty request — which is what the dashboard sent — scored 100/100 "High
+   * Information Certainty" while knowing nothing at all. Unknown now scores
+   * zero for its factor and says UNKNOWN, because "we have not checked" is
+   * the opposite of "confirmed".
+   *
+   * Callers may still pass explicit booleans to override a factor (for
+   * what-if simulation); passing nothing means "derive it from the database".
    */
   public calculateCoverageConfidence(params: {
     policyId?: string;
     hospitalId?: string;
     patientId?: string;
+    selectedRoomCategory?: RoomCategoryCode;
+    procedureId?: string;
     isNetworkCashless?: boolean;
     hasRoomMismatch?: boolean;
     isPreauthPending?: boolean;
     hasConsumablesVerified?: boolean;
   }) {
-    const isNetworkCashless = params.isNetworkCashless ?? true;
-    const hasRoomMismatch = params.hasRoomMismatch ?? false;
-    const isPreauthPending = params.isPreauthPending ?? false;
-    const hasConsumablesVerified = params.hasConsumablesVerified ?? true;
-    const hasPolicy = !!params.policyId;
+    const policy = params.policyId ? dataRepository.getPolicyById(params.policyId) : undefined;
+    const hospital = params.hospitalId ? dataRepository.getHospitalById(params.hospitalId) : undefined;
 
-    const networkScore = isNetworkCashless ? 30 : 15;
-    const roomScore = !hasRoomMismatch ? 25 : 10;
-    const procedureScore = !isPreauthPending ? 20 : 12;
-    const policyScore = hasPolicy ? 15 : 5;
-    const costScore = hasConsumablesVerified ? 10 : 6;
+    // ---- Network (max 30) ----
+    const coverage =
+      hospital && policy ? getHospitalCoverage(hospital.id, policy.insurer_id) : undefined;
+    let networkScore: number;
+    let networkStatus: string;
+    let networkLabel: string;
 
-    const totalScore = Math.min(100, Math.max(0, networkScore + roomScore + procedureScore + policyScore + costScore));
+    if (params.isNetworkCashless !== undefined) {
+      networkScore = params.isNetworkCashless ? 30 : 12;
+      networkStatus = params.isNetworkCashless ? 'CONFIRMED' : 'UNCONFIRMED';
+      networkLabel = params.isNetworkCashless ? 'In-network cashless' : 'Reimbursement route';
+    } else if (!coverage || coverage.network_data_missing) {
+      networkScore = 0;
+      networkStatus = 'UNKNOWN';
+      networkLabel = !policy
+        ? 'No policy selected'
+        : !hospital
+          ? 'No hospital selected'
+          : 'Empanelment not on record';
+    } else if (coverage.cashless_available) {
+      networkScore = 30;
+      networkStatus = 'CONFIRMED';
+      networkLabel = 'In-network cashless';
+    } else if (coverage.network_status === NetworkStatus.IN_NETWORK) {
+      networkScore = 18;
+      networkStatus = 'PARTIAL';
+      networkLabel = 'In-network, cashless not confirmed';
+    } else {
+      networkScore = 8;
+      networkStatus = 'UNCONFIRMED';
+      networkLabel = 'Out of network — reimbursement only';
+    }
 
-    let ratingLabel = 'High Information Certainty';
-    if (totalScore < 70) {
-      ratingLabel = 'Action Required';
+    // ---- Room entitlement (max 25) ----
+    const journey = params.patientId
+      ? dataRepository.getJourneyByPatientId(params.patientId)
+      : undefined;
+    const selectedRoom =
+      params.selectedRoomCategory ||
+      (journey?.selected_room_category as RoomCategoryCode | undefined);
+
+    let roomScore: number;
+    let roomStatus: string;
+    let roomLabel: string;
+
+    if (params.hasRoomMismatch !== undefined) {
+      roomScore = params.hasRoomMismatch ? 10 : 25;
+      roomStatus = params.hasRoomMismatch ? 'MISMATCH' : 'ALIGNED';
+      roomLabel = params.hasRoomMismatch ? 'Exceeds policy cap' : 'Within policy cap';
+    } else if (!policy || !hospital || !selectedRoom) {
+      roomScore = 0;
+      roomStatus = 'NOT_SELECTED';
+      roomLabel = 'No room category chosen yet';
+    } else {
+      const eligible = getEligibleRoomTariff(hospital.id, policy.room_eligibility);
+      const selected = getRoomTariff(hospital.id, selectedRoom);
+      if (!eligible || !selected) {
+        roomScore = 0;
+        roomStatus = 'UNKNOWN';
+        roomLabel = 'Room tariff not published by hospital';
+      } else {
+        const evaluation = rulesEngine.evaluateRoomCategory(
+          policy,
+          selectedRoom,
+          eligible.tariff_per_day,
+          selected.tariff_per_day
+        );
+        roomScore = evaluation.isCompatible ? 25 : 10;
+        roomStatus = evaluation.isCompatible ? 'ALIGNED' : 'MISMATCH';
+        roomLabel = evaluation.isCompatible
+          ? `Within policy cap (₹${eligible.tariff_per_day.toLocaleString('en-IN')}/day)`
+          : `Exceeds cap by ₹${(selected.tariff_per_day - eligible.tariff_per_day).toLocaleString('en-IN')}/day`;
+      }
+    }
+
+    // ---- Pre-authorisation (max 20) ----
+    const verificationItems = params.patientId
+      ? dataRepository.getVerificationItems(params.patientId)
+      : [];
+    const preauthItems = verificationItems.filter(
+      (v) => v.category === VerificationCategory.PREAUTH
+    );
+
+    let procedureScore: number;
+    let procedureStatus: string;
+    let procedureLabel: string;
+
+    const isSettled = (v: { status: VerificationItemStatus }) =>
+      v.status === VerificationItemStatus.RESOLVED || v.status === VerificationItemStatus.DISMISSED;
+
+    if (params.isPreauthPending !== undefined) {
+      procedureScore = params.isPreauthPending ? 10 : 20;
+      procedureStatus = params.isPreauthPending ? 'PENDING' : 'APPROVED';
+      procedureLabel = params.isPreauthPending ? 'Pre-auth in review' : 'Pre-auth approved';
+    } else if (coverage && !coverage.network_data_missing && !coverage.preauth_required) {
+      procedureScore = 20;
+      procedureStatus = 'NOT_REQUIRED';
+      procedureLabel = 'Pre-auth not required here';
+    } else if (preauthItems.length === 0) {
+      procedureScore = 0;
+      procedureStatus = 'NOT_STARTED';
+      procedureLabel = 'Pre-auth not raised yet';
+    } else if (preauthItems.every(isSettled)) {
+      procedureScore = 20;
+      procedureStatus = 'APPROVED';
+      procedureLabel = 'Pre-auth approved';
+    } else {
+      const open = preauthItems.filter((v) => !isSettled(v)).length;
+      procedureScore = 10;
+      procedureStatus = 'PENDING';
+      procedureLabel = `Pre-auth in review (${open} open ${open === 1 ? 'item' : 'items'})`;
+    }
+
+    // ---- Policy completeness (max 15) ----
+    let policyScore: number;
+    let policyStatus: string;
+    let policyLabel: string;
+
+    if (!policy) {
+      policyScore = 0;
+      policyStatus = 'MISSING';
+      policyLabel = 'No policy on record';
+    } else {
+      const hasDates = !!policy.policy_start_date && !!policy.policy_end_date;
+      const hasCover = Number(policy.sum_insured) > 0;
+      if (hasDates && hasCover) {
+        policyScore = 15;
+        policyStatus = 'VALIDATED';
+        policyLabel = 'Terms and validity on record';
+      } else {
+        policyScore = 7;
+        policyStatus = 'INCOMPLETE';
+        policyLabel = hasDates ? 'Sum insured not recorded' : 'Policy validity dates missing';
+      }
+    }
+
+    // ---- Cost detail (max 10) ----
+    let costScore: number;
+    let costStatus: string;
+    let costLabel: string;
+    const procedureId = params.procedureId || journey?.procedure_id;
+    const procCost =
+      hospital && procedureId
+        ? dataRepository.getProcedureCost(hospital.id, procedureId)
+        : undefined;
+    const itemised = procCost ? dataRepository.getCostComponents(procCost.id) : [];
+
+    if (params.hasConsumablesVerified !== undefined) {
+      costScore = params.hasConsumablesVerified ? 10 : 5;
+      costStatus = params.hasConsumablesVerified ? 'MAPPED' : 'ESTIMATED';
+      costLabel = params.hasConsumablesVerified ? 'Tariffs mapped' : 'Consumables estimated';
+    } else if (itemised.length > 0) {
+      costScore = 10;
+      costStatus = 'MAPPED';
+      costLabel = `${itemised.length} billing heads itemised by hospital`;
+    } else if (procCost) {
+      costScore = 5;
+      costStatus = 'PARTIAL';
+      costLabel = 'Package price only, no itemised bill';
+    } else {
+      costScore = 0;
+      costStatus = 'ESTIMATED';
+      costLabel = procedureId ? 'Hospital has not published this price' : 'No procedure selected';
+    }
+
+    const totalScore = Math.min(
+      100,
+      Math.max(0, networkScore + roomScore + procedureScore + policyScore + costScore)
+    );
+
+    let ratingLabel = 'High information certainty';
+    if (totalScore < 40) {
+      ratingLabel = 'Mostly unverified';
+    } else if (totalScore < 70) {
+      ratingLabel = 'Action required';
     } else if (totalScore < 85) {
-      ratingLabel = 'Verification Recommended';
+      ratingLabel = 'Verification recommended';
     }
 
     return {
       totalScore,
       ratingLabel,
       factors: {
-        network: { score: networkScore, maxScore: 30, status: isNetworkCashless ? 'CONFIRMED' : 'UNCONFIRMED', label: isNetworkCashless ? 'In-Network Cashless' : 'Unknown / Reimburse' },
-        room: { score: roomScore, maxScore: 25, status: !hasRoomMismatch ? 'ALIGNED' : 'MISMATCH', label: !hasRoomMismatch ? 'Within Policy Cap' : 'Mismatch Warning' },
-        procedure: { score: procedureScore, maxScore: 20, status: !isPreauthPending ? 'APPROVED' : 'PENDING', label: !isPreauthPending ? 'Pre-Auth Approved' : 'Pre-Auth In Review' },
-        policy: { score: policyScore, maxScore: 15, status: hasPolicy ? 'VALIDATED' : 'MISSING', label: hasPolicy ? 'Extracted & Grounded' : 'Unconfigured' },
-        cost: { score: costScore, maxScore: 10, status: hasConsumablesVerified ? 'MAPPED' : 'ESTIMATED', label: hasConsumablesVerified ? 'Tariffs Mapped' : 'Consumables Est.' }
+        network: { score: networkScore, maxScore: 30, status: networkStatus, label: networkLabel },
+        room: { score: roomScore, maxScore: 25, status: roomStatus, label: roomLabel },
+        procedure: { score: procedureScore, maxScore: 20, status: procedureStatus, label: procedureLabel },
+        policy: { score: policyScore, maxScore: 15, status: policyStatus, label: policyLabel },
+        cost: { score: costScore, maxScore: 10, status: costStatus, label: costLabel }
       },
-      disclaimer: 'Coverage confidence measures data completeness and rule alignment. It is not an insurance guarantee or binding claim decision.'
+      disclaimer:
+        'Coverage confidence measures how much of your coverage picture is confirmed in our records. It is not an insurance guarantee or a claim decision.'
     };
   }
 

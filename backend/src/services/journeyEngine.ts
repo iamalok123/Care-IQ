@@ -4,6 +4,7 @@ import {
   JourneyStage,
   JourneyStatus,
   EventStatus,
+  RoomCategoryCode,
   VerificationItem,
   VerificationCategory,
   PriorityLevel,
@@ -11,9 +12,30 @@ import {
 } from '../types/domain';
 import { dataRepository } from './dataRepository';
 
+export interface CreateJourneyInput {
+  patientId: string;
+  hospitalId: string;
+  policyId?: string;
+  /**
+   * Clinical context. Every one of these was previously dropped on the floor:
+   * the controller read procedure_id, selected_room_category, admission_date and
+   * diagnosis off the request and then called a three-argument function, so a
+   * journey started from the hospital matcher arrived with no procedure — and
+   * the cost view, which prices from journey.procedure_id, had nothing to work
+   * with and fell back to a hardcoded knee replacement.
+   */
+  procedureId?: string;
+  selectedRoomCategory?: RoomCategoryCode;
+  selectedRoomTariff?: number;
+  admissionDate?: string;
+  diagnosis?: string;
+}
+
 export class JourneyEngine {
-  public createJourney(patientId: string, hospitalId: string, policyId?: string): CareJourney & { events: JourneyEvent[] } {
+  public createJourney(input: CreateJourneyInput): CareJourney & { events: JourneyEvent[] } {
+    const { patientId, hospitalId, policyId } = input;
     const journeyId = `jrn-${Date.now()}`;
+    const now = new Date().toISOString();
     const initialJourney: CareJourney & { events: JourneyEvent[] } = {
       id: journeyId,
       patient_id: patientId,
@@ -21,8 +43,13 @@ export class JourneyEngine {
       policy_id: policyId,
       current_stage: JourneyStage.ADMISSION,
       journey_status: JourneyStatus.ACTIVE,
-      started_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      started_at: now,
+      updated_at: now,
+      procedure_id: input.procedureId,
+      selected_room_category: input.selectedRoomCategory,
+      selected_room_tariff: input.selectedRoomTariff,
+      admission_date: input.admissionDate,
+      diagnosis: input.diagnosis,
       events: [
         {
           id: `evt-${Date.now()}-adm`,
@@ -32,10 +59,10 @@ export class JourneyEngine {
           title: 'Hospital Admission Registered',
           description: 'Care journey initialized at hospital admission desk.',
           status: EventStatus.COMPLETED,
-          occurred_at: new Date().toISOString(),
+          occurred_at: now,
           insurance_relevance: 'Initial preauthorization checklist and insurance verification initiated.',
           requires_verification: true,
-          created_at: new Date().toISOString()
+          created_at: now
         }
       ]
     };
@@ -53,7 +80,7 @@ export class JourneyEngine {
       reason: 'Planned admissions require initial approval to activate cashless benefits.',
       priority: PriorityLevel.HIGH,
       status: VerificationItemStatus.PENDING,
-      created_at: new Date().toISOString()
+      created_at: now
     });
 
     return initialJourney;

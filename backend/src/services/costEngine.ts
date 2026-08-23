@@ -16,8 +16,6 @@ export class CostEngine {
     eligibleRoomTariff: number = 6500,
     selectedRoomTariff: number = 6500
   ): CostEstimateResult {
-    const typicalGrossCost = procedureCost.typical_cost;
-
     // 1. Room evaluation
     const roomEval = rulesEngine.evaluateRoomCategory(
       policy,
@@ -48,6 +46,9 @@ export class CostEngine {
       }
     });
 
+    const componentSum = candidateAmount + nonCoveredAmount;
+    const typicalGrossCost = componentSum > 0 ? componentSum : procedureCost.typical_cost;
+
     if (components.length === 0) {
       // Fallback distribution if no itemized components exist
       nonCoveredAmount = Math.round(typicalGrossCost * 0.1); // ~10% consumables
@@ -63,9 +64,9 @@ export class CostEngine {
     const copayAmount = Math.round(amountAfterDeductible * (copayPercentage / 100));
     const netAdmissibleClaim = amountAfterDeductible - copayAmount;
 
-    // 5. Apply Sum Insured Cap
+    // 5. Apply Sum Insured Cap and Gross Cost Cap
     const remainingCover = policy.remaining_sum_insured ?? policy.sum_insured;
-    const coveredAmount = Math.min(netAdmissibleClaim, remainingCover);
+    const coveredAmount = Math.min(netAdmissibleClaim, remainingCover, typicalGrossCost);
 
     // 6. Patient exposure = Gross Cost - Insurer Covered
     const indicativePatientExposure = Math.max(0, typicalGrossCost - coveredAmount);

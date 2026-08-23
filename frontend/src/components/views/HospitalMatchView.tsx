@@ -20,11 +20,18 @@ import { HospitalCompare } from '../widgets/HospitalCompare';
 
 import { useCareIQ } from '../../context/CareIQContext';
 
+import type {
+  Patient,
+  EnrichedInsurancePolicy,
+  RoomCategoryCode
+} from '../../types/domain';
+import type { StartJourneyInput } from '../../context/CareIQContext';
+
 interface HospitalMatchViewProps {
-  policy?: any;
-  activePatient?: any;
-  onStartJourney?: (hospitalId: string) => void;
-  onOpenQuestions?: (hospitalName: string, isRoomExceeded: boolean) => void;
+  policy?: EnrichedInsurancePolicy | null;
+  activePatient?: Patient | null;
+  onStartJourney?: (input: StartJourneyInput) => Promise<void> | void;
+  onOpenQuestions?: (hospitalName?: string | null, isRoomExceeded?: boolean) => void;
 }
 
 export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
@@ -43,6 +50,12 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
   const [procedureId, setProcedureId] = useState<string>('proc-knee-replacement');
   const [roomCategory, setRoomCategory] = useState<string>(policy?.room_eligibility || 'PRIVATE_AC');
   const [networkOnly, setNetworkOnly] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (activePatient?.city) {
+      setCity(activePatient.city);
+    }
+  }, [activePatient?.city]);
 
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -73,7 +86,7 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
         policy_id: policy?.id,
         specialty_code: specialty || undefined,
         procedure_id: procedureId || undefined,
-        preferred_room_category: roomCategory || undefined,
+        preferred_room_category: (roomCategory as RoomCategoryCode) || undefined,
         network_only: networkOnly
       });
       setMatches(data);
@@ -377,7 +390,11 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
                     </button>
 
                     <button
-                      onClick={() => onStartJourney(h.id)}
+                      onClick={() => onStartJourney({
+                        hospitalId: h.id,
+                        procedureId: procedureId,
+                        selectedRoomCategory: roomCategory as RoomCategoryCode
+                      })}
                       className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-xs shadow-teal-600/30 cursor-pointer transition-colors"
                     >
                       <Sparkles size={14} />
@@ -539,7 +556,11 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
         hospitalA={matches.find((m) => (m.hospital?.id || m.id) === selectedForCompare[0])}
         hospitalB={matches.find((m) => (m.hospital?.id || m.id) === selectedForCompare[1])}
         policy={policy}
-        onSelectHospital={onStartJourney}
+        onSelectHospital={(hospId) => onStartJourney({
+          hospitalId: hospId,
+          procedureId,
+          selectedRoomCategory: roomCategory as RoomCategoryCode
+        })}
       />
 
     </div>

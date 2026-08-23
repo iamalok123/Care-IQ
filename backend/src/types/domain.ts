@@ -272,6 +272,20 @@ export interface InsurancePolicy extends DataProvenance {
   source_document_id?: string;
 }
 
+/**
+ * A policy plus the insurer facts the UI needs to render it.
+ * These are NOT columns on insurance_policies — they are joined from
+ * public.insurers via insurer_id by enrichPolicy(). Anything that sends a
+ * policy to a client should send this shape, so the frontend never has to
+ * guess an insurer name.
+ */
+export interface EnrichedInsurancePolicy extends InsurancePolicy {
+  insurer_name: string;
+  insurer_short_name: string;
+  scheme_type: InsurerType;
+  is_government_scheme: boolean;
+}
+
 export interface PolicyRule {
   id: string;
   policy_id: string;
@@ -357,6 +371,12 @@ export interface Hospital extends DataProvenance {
   ambulance_available: boolean;
   open_24x7: boolean;
   website?: string;
+  // Migration 003. `tier` is the metro/non-metro city classification used in
+  // Indian health-insurance pricing, not a quality rating. `cashless_available`
+  // means "at least one insurer network row says cashless" — for a specific
+  // policy, use enrichHospitalForInsurer() instead, which checks that insurer.
+  tier?: string;
+  cashless_available?: boolean;
 }
 
 export interface Specialty {
@@ -480,6 +500,15 @@ export interface CareJourney {
   started_at: string;
   updated_at: string;
   events?: JourneyEvent[];
+  // Clinical context (migration 003). The coverage math and every clinical
+  // label in the UI reads from these — when they are absent the UI must say
+  // "not recorded" rather than invent a procedure or a room.
+  procedure_id?: string;
+  selected_room_category?: RoomCategoryCode;
+  selected_room_tariff?: number;
+  admission_date?: string;
+  discharge_date?: string;
+  diagnosis?: string;
 }
 
 export interface JourneyEvent {

@@ -27,14 +27,23 @@ import { CaregiverShareModal } from '../modals/CaregiverShareModal';
 import { InfoPopover } from '../common/InfoPopover';
 import { useNavigate } from 'react-router-dom';
 import { useCareIQ } from '../../context/CareIQContext';
+import type {
+  Patient,
+  EnrichedInsurancePolicy,
+  CareJourney,
+  VerificationItem,
+  JourneyStage
+} from '../../types/domain';
+import { resolveJourneyStage, JOURNEY_STAGES } from '../../lib/journey';
+import { countResolved } from '../../lib/verification';
 
 interface DashboardProps {
-  patient?: any;
-  policy?: any;
-  journey?: any;
-  verificationItems?: any[];
+  patient?: Patient | null;
+  policy?: EnrichedInsurancePolicy | null;
+  journey?: CareJourney | null;
+  verificationItems?: VerificationItem[];
   onNavigate?: (tab: string) => void;
-  onOpenQuestionsModal?: () => void;
+  onOpenQuestionsModal?: (hospitalName?: string | null, isRoomExceeded?: boolean) => void;
   onOpenChatbot?: () => void;
 }
 
@@ -57,7 +66,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   // Government Scheme detection (e.g. Ayushman Bharat PM-JAY)
   const isGovScheme = 
-    policy?.scheme_type === 'GOV_PMJAY' || 
+    policy?.policy_type === 'GOVERNMENT_SCHEME' || 
+    (policy as any)?.scheme_type === 'GOV_PMJAY' || 
     policy?.policy_name?.toLowerCase().includes('pm-jay') || 
     policy?.policy_name?.toLowerCase().includes('ayushman') ||
     policy?.insurer_name?.toLowerCase().includes('ayushman');
@@ -71,9 +81,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
     : 'Age unspecified';
   const patientGender = patient?.gender || 'Gender unspecified';
   const patientCity = patient?.city || 'Location unspecified';
-  const patientDiagnosis = patient?.diagnosis || journey?.events?.[0]?.description?.split('.')?.[0] || 'Diagnosis not recorded';
+  const patientDiagnosis = (patient as any)?.diagnosis || journey?.events?.[0]?.description?.split('.')?.[0] || 'Diagnosis not recorded';
   const patientAdmissionType =
-    patient?.admission_type ||
+    (patient as any)?.admission_type ||
     (journey?.events?.[0]?.stage ? `${journey.events[0].stage} Care Stage` : 'Journey not started');
 
   // Account Type
@@ -92,7 +102,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   // Dynamic Hospital & Network Resolution
   const activeHospital = context.hospitals.find(
-    (h) => h.id === journey?.hospital_id || h.id === patient?.hospital_id
+    (h) => h.id === journey?.hospital_id || h.id === (patient as any)?.hospital_id
   );
   const hospitalName = activeHospital?.name || 'No hospital selected';
   const isHospitalCashless = activeHospital?.cashless_available !== false;
@@ -110,20 +120,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const verificationItems = rawVerificationItems || [];
 
+  const verifiedCount = countResolved(verificationItems);
   const pendingVerifications = verificationItems.filter((v: any) => v.status === 'PENDING');
-  const verifiedCount = verificationItems.filter((v: any) => v.status === 'VERIFIED' || v.status === 'RESOLVED').length;
 
   // Dynamic Room Mismatch & Exposure Calculation
   const hasRoomMismatch = pendingVerifications.some((v) => v.category === 'ROOM' || v.title?.toLowerCase().includes('room'));
-  const roomPenalty = hasRoomMismatch && policy ? Math.round(totalSum * 0.09) : 0;
-  const nonPayableBase = isGovScheme || !policy ? 0 : Math.min(14000, Math.round(totalSum * 0.028));
+  const roomPenalty = hasRoomMismatch && policy ? Math.round(totalSum * 0.05) : 0;
+  const nonPayableBase = isGovScheme || !policy ? 0 : Math.min(14000, Math.round(totalSum * 0.02));
   const copayAmount = copayPercentage > 0 ? Math.round(totalSum * (copayPercentage / 100)) : 0;
   const estimatedExposure = nonPayableBase + roomPenalty + copayAmount;
 
   // Dynamic Trajectory Stage
-  const currentStage = journey?.current_stage || 'ADMISSION';
-  const stages = ['ADMISSION', 'INVESTIGATION', 'PROCEDURE', 'RECOVERY', 'DISCHARGE'];
-  const stageIndex = stages.indexOf(currentStage) >= 0 ? stages.indexOf(currentStage) : 0;
+  const stageResolution = resolveJourneyStage(journey);
+  const currentStage: JourneyStage | null = stageResolution.stage;
+  const stages: JourneyStage[] = [...JOURNEY_STAGES];
+  const stageIndex = stageResolution.index >= 0 ? stageResolution.index : 0;
 
   // Navigation Helper
   const onNavigate = (target: string) => {
@@ -176,15 +187,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const resolvedPct = Math.round((verifiedCount / totalItems) * 100);
   const confidenceScore = policy && verificationItems.length > 0 ? Math.min(100, Math.max(35, resolvedPct + 30)) : 0;
 
-  // Dynamic Itemized Tariff Breakdown (Calculated from real numbers)
-  const baseCost = utilizedSum > 0 ? utilizedSum : 0;
-  const surgeonFee = Math.round(baseCost * 0.50);
-  const roomFee = Math.round(baseCost * 0.28);
-  const diagFee = Math.round(baseCost * 0.22);
+  // Dynamic Itemized Tariff Breakdown (Truth of Data: 0 if not utilized)
+  const baseCost = utilizedSum;
+  const surgeonFee = utilizedSum > 0 ? Math.round(baseCost * 0.50) : 0;
+  const roomFee = utilizedSum > 0 ? Math.round(baseCost * 0.28) : 0;
+  const diagFee = utilizedSum > 0 ? Math.round(baseCost * 0.22) : 0;
 
-  const surgeonPct = Math.round((surgeonFee / totalSum) * 100) || 14;
-  const roomPct = Math.round((roomFee / totalSum) * 100) || 8;
-  const diagPct = Math.round((diagFee / totalSum) * 100) || 6;
+  const surgeonPct = totalSum > 0 ? Math.round((surgeonFee / totalSum) * 100) : 0;
+  const roomPct = totalSum > 0 ? Math.round((roomFee / totalSum) * 100) : 0;
+  const diagPct = totalSum > 0 ? Math.round((diagFee / totalSum) * 100) : 0;
 
   return (
     <div className="space-y-5 max-w-360 mx-auto pb-6">
@@ -221,10 +232,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 >
                   {accountType === 'NEW_USER' ? 'Verified User' : 'Demo Persona'}
                 </span>
-                <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                  <Building2 size={11} className="text-emerald-600" />
-                  <span className="truncate max-w-48">{hospitalName}</span>
-                </span>
+                {activeHospital ? (
+                  <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                    <Building2 size={11} className="text-emerald-600" />
+                    <span className="truncate max-w-48">{activeHospital.name}</span>
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                    No hospital selected
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 font-medium">
@@ -233,10 +250,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <span>{patientAdmissionType}</span>
                 <span>•</span>
                 <span>{patientCity}</span>
-                <span>•</span>
-                <span className="text-teal-700 font-semibold">
-                  {isHospitalCashless ? `${hospitalTier} Cashless Track` : 'Reimbursement Track'}
-                </span>
+                {activeHospital && (
+                  <>
+                    <span>•</span>
+                    <span className="text-teal-700 font-semibold">
+                      {isHospitalCashless ? `${hospitalTier} Cashless Track` : 'Reimbursement Track'}
+                    </span>
+                  </>
+                )}
                 <InfoPopover
                   title={`${patientName} — Active Context`}
                   size="xs"
@@ -514,31 +535,43 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div className="flex items-center gap-1">
               <InfoPopover
-                title={`${hospitalName} — Network`}
+                title={activeHospital ? `${activeHospital.name} — Network` : 'Hospital Network'}
                 size="xs"
                 variant="teal"
                 content="Hospital empanelment tier with your insurer's Third Party Administrator (TPA) for cashless desk processing."
                 details={[
-                  { label: 'Hospital', value: hospitalName },
-                  { label: 'Network Tier', value: `${hospitalTier} In-Network` },
-                  { label: 'Cashless Desk', value: isHospitalCashless ? '100% Empaneled' : 'Reimbursement' },
+                  { label: 'Hospital', value: activeHospital?.name || 'Not selected' },
+                  { label: 'Network Tier', value: activeHospital ? `${hospitalTier} In-Network` : 'Unassigned' },
+                  { label: 'Cashless Desk', value: activeHospital ? (isHospitalCashless ? '100% Empaneled' : 'Reimbursement') : 'Unassigned' },
                   { label: 'Location', value: patientCity }
                 ]}
               />
               <ArrowUpRight size={14} className="text-slate-400 group-hover:text-teal-600 transition-colors" />
             </div>
           </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 truncate">
-              {hospitalName}
-            </h3>
-            <div className="flex items-baseline justify-between mt-1 text-xs">
-              <span className="text-slate-400 text-[11px]">Network Fit:</span>
-              <strong className="text-teal-700 font-bold text-sm">
-                {isHospitalCashless ? '100% Cashless' : 'Reimburse'}
-              </strong>
+          {activeHospital ? (
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 truncate">
+                {activeHospital.name}
+              </h3>
+              <div className="flex items-baseline justify-between mt-1 text-xs">
+                <span className="text-slate-400 text-[11px]">Network Fit:</span>
+                <strong className="text-teal-700 font-bold text-sm">
+                  {isHospitalCashless ? '100% Cashless' : 'Reimburse'}
+                </strong>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <h3 className="text-xs font-bold text-teal-900 truncate">
+                + Select Hospital
+              </h3>
+              <div className="flex items-baseline justify-between mt-1 text-[11px] text-slate-500">
+                <span>Compare network tariffs</span>
+                <strong className="text-teal-700 font-bold">Find →</strong>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Card 3: Indicative Out-of-Pocket */}
@@ -562,26 +595,38 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 variant="amber"
                 content="Estimated patient liability including non-payable consumables, room category upgrade penalties, and policy co-payments."
                 details={[
-                  { label: 'Non-Payables', value: `₹${nonPayableBase.toLocaleString()}` },
-                  { label: 'Room Penalty', value: `₹${roomPenalty.toLocaleString()}` },
-                  { label: 'Co-Payment', value: `₹${copayAmount.toLocaleString()} (${copayPercentage}%)` },
-                  { label: 'Total Est. Liability', value: `₹${estimatedExposure.toLocaleString()}` }
+                  { label: 'Non-Payables', value: policy ? `₹${nonPayableBase.toLocaleString()}` : '₹0' },
+                  { label: 'Room Penalty', value: policy ? `₹${roomPenalty.toLocaleString()}` : '₹0' },
+                  { label: 'Co-Payment', value: policy ? `₹${copayAmount.toLocaleString()} (${copayPercentage}%)` : '0%' },
+                  { label: 'Total Est. Liability', value: policy ? `₹${estimatedExposure.toLocaleString()}` : '₹0' }
                 ]}
               />
               <ArrowUpRight size={14} className="text-slate-400 group-hover:text-amber-600 transition-colors" />
             </div>
           </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 truncate flex items-baseline gap-1">
-              ₹{estimatedExposure.toLocaleString()}
-            </h3>
-            <div className="flex items-baseline justify-between mt-1 text-xs">
-              <span className="text-slate-400 text-[11px]">Room Penalty:</span>
-              <strong className={`font-bold text-sm ${roomPenalty > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
-                {roomPenalty > 0 ? `₹${roomPenalty.toLocaleString()} Mismatch` : '₹0 (Within Cap)'}
-              </strong>
+          {policy ? (
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 truncate flex items-baseline gap-1">
+                ₹{estimatedExposure.toLocaleString()}
+              </h3>
+              <div className="flex items-baseline justify-between mt-1 text-xs">
+                <span className="text-slate-400 text-[11px]">Room Penalty:</span>
+                <strong className={`font-bold text-sm ${roomPenalty > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
+                  {roomPenalty > 0 ? `₹${roomPenalty.toLocaleString()} Mismatch` : '₹0 (Within Cap)'}
+                </strong>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <h3 className="text-xs font-bold text-amber-900 truncate">
+                + Calculate Estimate
+              </h3>
+              <div className="flex items-baseline justify-between mt-1 text-[11px] text-slate-500">
+                <span>Select hospital & procedure</span>
+                <strong className="text-amber-700 font-bold">Estimate →</strong>
+              </div>
+            </div>
+          )}
         </div>
 
         <div 
@@ -646,16 +691,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </h2>
             </div>
             <p className="text-xs text-slate-400 font-medium mt-0.5">
-              Active: <strong className="text-slate-700 capitalize">{currentStage.toLowerCase()}</strong> • Stage {stageIndex + 1} of {stages.length}
+              {stageResolution.hasJourney ? (
+                <>Active: <strong className="text-slate-700 capitalize">{(currentStage || 'ADMISSION').toLowerCase()}</strong> • Stage {stageIndex + 1} of {stages.length}</>
+              ) : (
+                <span className="text-slate-500 font-medium">Care trajectory not started yet</span>
+              )}
             </p>
           </div>
 
           <button
             type="button"
-            onClick={() => onNavigate('journey')}
+            onClick={() => onNavigate(stageResolution.hasJourney ? 'journey' : 'hospitals')}
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-teal-800 bg-white hover:bg-teal-50 border border-teal-200/90 shadow-2xs transition-all cursor-pointer"
           >
-            <span>More details</span>
+            <span>{stageResolution.hasJourney ? 'More details' : '+ Start Journey'}</span>
             <span>→</span>
           </button>
         </div>
@@ -665,12 +714,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="absolute top-5 left-5 right-5 h-1 bg-slate-200 z-1" />
           <div
             className="absolute top-5 left-5 h-1 bg-teal-600 z-2 transition-all duration-300"
-            style={{ width: `${Math.max(0, (stageIndex / (stages.length - 1)) * 100)}%` }}
+            style={{ width: `${stageResolution.hasJourney ? Math.max(0, (stageIndex / (stages.length - 1)) * 100) : 0}%` }}
           />
 
           {stages.map((stageName, idx) => {
-            const isCompleted = idx < stageIndex;
-            const isCurrent = idx === stageIndex;
+            const isCompleted = stageResolution.hasJourney && idx < stageIndex;
+            const isCurrent = stageResolution.hasJourney && idx === stageIndex;
 
             return (
               <button
@@ -765,7 +814,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   Network
                 </span>
                 <span className="text-xs font-bold text-slate-900 block truncate">
-                  {isHospitalCashless ? '100% Cashless' : 'Reimburse'}
+                  {activeHospital ? (isHospitalCashless ? '100% Cashless' : 'Reimburse') : 'Unassigned'}
                 </span>
               </div>
 
@@ -775,7 +824,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   Room Cap
                 </span>
                 <span className="text-xs font-bold text-slate-900 block truncate">
-                  {!hasRoomMismatch ? 'Eligible' : 'Mismatch'}
+                  {policy && activeHospital ? (!hasRoomMismatch ? 'Eligible' : 'Mismatch') : 'Unassigned'}
                 </span>
               </div>
 
@@ -785,7 +834,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   Pre-Auth
                 </span>
                 <span className="text-xs font-bold text-slate-900 block truncate">
-                  {pendingVerifications.some((v) => v.category === 'PREAUTH') ? 'In Review' : 'Approved'}
+                  {pendingVerifications.some((v) => v.category === 'PREAUTH')
+                    ? 'In Review'
+                    : journey
+                    ? 'Approved'
+                    : 'Not Raised'}
                 </span>
               </div>
 
@@ -795,7 +848,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   Co-Pay
                 </span>
                 <span className="text-xs font-bold text-slate-900 block truncate">
-                  {copayPercentage}% Co-Pay
+                  {policy ? `${copayPercentage}% Co-Pay` : 'No Policy'}
                 </span>
               </div>
             </div>
@@ -807,8 +860,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <span className="text-3xl font-black text-slate-900 tracking-tight">
                     {confidenceScore}%
                   </span>
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    High Certainty
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${
+                    confidenceScore >= 80
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : confidenceScore >= 50
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : confidenceScore > 0
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                      : 'bg-slate-100 text-slate-500 border-slate-200'
+                  }`}>
+                    {confidenceScore >= 80
+                      ? 'High Certainty'
+                      : confidenceScore >= 50
+                      ? 'Moderate Certainty'
+                      : confidenceScore > 0
+                      ? 'Low Certainty'
+                      : 'Unverified'}
                   </span>
                 </div>
                 <span className="text-xs font-medium text-slate-400 block mt-0.5">
@@ -867,116 +934,132 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </span>
                 </div>
                 <p className="text-xs text-blue-100/90 font-medium mt-0.5">
-                  Cost allocation against ₹{(totalSum / 100000).toFixed(1)}L Policy Limit
+                  {policy ? `Cost allocation against ₹${(totalSum / 100000).toFixed(1)}L Policy Limit` : 'No health insurance policy linked'}
                 </p>
               </div>
               <InfoPopover
-                title={`${policyName} — Allocation`}
+                title={policy ? `${policyName} — Allocation` : 'Policy Allocation'}
                 size="sm"
                 variant="indigo"
                 content="Itemized breakdown of current estimated procedure tariffs against statutory sub-limits and room category caps."
                 details={[
-                  { label: 'Total Policy Limit', value: `₹${(totalSum / 100000).toFixed(1)} Lakhs` },
-                  { label: 'Claimed / Blocked', value: `₹${(utilizedSum / 100000).toFixed(2)} Lakhs` },
-                  { label: 'Available Buffer', value: `₹${(remainingSum / 100000).toFixed(1)} Lakhs` }
+                  { label: 'Total Policy Limit', value: policy ? `₹${(totalSum / 100000).toFixed(1)} Lakhs` : 'Not linked' },
+                  { label: 'Claimed / Blocked', value: policy ? `₹${(utilizedSum / 100000).toFixed(2)} Lakhs` : '₹0' },
+                  { label: 'Available Buffer', value: policy ? `₹${(remainingSum / 100000).toFixed(1)} Lakhs` : '₹0' }
                 ]}
               />
             </div>
 
-            {/* Prominent Radial Dial & 4 Itemized Progress Rows */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-1">
-              
-              {/* Extra-Large Glowing Radial Meter Dial */}
-              <div className="relative w-40 h-40 sm:w-44 sm:h-44 shrink-0 flex items-center justify-center">
-                <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-                  {/* Background Track */}
-                  <circle
-                    cx="60"
-                    cy="60"
-                    r="48"
-                    className="text-blue-950/60"
-                    strokeWidth="9"
-                    stroke="currentColor"
-                    fill="transparent"
-                  />
-                  {/* Glowing Active Arc */}
-                  <circle
-                    cx="60"
-                    cy="60"
-                    r="48"
-                    stroke="#60A5FA"
-                    strokeWidth="9"
-                    strokeDasharray={2 * Math.PI * 48}
-                    strokeDashoffset={2 * Math.PI * 48 - (utilizedPercent / 100) * (2 * Math.PI * 48)}
-                    strokeLinecap="round"
-                    fill="transparent"
-                    className="transition-all duration-1000 ease-out drop-shadow-[0_0_12px_rgba(96,165,250,0.6)]"
-                  />
-                </svg>
-
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="text-3xl sm:text-4xl font-black text-white leading-none tracking-tight">
-                    {utilizedPercent}%
-                  </span>
-                  <span className="text-[10px] font-bold text-blue-200 uppercase mt-1">
-                    Utilized
-                  </span>
-                  <span className="text-[10px] font-semibold text-blue-300 mt-0.5">
-                    ₹{(utilizedSum / 100000).toFixed(2)}L Used
-                  </span>
-                </div>
-              </div>
-
-              {/* 4 Itemized Category Rows */}
-              <div className="space-y-2 flex-1 w-full min-w-0">
+            {policy ? (
+              /* Prominent Radial Dial & 4 Itemized Progress Rows */
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-1">
                 
-                {/* Category 1: Surgeon & OT */}
-                <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl px-3 py-1.5 text-xs">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-white">
-                    <span className="truncate">Surgeon & OT Charges</span>
-                    <span className="text-emerald-300">{surgeonPct}% • ₹{surgeonFee.toLocaleString()}</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-white/15 rounded-full overflow-hidden mt-1">
-                    <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${Math.min(100, surgeonPct * 2)}%` }} />
+                {/* Extra-Large Glowing Radial Meter Dial */}
+                <div className="relative w-40 h-40 sm:w-44 sm:h-44 shrink-0 flex items-center justify-center">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                    {/* Background Track */}
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="48"
+                      className="text-blue-950/60"
+                      strokeWidth="9"
+                      stroke="currentColor"
+                      fill="transparent"
+                    />
+                    {/* Glowing Active Arc */}
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="48"
+                      stroke="#60A5FA"
+                      strokeWidth="9"
+                      strokeDasharray={2 * Math.PI * 48}
+                      strokeDashoffset={2 * Math.PI * 48 - (utilizedPercent / 100) * (2 * Math.PI * 48)}
+                      strokeLinecap="round"
+                      fill="transparent"
+                      className="transition-all duration-1000 ease-out drop-shadow-[0_0_12px_rgba(96,165,250,0.6)]"
+                    />
+                  </svg>
+
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span className="text-3xl sm:text-4xl font-black text-white leading-none tracking-tight">
+                      {utilizedPercent}%
+                    </span>
+                    <span className="text-[10px] font-bold text-blue-200 uppercase mt-1">
+                      Utilized
+                    </span>
+                    <span className="text-[10px] font-semibold text-blue-300 mt-0.5">
+                      ₹{(utilizedSum / 100000).toFixed(2)}L Used
+                    </span>
                   </div>
                 </div>
 
-                {/* Category 2: Room & Nursing */}
-                <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl px-3 py-1.5 text-xs">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-white">
-                    <span className="truncate">Room Rent & Nursing</span>
-                    <span className="text-blue-200">{roomPct}% • ₹{roomFee.toLocaleString()}</span>
+                {/* 4 Itemized Category Rows */}
+                <div className="space-y-2 flex-1 w-full min-w-0">
+                  
+                  {/* Category 1: Surgeon & OT */}
+                  <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl px-3 py-1.5 text-xs">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-white">
+                      <span className="truncate">Surgeon & OT Charges</span>
+                      <span className="text-emerald-300">{surgeonPct}% • ₹{surgeonFee.toLocaleString()}</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/15 rounded-full overflow-hidden mt-1">
+                      <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${Math.min(100, surgeonPct * 2)}%` }} />
+                    </div>
                   </div>
-                  <div className="h-1.5 w-full bg-white/15 rounded-full overflow-hidden mt-1">
-                    <div className="h-full bg-blue-300 rounded-full" style={{ width: `${Math.min(100, roomPct * 2)}%` }} />
-                  </div>
-                </div>
 
-                {/* Category 3: Diagnostics */}
-                <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl px-3 py-1.5 text-xs">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-white">
-                    <span className="truncate">Diagnostics & Labs</span>
-                    <span className="text-cyan-200">{diagPct}% • ₹{diagFee.toLocaleString()}</span>
+                  {/* Category 2: Room & Nursing */}
+                  <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl px-3 py-1.5 text-xs">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-white">
+                      <span className="truncate">Room Rent & Nursing</span>
+                      <span className="text-blue-200">{roomPct}% • ₹{roomFee.toLocaleString()}</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/15 rounded-full overflow-hidden mt-1">
+                      <div className="h-full bg-blue-300 rounded-full" style={{ width: `${Math.min(100, roomPct * 2)}%` }} />
+                    </div>
                   </div>
-                  <div className="h-1.5 w-full bg-white/15 rounded-full overflow-hidden mt-1">
-                    <div className="h-full bg-cyan-300 rounded-full" style={{ width: `${Math.min(100, diagPct * 2)}%` }} />
-                  </div>
-                </div>
 
-                {/* Category 4: Consumables */}
-                <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl px-3 py-1.5 text-xs">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-white">
-                    <span className="truncate">Non-Payables</span>
-                    <span className="text-amber-300">₹{nonPayableBase.toLocaleString()} Out-of-Pocket</span>
+                  {/* Category 3: Diagnostics */}
+                  <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl px-3 py-1.5 text-xs">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-white">
+                      <span className="truncate">Diagnostics & Labs</span>
+                      <span className="text-cyan-200">{diagPct}% • ₹{diagFee.toLocaleString()}</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/15 rounded-full overflow-hidden mt-1">
+                      <div className="h-full bg-cyan-300 rounded-full" style={{ width: `${Math.min(100, diagPct * 2)}%` }} />
+                    </div>
                   </div>
-                  <div className="h-1.5 w-full bg-white/15 rounded-full overflow-hidden mt-1">
-                    <div className="h-full bg-amber-400 rounded-full" style={{ width: `${nonPayableBase > 0 ? '15%' : '0%'}` }} />
+
+                  {/* Category 4: Consumables */}
+                  <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl px-3 py-1.5 text-xs">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-white">
+                      <span className="truncate">Non-Payables</span>
+                      <span className="text-amber-300">₹{nonPayableBase.toLocaleString()} Out-of-Pocket</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/15 rounded-full overflow-hidden mt-1">
+                      <div className="h-full bg-amber-400 rounded-full" style={{ width: `${nonPayableBase > 0 ? '15%' : '0%'}` }} />
+                    </div>
                   </div>
+
                 </div>
 
               </div>
-
-            </div>
+            ) : (
+              <div className="py-8 px-4 text-center bg-white/10 rounded-2xl border border-white/15">
+                <div className="text-sm font-bold text-white">No Policy Linked</div>
+                <p className="text-xs text-blue-200 mt-1 max-w-sm mx-auto">
+                  Add your health insurance policy to track sum insured allocation, room caps, and out-of-pocket exposure in real-time.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('insurance')}
+                  className="mt-3.5 px-4 py-1.5 rounded-xl text-xs font-bold bg-white text-blue-900 hover:bg-blue-50 transition-all cursor-pointer shadow-md"
+                >
+                  + Link Health Policy
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Bottom Footer Translucent Glass Shelf */}
@@ -1022,7 +1105,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           <button
             type="button"
-            onClick={onOpenQuestionsModal}
+            onClick={() => onOpenQuestionsModal(hospitalName, hasRoomMismatch)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer self-start sm:self-auto shrink-0"
           >
             <HelpCircle size={13} />
@@ -1162,7 +1245,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       {isPending ? (
                         <button
                           type="button"
-                          onClick={onOpenQuestionsModal}
+                          onClick={() => onOpenQuestionsModal(hospitalName, hasRoomMismatch)}
                           className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
                         >
                           Ask Desk

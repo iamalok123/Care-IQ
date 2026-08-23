@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { dataRepository } from '../services/dataRepository';
 import { supabaseRepository } from '../services/supabaseRepository';
+import { enrichPolicies, enrichPolicy } from '../services/enrichmentService';
 import { isSupabaseConfigured } from '../config/supabase';
 import { insurancePolicySchema } from '../schemas/zodSchemas';
 import { DataStatus, VerificationStatus, ConfidenceLevel } from '../types/domain';
@@ -24,10 +25,12 @@ export class PolicyController {
       }
     }
 
+    const enriched = enrichPolicies(policies);
+
     res.json({
       success: true,
-      data: policies,
-      meta: { total: policies.length }
+      data: enriched,
+      meta: { total: enriched.length }
     });
   }
 
@@ -59,7 +62,7 @@ export class PolicyController {
     res.json({
       success: true,
       data: {
-        ...policy,
+        ...enrichPolicy(policy),
         rules,
         exclusions
       }
@@ -91,7 +94,7 @@ export class PolicyController {
 
     res.status(201).json({
       success: true,
-      data: newPolicy
+      data: enrichPolicy(newPolicy)
     });
   }
 
@@ -123,7 +126,7 @@ export class PolicyController {
     res.json({
       success: true,
       message: 'Insurance policy updated successfully.',
-      data: updated
+      data: enrichPolicy(updated)
     });
   }
 

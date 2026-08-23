@@ -270,11 +270,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               {item.badge}
                             </span>
                           )}
-
-                          {/* Active Indicator Accent */}
-                          {isActive && (
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-500 rounded-full" />
-                          )}
                         </NavLink>
                       );
                     })}
