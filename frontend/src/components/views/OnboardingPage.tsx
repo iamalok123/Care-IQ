@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -37,12 +37,44 @@ const COMMON_CONDITIONS = [
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 
+interface InsurerOption {
+  id: string;
+  name: string;
+  category: 'PRIVATE' | 'GOVERNMENT' | 'EMPLOYER';
+}
+
+const DEFAULT_INSURERS: InsurerOption[] = [
+  // Private Insurance
+  { id: 'ins-star-health', name: 'Star Health and Allied Insurance', category: 'PRIVATE' },
+  { id: 'ins-hdfc-ergo', name: 'HDFC ERGO General Insurance', category: 'PRIVATE' },
+  { id: 'ins-icici-lombard', name: 'ICICI Lombard General Insurance', category: 'PRIVATE' },
+  { id: 'ins-care-health', name: 'Care Health Insurance', category: 'PRIVATE' },
+  { id: 'ins-niva-bupa', name: 'Niva Bupa Health Insurance', category: 'PRIVATE' },
+  { id: 'ins-bajaj-allianz', name: 'Bajaj Allianz General Insurance', category: 'PRIVATE' },
+  { id: 'ins-tata-aig', name: 'Tata AIG General Insurance', category: 'PRIVATE' },
+  { id: 'ins-aditya-birla', name: 'Aditya Birla Health Insurance', category: 'PRIVATE' },
+
+  // Government Schemes
+  { id: 'sch-pmjay', name: 'Ayushman Bharat PM-JAY (Golden Card)', category: 'GOVERNMENT' },
+  { id: 'sch-ab-ark', name: 'Arogya Karnataka / AB-ARK', category: 'GOVERNMENT' },
+  { id: 'sch-mjpjay', name: 'Mahatma Jyotirao Phule Jan Arogya Yojana', category: 'GOVERNMENT' },
+  { id: 'sch-cghs', name: 'Central Government Health Scheme (CGHS)', category: 'GOVERNMENT' },
+  { id: 'sch-echs', name: 'Ex-Servicemen Contributory Health Scheme (ECHS)', category: 'GOVERNMENT' },
+
+  // Corporate / Employer Plans
+  { id: 'ins-icici-lombard-grp', name: 'ICICI Lombard Corporate Group Health', category: 'EMPLOYER' },
+  { id: 'ins-star-grp', name: 'Star Health Group Mediclaim', category: 'EMPLOYER' },
+  { id: 'ins-hdfc-grp', name: 'HDFC ERGO Group Health Suraksha', category: 'EMPLOYER' },
+  { id: 'ins-care-grp', name: 'Care Corporate Health Shield', category: 'EMPLOYER' },
+  { id: 'ins-medi-assist', name: 'Medi Assist / Corporate TPA Group Plan', category: 'EMPLOYER' }
+];
+
 export const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, patient, setPatientProfile, refreshSession } = useAuth();
 
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [insurers, setInsurers] = useState<any[]>([]);
+  const [insurers, setInsurers] = useState<InsurerOption[]>(DEFAULT_INSURERS);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,7 +108,7 @@ export const OnboardingPage: React.FC = () => {
   // Form State: Step 3 (Insurance Details)
   const [insuranceType, setInsuranceType] = useState<'PRIVATE' | 'GOVERNMENT' | 'EMPLOYER'>('PRIVATE');
   const [selectedInsurerId, setSelectedInsurerId] = useState<string>('ins-star-health');
-  const [policyName, setPolicyName] = useState<string>('');
+  const [policyName, setPolicyName] = useState<string>('Star Comprehensive Health Insurance');
   const [sumInsured, setSumInsured] = useState<number>(500000);
   const [roomEligibility, setRoomEligibility] = useState<string>('PRIVATE_AC');
   const [copayPercentage, setCopayPercentage] = useState<number>(0);
@@ -97,27 +129,64 @@ export const OnboardingPage: React.FC = () => {
     const fetchInsurers = async () => {
       try {
         const res: any = await api.getInsurers();
-        if (Array.isArray(res)) {
-          setInsurers(res);
-        } else if (res?.data && Array.isArray(res.data)) {
-          setInsurers(res.data);
+        const incoming = Array.isArray(res) ? res : res?.data && Array.isArray(res.data) ? res.data : null;
+        if (incoming && incoming.length > 0) {
+          const mapped: InsurerOption[] = incoming.map((item: any) => ({
+            id: item.id,
+            name: item.name,
+            category: item.insurer_type || (item.id.startsWith('sch-') ? 'GOVERNMENT' : item.id.includes('grp') ? 'EMPLOYER' : 'PRIVATE')
+          }));
+          // Merge unique
+          const existingIds = new Set(mapped.map((m) => m.id));
+          const combined = [...mapped, ...DEFAULT_INSURERS.filter((d) => !existingIds.has(d.id))];
+          setInsurers(combined);
         }
       } catch (err) {
-        console.error('Failed to load insurers list:', err);
-        // Fallback insurers
-        setInsurers([
-          { id: 'ins-star-health', name: 'Star Health and Allied Insurance' },
-          { id: 'ins-hdfc-ergo', name: 'HDFC ERGO General Insurance' },
-          { id: 'ins-icici-lombard', name: 'ICICI Lombard General Insurance' },
-          { id: 'ins-care-health', name: 'Care Health Insurance' },
-          { id: 'ins-niva-bupa', name: 'Niva Bupa Health Insurance' },
-          { id: 'sch-pmjay', name: 'Ayushman Bharat PM-JAY' },
-          { id: 'sch-ab-ark', name: 'Arogya Karnataka / AB-ARK' }
-        ]);
+        console.warn('Using baseline insurers list:', err);
       }
     };
     fetchInsurers();
   }, []);
+
+  // Filter insurers dynamically by selected insurance category
+  const displayInsurers = useMemo(() => {
+    const filtered = insurers.filter((ins) => {
+      if (insuranceType === 'GOVERNMENT') {
+        return ins.category === 'GOVERNMENT' || ins.id.startsWith('sch-');
+      }
+      if (insuranceType === 'EMPLOYER') {
+        return ins.category === 'EMPLOYER' || ins.id.includes('grp') || ins.id.includes('medi-assist');
+      }
+      return ins.category === 'PRIVATE' || (!ins.id.startsWith('sch-') && !ins.id.includes('grp'));
+    });
+    return filtered.length > 0 ? filtered : insurers;
+  }, [insurers, insuranceType]);
+
+  const handleInsuranceTypeChange = (type: 'PRIVATE' | 'GOVERNMENT' | 'EMPLOYER') => {
+    setInsuranceType(type);
+    if (type === 'GOVERNMENT') {
+      setSelectedInsurerId('sch-pmjay');
+      setPolicyName('Ayushman Bharat PM-JAY (AB PM-JAY Golden Card)');
+      setRoomEligibility('GENERAL');
+      setCopayPercentage(0);
+      setDeductibleAmount(0);
+      setCashlessSupported(true);
+    } else if (type === 'EMPLOYER') {
+      setSelectedInsurerId('ins-icici-lombard-grp');
+      setPolicyName('Corporate Group Health Mediclaim');
+      setRoomEligibility('DELUXE');
+      setCopayPercentage(10);
+      setDeductibleAmount(0);
+      setCashlessSupported(true);
+    } else {
+      setSelectedInsurerId('ins-star-health');
+      setPolicyName('Star Comprehensive Health Insurance');
+      setRoomEligibility('PRIVATE_AC');
+      setCopayPercentage(0);
+      setDeductibleAmount(0);
+      setCashlessSupported(true);
+    }
+  };
 
   const handleConditionToggle = (condition: string) => {
     if (condition === 'None / Healthy') {
@@ -611,19 +680,7 @@ export const OnboardingPage: React.FC = () => {
                       <button
                         key={item.type}
                         type="button"
-                        onClick={() => {
-                          setInsuranceType(item.type as any);
-                          if (item.type === 'GOVERNMENT') {
-                            setSelectedInsurerId('sch-pmjay');
-                            setPolicyName('Ayushman Bharat PM-JAY');
-                            setRoomEligibility('GENERAL');
-                          } else if (item.type === 'EMPLOYER') {
-                            setSelectedInsurerId('ins-icici-lombard');
-                            setPolicyName('Corporate Group Health Mediclaim');
-                            setRoomEligibility('DELUXE');
-                            setCopayPercentage(10);
-                          }
-                        }}
+                        onClick={() => handleInsuranceTypeChange(item.type as any)}
                         className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                           insuranceType === item.type
                             ? 'bg-blue-50 border-blue-400 shadow-2xs'
@@ -644,10 +701,23 @@ export const OnboardingPage: React.FC = () => {
                     </label>
                     <select
                       value={selectedInsurerId}
-                      onChange={(e) => setSelectedInsurerId(e.target.value)}
-                      className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 outline-none transition-colors"
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setSelectedInsurerId(val);
+                        const chosen = displayInsurers.find((ins) => ins.id === val);
+                        if (chosen) {
+                          if (insuranceType === 'GOVERNMENT') {
+                            setPolicyName(chosen.name);
+                          } else if (insuranceType === 'EMPLOYER') {
+                            setPolicyName(`${chosen.name.replace(' Corporate', '').replace(' Group', '')} Corporate Floater`);
+                          } else {
+                            setPolicyName(`${chosen.name.split(' ')[0]} Comprehensive Health Insurance`);
+                          }
+                        }
+                      }}
+                      className="w-full bg-slate-50/70 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 outline-none transition-colors font-medium"
                     >
-                      {insurers.map((ins) => (
+                      {displayInsurers.map((ins) => (
                         <option key={ins.id} value={ins.id}>
                           {ins.name}
                         </option>

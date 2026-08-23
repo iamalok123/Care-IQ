@@ -13,6 +13,10 @@ import {
   CostComponent,
   HospitalNetwork,
   Insurer,
+  InsurerType,
+  DataStatus,
+  VerificationStatus,
+  ConfidenceLevel,
   InsurancePolicy,
   PolicyRule,
   PolicyExclusion,
@@ -40,6 +44,20 @@ function resolveDataDir(): string {
   return path.resolve(process.cwd(), 'data');
 }
 
+const BASELINE_INSURERS: Insurer[] = [
+  { id: 'ins-star-health', name: 'Star Health and Allied Insurance', short_name: 'Star Health', insurer_type: InsurerType.PRIVATE, data_status: DataStatus.PUBLIC_REFERENCE, verification_status: VerificationStatus.VERIFIED, confidence: ConfidenceLevel.HIGH, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' },
+  { id: 'ins-hdfc-ergo', name: 'HDFC ERGO General Insurance', short_name: 'HDFC ERGO', insurer_type: InsurerType.PRIVATE, data_status: DataStatus.PUBLIC_REFERENCE, verification_status: VerificationStatus.VERIFIED, confidence: ConfidenceLevel.HIGH, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' },
+  { id: 'ins-icici-lombard', name: 'ICICI Lombard General Insurance', short_name: 'ICICI Lombard', insurer_type: InsurerType.PRIVATE, data_status: DataStatus.PUBLIC_REFERENCE, verification_status: VerificationStatus.VERIFIED, confidence: ConfidenceLevel.HIGH, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' },
+  { id: 'ins-care-health', name: 'Care Health Insurance', short_name: 'Care Health', insurer_type: InsurerType.PRIVATE, data_status: DataStatus.PUBLIC_REFERENCE, verification_status: VerificationStatus.VERIFIED, confidence: ConfidenceLevel.HIGH, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' },
+  { id: 'ins-niva-bupa', name: 'Niva Bupa Health Insurance', short_name: 'Niva Bupa', insurer_type: InsurerType.PRIVATE, data_status: DataStatus.PUBLIC_REFERENCE, verification_status: VerificationStatus.VERIFIED, confidence: ConfidenceLevel.HIGH, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' },
+  { id: 'ins-bajaj-allianz', name: 'Bajaj Allianz General Insurance', short_name: 'Bajaj Allianz', insurer_type: InsurerType.PRIVATE, data_status: DataStatus.PUBLIC_REFERENCE, verification_status: VerificationStatus.VERIFIED, confidence: ConfidenceLevel.HIGH, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' },
+  { id: 'ins-tata-aig', name: 'Tata AIG General Insurance', short_name: 'Tata AIG', insurer_type: InsurerType.PRIVATE, data_status: DataStatus.PUBLIC_REFERENCE, verification_status: VerificationStatus.VERIFIED, confidence: ConfidenceLevel.HIGH, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' },
+  { id: 'sch-pmjay', name: 'Ayushman Bharat PM-JAY', short_name: 'PM-JAY', insurer_type: InsurerType.SCHEME_ADMINISTRATOR, data_status: DataStatus.PUBLIC_REFERENCE, verification_status: VerificationStatus.VERIFIED, confidence: ConfidenceLevel.HIGH, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' },
+  { id: 'sch-ab-ark', name: 'Arogya Karnataka / AB-ARK', short_name: 'AB-ARK', insurer_type: InsurerType.SCHEME_ADMINISTRATOR, data_status: DataStatus.PUBLIC_REFERENCE, verification_status: VerificationStatus.VERIFIED, confidence: ConfidenceLevel.HIGH, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' },
+  { id: 'sch-mjpjay', name: 'Mahatma Jyotirao Phule Jan Arogya Yojana', short_name: 'MJPJAY', insurer_type: InsurerType.SCHEME_ADMINISTRATOR, data_status: DataStatus.PUBLIC_REFERENCE, verification_status: VerificationStatus.VERIFIED, confidence: ConfidenceLevel.HIGH, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' },
+  { id: 'sch-cghs', name: 'Central Government Health Scheme (CGHS)', short_name: 'CGHS', insurer_type: InsurerType.SCHEME_ADMINISTRATOR, data_status: DataStatus.PUBLIC_REFERENCE, verification_status: VerificationStatus.VERIFIED, confidence: ConfidenceLevel.HIGH, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' }
+];
+
 export class DataRepository {
   private baseDataDir: string;
   private cleanedDir: string;
@@ -56,7 +74,7 @@ export class DataRepository {
   public procedureCosts: ProcedureCost[] = [];
   public costComponents: CostComponent[] = [];
   public hospitalNetworks: HospitalNetwork[] = [];
-  public insurers: Insurer[] = [];
+  public insurers: Insurer[] = [...BASELINE_INSURERS];
   public policies: InsurancePolicy[] = [];
   public policyRules: PolicyRule[] = [];
   public policyExclusions: PolicyExclusion[] = [];
@@ -368,11 +386,11 @@ export class DataRepository {
   // ==========================================
 
   public getInsurers(): Insurer[] {
-    return this.insurers;
+    return this.insurers.length > 0 ? this.insurers : BASELINE_INSURERS;
   }
 
   public getInsurerById(id: string): Insurer | undefined {
-    return this.insurers.find((i) => i.id === id);
+    return this.getInsurers().find((i) => i.id === id);
   }
 
   // ==========================================
