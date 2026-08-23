@@ -297,7 +297,7 @@ export const OnboardingPage: React.FC = () => {
           insuranceType === 'GOVERNMENT'
             ? 'GOVERNMENT_SCHEME'
             : insuranceType === 'EMPLOYER'
-            ? 'GROUP'
+            ? 'EMPLOYER_GROUP'
             : 'INDIVIDUAL'
         ) as PolicyType,
         sum_insured: Number(sumInsured) || 500000,

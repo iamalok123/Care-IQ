@@ -67,6 +67,19 @@ export const patientSchema = z.object({
   preferred_language: z.string().default('English')
 });
 
+export const policyTypeSchema = z.preprocess((val) => {
+  if (typeof val === 'string') {
+    const upper = val.toUpperCase().trim();
+    if (upper === 'GROUP' || upper === 'EMPLOYER' || upper === 'CORPORATE' || upper === 'EMPLOYER_GROUP') return PolicyType.EMPLOYER_GROUP;
+    if (upper === 'GOVERNMENT' || upper === 'GOVT' || upper === 'SCHEME' || upper === 'GOVERNMENT_SCHEME') return PolicyType.GOVERNMENT_SCHEME;
+    if (upper === 'FLOATER' || upper === 'FAMILY' || upper === 'FAMILY_FLOATER') return PolicyType.FAMILY_FLOATER;
+    if (upper === 'CRITICAL' || upper === 'CRITICAL_ILLNESS') return PolicyType.CRITICAL_ILLNESS;
+    if (upper === 'INDIVIDUAL') return PolicyType.INDIVIDUAL;
+    return upper;
+  }
+  return val;
+}, z.nativeEnum(PolicyType).default(PolicyType.INDIVIDUAL));
+
 export const registerSchema = z.object({
   email: z.string().email('A valid email address is required'),
   password: z.string().min(6, 'Password must be at least 6 characters long'),
@@ -90,7 +103,7 @@ export const registerSchema = z.object({
     .object({
       insurer_id: z.string().min(1, 'Insurer selection is required'),
       policy_name: z.string().min(1, 'Policy name is required'),
-      policy_type: z.nativeEnum(PolicyType).default(PolicyType.INDIVIDUAL).optional(),
+      policy_type: policyTypeSchema.optional(),
       policy_number_masked: z.string().optional(),
       sum_insured: z.number().positive('Sum insured must be positive'),
       remaining_sum_insured: z.number().nonnegative().optional(),
@@ -122,7 +135,7 @@ export const insurancePolicySchema = z.object({
   patient_id: z.string().optional(),
   insurer_id: z.string().min(1, 'Insurer selection is required'),
   policy_name: z.string().min(1, 'Policy name is required'),
-  policy_type: z.nativeEnum(PolicyType).default(PolicyType.INDIVIDUAL),
+  policy_type: policyTypeSchema,
   policy_number_masked: z.string().optional(),
   sum_insured: z.number().positive('Sum insured must be positive'),
   remaining_sum_insured: z.number().nonnegative().optional(),
