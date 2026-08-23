@@ -4,23 +4,14 @@ import {
   VerificationStatus,
   ConfidenceLevel,
   UserRole,
-  RelationshipType,
-  PermissionLevel,
-  InsurerType,
   PolicyType,
   RoomCategoryCode,
   RuleCategory,
-  HospitalType,
-  OwnershipType,
-  NetworkStatus,
-  RoomAvailability,
   JourneyStage,
-  JourneyStatus,
   EventStatus,
   VerificationCategory,
   PriorityLevel,
   VerificationItemStatus,
-  RecommendationType,
   AccountType
 } from '../types/domain';
 

@@ -47,6 +47,22 @@ export class AuthController {
     return [];
   }
 
+  private async getPatientPolicies(patientId: string): Promise<InsurancePolicy[]> {
+    let policies = dataRepository.getPoliciesByPatientId(patientId);
+    if (isSupabaseConfigured) {
+      try {
+        const sbPolicies = await supabaseRepository.fetchPolicies(patientId);
+        if (sbPolicies && sbPolicies.length > 0) {
+          policies = sbPolicies;
+          sbPolicies.forEach((p) => dataRepository.addPolicy(p));
+        }
+      } catch (err) {
+        console.warn('Failed to fetch patient policies from Supabase:', err);
+      }
+    }
+    return policies;
+  }
+
   /**
    * POST /api/auth/register
    * Creates Supabase Auth user, stores patient profile and optional insurance policy in DB.
@@ -354,7 +370,8 @@ export class AuthController {
         }
       }
 
-      const policies = enrichPolicies(patient ? dataRepository.getPoliciesByPatientId(patient.id) : []);
+      const rawPolicies = patient ? await this.getPatientPolicies(patient.id) : [];
+      const policies = enrichPolicies(rawPolicies);
       const journeys = patient ? dataRepository.getJourneysByPatientId(patient.id) : [];
 
       res.json({
@@ -421,7 +438,8 @@ export class AuthController {
             (req.user.email ? dataRepository.getPatientByEmail(req.user.email) : undefined);
         }
 
-        const policies = enrichPolicies(patient ? dataRepository.getPoliciesByPatientId(patient.id) : []);
+        const rawPolicies = patient ? await this.getPatientPolicies(patient.id) : [];
+        const policies = enrichPolicies(rawPolicies);
         const journeys = patient ? dataRepository.getJourneysByPatientId(patient.id) : [];
         const verificationItems = patient ? dataRepository.getVerificationItems(patient.id) : [];
 
@@ -525,7 +543,8 @@ export class AuthController {
           }
         }
 
-        const policies = enrichPolicies(patient ? dataRepository.getPoliciesByPatientId(patient.id) : []);
+        const rawPolicies = patient ? await this.getPatientPolicies(patient.id) : [];
+        const policies = enrichPolicies(rawPolicies);
         const journeys = patient ? dataRepository.getJourneysByPatientId(patient.id) : [];
         const verificationItems = patient ? dataRepository.getVerificationItems(patient.id) : [];
 

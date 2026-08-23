@@ -14,7 +14,8 @@ import {
   AlertTriangle,
   Clock,
   IndianRupee,
-  X
+  X,
+  Pencil
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { ExtractionReviewModal } from '../modals/ExtractionReviewModal';
@@ -85,43 +86,67 @@ const getInsurerMeta = (insurerId: string = '') => {
       logoInitial: 'C',
       type: 'Standalone Health Insurer'
     };
-  } else if (id.includes('niva') || id.includes('bupa') || id.includes('max')) {
-    return {
-      name: 'Niva Bupa Health Insurance',
-      shortName: 'Niva Bupa',
-      theme: 'indigo',
-      bgGradient: 'from-indigo-50 to-blue-50',
-      borderColor: 'border-indigo-200',
-      badgeBg: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-      accentColor: 'text-indigo-700',
-      logoInitial: 'N',
-      type: 'Standalone Health Insurer'
-    };
   } else if (id.includes('pm-jay') || id.includes('ayushman') || id.includes('gov')) {
     return {
-      name: 'Ayushman Bharat PM-JAY (Govt. Scheme)',
-      shortName: 'PM-JAY Scheme',
+      name: 'Ayushman Bharat PM-JAY',
+      shortName: 'PM-JAY',
       theme: 'emerald',
-      bgGradient: 'from-emerald-50 to-green-50',
-      borderColor: 'border-emerald-300',
-      badgeBg: 'bg-emerald-600 text-white border-emerald-700',
-      accentColor: 'text-emerald-800',
-      logoInitial: 'P',
-      type: 'National Health Scheme (100% Cashless Package)'
+      bgGradient: 'from-emerald-50 to-teal-50',
+      borderColor: 'border-emerald-200',
+      badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+      accentColor: 'text-emerald-700',
+      logoInitial: 'G',
+      type: 'Government Health Protection Scheme'
     };
-  } else {
+  } else if (id.includes('arogya') || id.includes('karnataka') || id.includes('ark')) {
     return {
-      name: 'Health Insurance Provider',
-      shortName: 'Insurer',
-      theme: 'slate',
-      bgGradient: 'from-slate-50 to-slate-100',
-      borderColor: 'border-slate-200',
-      badgeBg: 'bg-slate-100 text-slate-800 border-slate-200',
-      accentColor: 'text-slate-700',
+      name: 'Arogya Karnataka (AB-ARK)',
+      shortName: 'AB-ARK',
+      theme: 'amber',
+      bgGradient: 'from-amber-50 to-yellow-50',
+      borderColor: 'border-amber-200',
+      badgeBg: 'bg-amber-100 text-amber-800 border-amber-200',
+      accentColor: 'text-amber-700',
+      logoInitial: 'K',
+      type: 'State Universal Health Scheme'
+    };
+  } else if (id.includes('icici')) {
+    return {
+      name: 'ICICI Lombard General Insurance',
+      shortName: 'ICICI Lombard',
+      theme: 'rose',
+      bgGradient: 'from-rose-50 to-orange-50',
+      borderColor: 'border-rose-200',
+      badgeBg: 'bg-rose-100 text-rose-800 border-rose-200',
+      accentColor: 'text-rose-700',
       logoInitial: 'I',
-      type: 'Health Insurance Policy'
+      type: 'General Insurer'
+    };
+  } else if (id.includes('new-india') || id.includes('nia')) {
+    return {
+      name: 'New India Assurance Co. Ltd.',
+      shortName: 'New India Assurance',
+      theme: 'cyan',
+      bgGradient: 'from-cyan-50 to-blue-50',
+      borderColor: 'border-cyan-200',
+      badgeBg: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+      accentColor: 'text-cyan-700',
+      logoInitial: 'N',
+      type: 'Public Sector Insurer'
     };
   }
+
+  return {
+    name: insurerId.replace(/^(ins-|sch-)/, '').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+    shortName: insurerId.replace(/^(ins-|sch-)/, '').split('-')[0].toUpperCase(),
+    theme: 'slate',
+    bgGradient: 'from-slate-50 to-gray-50',
+    borderColor: 'border-slate-200',
+    badgeBg: 'bg-slate-100 text-slate-700 border-slate-200',
+    accentColor: 'text-slate-700',
+    logoInitial: insurerId.charAt(0).toUpperCase() || 'P',
+    type: 'Insurance Policy'
+  };
 };
 
 export const InsuranceView: React.FC<InsuranceViewProps> = ({
@@ -137,6 +162,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
   const onOpenChatbot = propOnOpenChatbot || (() => context.setIsChatbotOpen(true));
 
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [editingPolicyId, setEditingPolicyId] = useState<string | null>(null);
   const [expandedPolicyId, setExpandedPolicyId] = useState<string | null>(
     policies.length > 0 ? policies[0].id : null
   );
@@ -150,14 +176,39 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [copiedPolicyId, setCopiedPolicyId] = useState<string | null>(null);
 
-  // Form State for Manual Entry
+  // Form State for Manual / Edit Entry
   const [insurerId, setInsurerId] = useState<string>('ins-star-health');
   const [policyName, setPolicyName] = useState<string>('Star Comprehensive Health Insurance');
+  const [policyType, setPolicyType] = useState<string>('INDIVIDUAL');
   const [sumInsured, setSumInsured] = useState<number>(500000);
   const [roomEligibility, setRoomEligibility] = useState<string>('PRIVATE_AC');
   const [copay, setCopay] = useState<number>(0);
   const [deductible, setDeductible] = useState<number>(0);
   const [submitting, setSubmitting] = useState<boolean>(false);
+
+  const handleOpenAddModal = () => {
+    setEditingPolicyId(null);
+    setInsurerId('ins-star-health');
+    setPolicyName('Star Comprehensive Health Insurance');
+    setPolicyType('INDIVIDUAL');
+    setSumInsured(500000);
+    setRoomEligibility('PRIVATE_AC');
+    setCopay(0);
+    setDeductible(0);
+    setShowAddModal(true);
+  };
+
+  const handleOpenEditModal = (p: EnrichedInsurancePolicy) => {
+    setEditingPolicyId(p.id);
+    setInsurerId(p.insurer_id || 'ins-star-health');
+    setPolicyName(p.policy_name || '');
+    setPolicyType(p.policy_type || 'INDIVIDUAL');
+    setSumInsured(p.sum_insured || 500000);
+    setRoomEligibility(p.room_eligibility || 'PRIVATE_AC');
+    setCopay(p.copay_percentage || 0);
+    setDeductible(p.deductible_amount || 0);
+    setShowAddModal(true);
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -182,17 +233,17 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
     }
   };
 
-  const handleAddPolicy = async (e: React.FormEvent) => {
+  const handleSavePolicy = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!policyName) return;
 
     setSubmitting(true);
     try {
-      await api.createPolicy({
+      const payload: Partial<EnrichedInsurancePolicy> = {
         patient_id: activePatient?.id,
         insurer_id: insurerId,
-        policy_name: policyName,
-        policy_type: 'INDIVIDUAL',
+        policy_name: policyName.trim(),
+        policy_type: (policyType as any) || 'INDIVIDUAL',
         sum_insured: Number(sumInsured),
         remaining_sum_insured: Number(sumInsured),
         room_eligibility: (roomEligibility as RoomCategoryCode) || 'PRIVATE_AC',
@@ -202,8 +253,16 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
         preauthorization_supported: true,
         pre_hospitalization_days: 60,
         post_hospitalization_days: 90
-      });
+      };
+
+      if (editingPolicyId) {
+        await api.updatePolicy(editingPolicyId, payload);
+      } else {
+        await api.createPolicy(payload);
+      }
+
       setShowAddModal(false);
+      setEditingPolicyId(null);
       setPolicyName('Star Comprehensive Health Insurance');
       if (activePatient) {
         await context.loadDataForPatient(activePatient);
@@ -211,8 +270,9 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
         await api.getPolicies();
       }
       onPolicyAdded();
-    } catch (err) {
-      console.error('Failed to add policy:', err);
+    } catch (err: any) {
+      console.error('Failed to save policy:', err);
+      alert(`Failed to save policy: ${err?.message || err}`);
     } finally {
       setSubmitting(false);
     }
@@ -298,7 +358,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
 
           {/* Manual Entry Button */}
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={handleOpenAddModal}
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-xs font-extrabold bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 shadow-2xs transition-all cursor-pointer"
           >
             <Plus size={16} className="text-teal-600" />
@@ -341,7 +401,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
             </div>
             <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
               <span>Remaining: <strong className="text-emerald-600">₹{(totalRemaining / 100000).toFixed(1)} Lakhs</strong></span>
-              <span>1 Policy active</span>
+              <span>{policies.length} {policies.length === 1 ? 'Policy' : 'Policies'} active</span>
             </div>
             <div className="w-full bg-slate-100 rounded-full h-1.5 mt-1.5 overflow-hidden">
               <div
@@ -376,7 +436,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                 <ShieldCheck className="w-4 h-4 text-emerald-600" /> Co-Pay & Deductible
               </span>
               <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold">
-                Zero Copay
+                {primaryPolicy?.copay_percentage ? `${primaryPolicy.copay_percentage}% Co-Pay` : 'Zero Copay'}
               </span>
             </div>
             <div className="text-base sm:text-lg font-black text-emerald-700 mt-1">
@@ -441,7 +501,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                 />
               </label>
               <button
-                onClick={() => setShowAddModal(true)}
+                onClick={handleOpenAddModal}
                 className="px-4 py-2.5 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs transition-colors cursor-pointer"
               >
                 + Add Manually
@@ -473,7 +533,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                     <div>
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">
-                          {p.policy_type || 'INDIVIDUAL'}
+                          {p.policy_type?.replace(/_/g, ' ') || 'INDIVIDUAL'}
                         </span>
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                           <CheckCircle2 size={12} />
@@ -498,7 +558,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                             </span>
                             <button
                               onClick={() => handleCopyPolicyNumber(p.policy_number_masked!, p.id)}
-                              className="text-slate-400 hover:text-slate-700 p-0.5 rounded transition-colors"
+                              className="text-slate-400 hover:text-slate-700 p-0.5 rounded transition-colors cursor-pointer"
                               title="Copy policy number"
                             >
                               {copiedPolicyId === p.id ? (
@@ -601,6 +661,14 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
+                      onClick={() => handleOpenEditModal(p)}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition-colors cursor-pointer"
+                    >
+                      <Pencil size={13} />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => handleDeletePolicy(p.id, p.policy_name)}
                       className="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 hover:text-rose-800 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer"
                     >
@@ -654,17 +722,27 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                             : 'text-slate-600 hover:bg-slate-100'
                         }`}
                       >
-                        Waiting Periods & PED
+                        PED Waiting Periods
                       </button>
                       <button
-                        onClick={() => setActiveTabByPolicy({ ...activeTabByPolicy, [p.id]: 'tpa' })}
+                        onClick={() => setActiveTabByPolicy({ ...activeTabByPolicy, [p.id]: 'copay' })}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
-                          policyTab === 'tpa'
+                          policyTab === 'copay'
                             ? 'bg-slate-900 text-white shadow-xs'
                             : 'text-slate-600 hover:bg-slate-100'
                         }`}
                       >
-                        Pre-Auth & TPA Desk
+                        Co-Payment & Deductibles
+                      </button>
+                      <button
+                        onClick={() => setActiveTabByPolicy({ ...activeTabByPolicy, [p.id]: 'procedural' })}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                          policyTab === 'procedural'
+                            ? 'bg-slate-900 text-white shadow-xs'
+                            : 'text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        Cashless Protocol
                       </button>
                     </div>
 
@@ -839,7 +917,10 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       {showAddModal && (
         <div
           className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
-          onClick={() => setShowAddModal(false)}
+          onClick={() => {
+            setShowAddModal(false);
+            setEditingPolicyId(null);
+          }}
         >
           <div
             className="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200"
@@ -848,50 +929,76 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
-                  <ShieldCheck className="w-5 h-5" />
+                  {editingPolicyId ? <Pencil className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-slate-900">
-                    Add / Configure Insurance Policy
+                    {editingPolicyId ? 'Edit & Update Insurance Policy' : 'Add / Configure Insurance Policy'}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Link policy constraints to calculate out-of-pocket costs
+                    {editingPolicyId ? 'Update your coverage rules, room rent limits, co-pay and deductible amounts' : 'Link policy constraints to calculate out-of-pocket costs'}
                   </p>
                 </div>
               </div>
               <button
-                onClick={() => setShowAddModal(false)}
-                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition-colors"
+                onClick={() => {
+                  setShowAddModal(false);
+                  setEditingPolicyId(null);
+                }}
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleAddPolicy} className="flex flex-col gap-4">
+            <form onSubmit={handleSavePolicy} className="flex flex-col gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Insurance Provider
+                  Insurance Provider / Scheme
                 </label>
                 <select
                   className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-hidden focus:border-teal-500 focus:bg-white transition-all font-semibold"
                   value={insurerId}
                   onChange={(e) => {
                     setInsurerId(e.target.value);
-                    if (e.target.value === 'ins-star-health') setPolicyName('Star Comprehensive Health Insurance');
-                    if (e.target.value === 'ins-hdfc-ergo') setPolicyName('HDFC ERGO Optima Restore');
-                    if (e.target.value === 'ins-niva-bupa') setPolicyName('Niva Bupa ReAssure 2.0');
-                    if (e.target.value === 'ins-care-health') setPolicyName('Care Supreme Health Plan');
-                    if (e.target.value === 'sch-pmjay') setPolicyName('Ayushman Bharat PM-JAY Card');
+                    if (!editingPolicyId) {
+                      if (e.target.value === 'ins-star-health') setPolicyName('Star Comprehensive Health Insurance');
+                      if (e.target.value === 'ins-hdfc-ergo') setPolicyName('HDFC ERGO Optima Restore');
+                      if (e.target.value === 'ins-niva-bupa') setPolicyName('Niva Bupa ReAssure 2.0');
+                      if (e.target.value === 'ins-care-health') setPolicyName('Care Supreme Health Plan');
+                      if (e.target.value === 'ins-icici-lombard') setPolicyName('ICICI Lombard Complete Health');
+                      if (e.target.value === 'sch-pmjay') {
+                        setPolicyName('Ayushman Bharat PM-JAY (Golden Card)');
+                        setPolicyType('GOVERNMENT_SCHEME');
+                      }
+                      if (e.target.value === 'sch-ab-ark') {
+                        setPolicyName('Arogya Karnataka (AB-ARK)');
+                        setPolicyType('GOVERNMENT_SCHEME');
+                      }
+                    }
                   }}
                 >
-                  <option value="ins-star-health">Star Health and Allied Insurance</option>
-                  <option value="ins-hdfc-ergo">HDFC ERGO General Insurance</option>
-                  <option value="ins-niva-bupa">Niva Bupa Health Insurance</option>
-                  <option value="ins-care-health">Care Health Insurance</option>
-                  <option value="ins-icici-lombard">ICICI Lombard General Insurance</option>
-                  <option value="ins-new-india">New India Assurance Co. Ltd.</option>
-                  <option value="sch-pmjay">Ayushman Bharat PM-JAY (Govt Scheme)</option>
-                  <option value="sch-arogya-karnataka">Arogya Karnataka (State Scheme)</option>
+                  <optgroup label="Private Health Insurers">
+                    <option value="ins-star-health">Star Health and Allied Insurance</option>
+                    <option value="ins-hdfc-ergo">HDFC ERGO General Insurance</option>
+                    <option value="ins-niva-bupa">Niva Bupa Health Insurance</option>
+                    <option value="ins-care-health">Care Health Insurance</option>
+                    <option value="ins-icici-lombard">ICICI Lombard General Insurance</option>
+                    <option value="ins-bajaj-allianz">Bajaj Allianz General Insurance</option>
+                    <option value="ins-tata-aig">Tata AIG General Insurance</option>
+                    <option value="ins-new-india">New India Assurance Co. Ltd.</option>
+                  </optgroup>
+                  <optgroup label="Government Schemes">
+                    <option value="sch-pmjay">Ayushman Bharat PM-JAY (Golden Card)</option>
+                    <option value="sch-ab-ark">Arogya Karnataka / AB-ARK</option>
+                    <option value="sch-mjpjay">Mahatma Jyotirao Phule Jan Arogya Yojana</option>
+                    <option value="sch-cghs">Central Government Health Scheme (CGHS)</option>
+                  </optgroup>
+                  <optgroup label="Corporate / Employer Group Plans">
+                    <option value="ins-icici-lombard">Corporate Group Health Plan (ICICI Lombard)</option>
+                    <option value="ins-star-health">Star Health Group Mediclaim</option>
+                    <option value="ins-hdfc-ergo">HDFC ERGO Group Suraksha</option>
+                  </optgroup>
                 </select>
               </div>
 
@@ -909,6 +1016,23 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                 />
               </div>
 
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Policy Type
+                </label>
+                <select
+                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-hidden focus:border-teal-500 focus:bg-white transition-all font-semibold"
+                  value={policyType}
+                  onChange={(e) => setPolicyType(e.target.value)}
+                >
+                  <option value="INDIVIDUAL">Individual Health Insurance</option>
+                  <option value="EMPLOYER_GROUP">Corporate / Employer Group Plan</option>
+                  <option value="GOVERNMENT_SCHEME">Government Health Protection Scheme</option>
+                  <option value="FAMILY_FLOATER">Family Floater Plan</option>
+                  <option value="CRITICAL_ILLNESS">Critical Illness Cover</option>
+                </select>
+              </div>
+
               {/* Sum Insured with Quick Presets */}
               <div>
                 <div className="flex items-center justify-between mb-1">
@@ -921,7 +1045,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                         key={preset}
                         type="button"
                         onClick={() => setSumInsured(preset)}
-                        className={`text-[10px] px-2 py-0.5 rounded-md font-bold transition-colors ${
+                        className={`text-[10px] px-2 py-0.5 rounded-md font-bold transition-colors cursor-pointer ${
                           sumInsured === preset
                             ? 'bg-teal-600 text-white'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -990,7 +1114,10 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
               <div className="flex justify-end gap-2.5 mt-4 pt-3 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setEditingPolicyId(null);
+                  }}
                   className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   Cancel
@@ -1006,7 +1133,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                     </div>
                   ) : (
                     <>
-                      <Check size={14} /> Save & Normalize Policy
+                      <Check size={14} /> {editingPolicyId ? 'Update Policy Details' : 'Save & Normalize Policy'}
                     </>
                   )}
                 </button>

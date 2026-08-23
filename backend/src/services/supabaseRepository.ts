@@ -135,7 +135,7 @@ export class SupabaseRepository {
   // ==========================================
 
   public async fetchPatients(): Promise<Patient[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('patients')
       .select('*')
       .order('created_at', { ascending: true });
@@ -144,7 +144,7 @@ export class SupabaseRepository {
   }
 
   public async fetchPatientById(id: string): Promise<Patient | null> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('patients')
       .select('*')
       .eq('id', id)
@@ -154,7 +154,7 @@ export class SupabaseRepository {
   }
 
   public async fetchPatientByAuthUserId(authUserId: string): Promise<Patient | null> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('patients')
       .select('*')
       .eq('auth_user_id', authUserId)
@@ -164,7 +164,7 @@ export class SupabaseRepository {
   }
 
   public async fetchPatientByEmail(email: string): Promise<Patient | null> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('patients')
       .select('*')
       .eq('email', email)
@@ -204,7 +204,7 @@ export class SupabaseRepository {
   }
 
   public async fetchDemoProfiles(): Promise<Patient[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('patients')
       .select('*')
       .eq('account_type', 'DEMO')
@@ -218,7 +218,7 @@ export class SupabaseRepository {
   // ==========================================
 
   public async fetchPolicies(patientId?: string): Promise<InsurancePolicy[]> {
-    let query = supabase.from('insurance_policies').select('*');
+    let query = supabaseAdmin.from('insurance_policies').select('*');
     if (patientId) {
       query = query.eq('patient_id', patientId);
     }
@@ -228,7 +228,7 @@ export class SupabaseRepository {
   }
 
   public async fetchPolicyById(id: string): Promise<InsurancePolicy | null> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('insurance_policies')
       .select('*')
       .eq('id', id)
@@ -268,7 +268,7 @@ export class SupabaseRepository {
   }
 
   public async fetchPolicyRules(policyId?: string): Promise<PolicyRule[]> {
-    let query = supabase.from('policy_rules').select('*');
+    let query = supabaseAdmin.from('policy_rules').select('*');
     if (policyId) {
       query = query.eq('policy_id', policyId);
     }
@@ -288,7 +288,7 @@ export class SupabaseRepository {
   }
 
   public async fetchPolicyExclusions(policyId?: string): Promise<PolicyExclusion[]> {
-    let query = supabase.from('policy_exclusions').select('*');
+    let query = supabaseAdmin.from('policy_exclusions').select('*');
     if (policyId) {
       query = query.eq('policy_id', policyId);
     }
@@ -312,7 +312,7 @@ export class SupabaseRepository {
   // ==========================================
 
   public async fetchJourneys(patientId?: string): Promise<(CareJourney & { events: JourneyEvent[] })[]> {
-    let query = supabase
+    let query = supabaseAdmin
       .from('care_journeys')
       .select('*, events:journey_events(*)');
 
@@ -326,7 +326,7 @@ export class SupabaseRepository {
   }
 
   public async fetchJourneyById(id: string): Promise<(CareJourney & { events: JourneyEvent[] }) | null> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('care_journeys')
       .select('*, events:journey_events(*)')
       .eq('id', id)
@@ -373,7 +373,7 @@ export class SupabaseRepository {
   // ==========================================
 
   public async fetchVerificationItems(patientId?: string, journeyId?: string): Promise<VerificationItem[]> {
-    let query = supabase.from('verification_items').select('*');
+    let query = supabaseAdmin.from('verification_items').select('*');
     if (patientId) query = query.eq('patient_id', patientId);
     if (journeyId) query = query.eq('journey_id', journeyId);
 
@@ -411,7 +411,7 @@ export class SupabaseRepository {
   // ==========================================
 
   public async fetchDocuments(): Promise<Document[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('documents')
       .select('*')
       .order('created_at', { ascending: false });
@@ -420,7 +420,7 @@ export class SupabaseRepository {
   }
 
   public async fetchDocumentById(id: string): Promise<Document | null> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('documents')
       .select('*')
       .eq('id', id)
