@@ -92,7 +92,7 @@ export const CareJourneyView: React.FC<CareJourneyViewProps> = ({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 pb-20 sm:pb-6">
 
       
       {/* 1. Header & Quick Details */}

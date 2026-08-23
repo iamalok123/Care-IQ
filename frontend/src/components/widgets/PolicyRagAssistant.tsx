@@ -6,14 +6,12 @@ import {
   Quote,
   ShieldCheck,
   AlertCircle,
-  Loader2,
   Copy,
   Check,
   RotateCcw,
   User,
   ThumbsUp,
   ArrowRight,
-  Lightbulb,
   ChevronDown,
   ChevronUp,
   X
@@ -22,6 +20,7 @@ import { api, ApiError } from '../../services/api';
 import type { RagCitation } from '../../types/domain';
 import { InfoPopover } from '../common/InfoPopover';
 import { AiMarkdown } from '../common/AiMarkdown';
+import { Loader } from '../common/Loader';
 
 export interface PolicyRagAssistantProps {
   selectedPolicyId?: string;
@@ -201,7 +200,7 @@ export const PolicyRagAssistant: React.FC<PolicyRagAssistantProps> = ({
   }
 
   const containerClasses = isFloating
-    ? 'fixed inset-x-2 bottom-16 top-16 sm:top-auto sm:inset-x-auto sm:bottom-20 sm:right-6 z-50 sm:w-[480px] md:w-[520px] sm:max-h-[82vh] sm:h-[640px] bg-white rounded-2xl sm:rounded-3xl border border-slate-300/80 shadow-2xl overflow-hidden flex flex-col animate-fade-in'
+    ? 'fixed inset-x-2 bottom-20 top-14 sm:top-auto sm:inset-x-auto sm:bottom-20 sm:right-6 z-50 sm:w-[480px] md:w-[520px] sm:max-h-[82vh] sm:h-[640px] bg-white rounded-2xl sm:rounded-3xl border border-slate-300/80 shadow-2xl overflow-hidden flex flex-col animate-fade-in'
     : 'bg-white rounded-3xl border border-slate-200/90 shadow-md overflow-hidden flex flex-col transition-all duration-300';
 
   return (
@@ -481,16 +480,10 @@ export const PolicyRagAssistant: React.FC<PolicyRagAssistantProps> = ({
         {loading && (
           <div className="flex items-start gap-2.5 animate-in fade-in duration-200">
             <div className="w-7 h-7 rounded-xl bg-linear-to-br from-indigo-600 to-teal-500 text-white flex items-center justify-center shadow-md shadow-indigo-500/20 shrink-0">
-              <Sparkles className="w-3.5 h-3.5 text-white animate-spin" />
+              <Sparkles className="w-3.5 h-3.5 text-white" />
             </div>
-            <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-xs p-3 shadow-xs space-y-1.5 max-w-xs">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-900">
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
-                <span>Searching clauses & citations...</span>
-              </div>
-              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div className="bg-linear-to-r from-teal-500 via-indigo-500 to-teal-500 h-full w-2/3 rounded-full animate-pulse" />
-              </div>
+            <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-xs p-3 shadow-xs flex items-center justify-center">
+              <Loader size="xs" />
             </div>
           </div>
         )}
@@ -503,35 +496,29 @@ export const PolicyRagAssistant: React.FC<PolicyRagAssistantProps> = ({
         {/* Quick prompt suggestions pills above prompt input when messages exist */}
         {messages.length > 0 && (
           <div className="flex items-center gap-1 overflow-x-auto pb-1.5 mb-1.5 no-scrollbar">
-            <span className="text-[10px] font-semibold text-slate-400 mr-0.5 flex items-center gap-1 shrink-0">
-              <Lightbulb className="w-3 h-3 text-amber-500" /> Ask:
-            </span>
-            {promptSuggestions.map((item, idx) => (
+            {promptSuggestions.map((sug, idx) => (
               <button
                 key={idx}
-                type="button"
-                onClick={() => handleSendMessage(item.query)}
-                className="inline-flex items-center gap-1 text-[10px] bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-900 px-2 py-0.5 rounded-lg border border-slate-200 hover:border-indigo-200 transition-colors shrink-0 cursor-pointer shadow-2xs"
+                onClick={() => {
+                  setInputQuery(sug.query);
+                  handleSendMessage(sug.query);
+                }}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-[10px] font-semibold text-slate-700 hover:text-indigo-900 transition-colors whitespace-nowrap cursor-pointer shrink-0 shadow-2xs"
               >
-                <span>{item.icon}</span>
-                <span>{item.title}</span>
+                <span>{sug.icon}</span>
+                <span>{sug.title}</span>
               </button>
             ))}
           </div>
         )}
 
-        {/* Input Box Container */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSendMessage(inputQuery);
           }}
-          className="relative flex items-center bg-white border border-slate-300 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 rounded-xl shadow-xs transition-all p-1"
+          className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl p-1.5 shadow-2xs focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all"
         >
-          <div className="pl-2 pr-1 text-slate-400">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-          </div>
-
           <input
             ref={inputRef}
             type="text"
@@ -549,7 +536,7 @@ export const PolicyRagAssistant: React.FC<PolicyRagAssistantProps> = ({
             title="Send prompt"
           >
             {loading ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+              <Loader size="xs" whiteBg={false} />
             ) : (
               <Send className="w-3.5 h-3.5 text-white" />
             )}

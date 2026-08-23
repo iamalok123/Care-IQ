@@ -198,97 +198,115 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const diagPct = totalSum > 0 ? Math.round((diagFee / totalSum) * 100) : 0;
 
   return (
-    <div className="space-y-5 max-w-360 mx-auto pb-6">
+    <div className="space-y-5 max-w-360 mx-auto pb-20 sm:pb-6">
       
       {/* 🌟 1. Minimal Glassmorphic Patient Context Header */}
       <div className="bg-white/85 backdrop-blur-2xl border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-[0_8px_30px_rgb(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.9)] transition-all">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex flex-col gap-3.5">
           
-          {/* Patient Overview */}
-          <div className="flex items-center gap-3.5">
-            <div className="relative">
-              <div className="w-11 h-11 rounded-xl bg-linear-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20 shrink-0">
-                <User size={20} className="text-white" />
+          {/* Top Row: Avatar + Name + Core Badges */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="relative shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-linear-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20">
+                  <User size={20} className="text-white" />
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center">
+                  <span className="w-1 h-1 rounded-full bg-white" />
+                </span>
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center">
-                <span className="w-1 h-1 rounded-full bg-white" />
+
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-base sm:text-xl font-bold text-slate-900 tracking-tight">
+                    {patientName}
+                  </h1>
+                  <span className="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                    {patientAge} • {patientGender}
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-extrabold uppercase border ${
+                      accountType === 'NEW_USER'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-cyan-50 text-cyan-700 border-cyan-200'
+                    }`}
+                  >
+                    {accountType === 'NEW_USER' ? 'Verified' : 'Demo Persona'}
+                  </span>
+                </div>
+
+                {/* Subtitle metadata */}
+                <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-500 font-medium flex-wrap">
+                  <span>{patientCity}</span>
+                  <span>•</span>
+                  <span>{patientAdmissionType}</span>
+                  {activeHospital && (
+                    <>
+                      <span>•</span>
+                      <span className="text-teal-700 font-semibold">
+                        {isHospitalCashless ? `${hospitalTier} Cashless` : 'Reimburse'}
+                      </span>
+                    </>
+                  )}
+                  <InfoPopover
+                    title={`${patientName} — Active Context`}
+                    size="xs"
+                    variant="teal"
+                    content="Active patient clinical profile loaded into CareIQ engine to simulate real-world TPA authorizations and policy rules."
+                    details={[
+                      { label: 'Patient Name', value: patientName },
+                      { label: 'Diagnosis', value: patientDiagnosis },
+                      { label: 'Location', value: patientCity },
+                      { label: 'Admission Type', value: patientAdmissionType }
+                    ]}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Hospital pill if selected */}
+            {activeHospital ? (
+              <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1.5 self-start sm:self-auto shrink-0 max-w-full sm:max-w-xs">
+                <Building2 size={13} className="text-emerald-600 shrink-0" />
+                <span className="truncate">{activeHospital.name}</span>
+              </span>
+            ) : (
+              <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200 self-start sm:self-auto shrink-0">
+                No hospital selected
+              </span>
+            )}
+          </div>
+
+          {/* Clinical diagnosis callout - clean full-width display */}
+          <div className="bg-slate-50/90 border border-slate-200/80 rounded-xl px-3 py-2 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <div className="flex items-start sm:items-center gap-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
+                Clinical Context:
+              </span>
+              <span className="text-slate-800 font-semibold leading-snug">
+                {patientDiagnosis}
               </span>
             </div>
-
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-                  {patientName}
-                </h1>
-                <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                  {patientAge} • {patientGender}
-                </span>
-                <span
-                  className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border ${
-                    accountType === 'NEW_USER'
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      : 'bg-cyan-50 text-cyan-700 border-cyan-200'
-                  }`}
-                >
-                  {accountType === 'NEW_USER' ? 'Verified User' : 'Demo Persona'}
-                </span>
-                {activeHospital ? (
-                  <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                    <Building2 size={11} className="text-emerald-600" />
-                    <span className="truncate max-w-48">{activeHospital.name}</span>
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
-                    No hospital selected
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 font-medium">
-                <span className="text-slate-800 font-semibold">{patientDiagnosis}</span>
-                <span>•</span>
-                <span>{patientAdmissionType}</span>
-                <span>•</span>
-                <span>{patientCity}</span>
-                {activeHospital && (
-                  <>
-                    <span>•</span>
-                    <span className="text-teal-700 font-semibold">
-                      {isHospitalCashless ? `${hospitalTier} Cashless Track` : 'Reimbursement Track'}
-                    </span>
-                  </>
-                )}
-                <InfoPopover
-                  title={`${patientName} — Active Context`}
-                  size="xs"
-                  variant="teal"
-                  content="Active patient clinical profile loaded into CareIQ engine to simulate real-world TPA authorizations and policy rules."
-                  details={[
-                    { label: 'Patient Name', value: patientName },
-                    { label: 'Diagnosis', value: patientDiagnosis },
-                    { label: 'Location', value: patientCity },
-                    { label: 'Admission Type', value: patientAdmissionType }
-                  ]}
-                />
-              </div>
-            </div>
+            <span className="text-[11px] font-semibold text-slate-500 shrink-0">
+              Stage: <strong className="text-indigo-700 font-bold capitalize">{(currentStage || 'ADMISSION').toLowerCase()}</strong>
+            </span>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+          <div className="grid grid-cols-3 sm:flex items-center gap-2 pt-1 border-t border-slate-100">
             <button
               type="button"
               onClick={() => onNavigate('onboarding')}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition-all cursor-pointer"
             >
               <Edit3 size={13} className="text-slate-500" />
-              <span>Edit Profile</span>
+              <span>Edit</span>
             </button>
 
             <button
               type="button"
               onClick={() => setIsShareModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition-all cursor-pointer"
             >
               <Share2 size={13} className="text-slate-500" />
               <span>Share</span>
@@ -297,9 +315,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <button
               type="button"
               onClick={() => onNavigate('hospitals')}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/20 transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/20 transition-all cursor-pointer"
             >
-              <span>+ Compare Hospitals</span>
+              <span>+ Compare</span>
             </button>
           </div>
 
@@ -314,19 +332,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <HeartPulse size={16} />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-sm font-bold text-slate-900 tracking-tight">Personal Health Profile</h2>
                 <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                  Pre-auth & Waiting Period Context
+                  Pre-auth & PED Context
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium">
-                Clinical history used to verify pre-existing disease (PED) coverage and hospital specialty alignment
+                Clinical history for pre-existing disease (PED) coverage
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
             {bloodGroup && (
               <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
                 Blood: {bloodGroup}
@@ -343,89 +361,89 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* 4 Clinical Grid Panels */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* 4 Clinical Grid Panels - 2x2 on mobile, 4-col on desktop */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
           {/* Medical Conditions */}
-          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl p-3">
+          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl p-2.5 sm:p-3">
             <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-              <Activity size={12} className="text-cyan-600" />
-              <span>Medical Conditions</span>
+              <Activity size={12} className="text-cyan-600 shrink-0" />
+              <span className="truncate">Conditions</span>
             </div>
             <div className="flex flex-wrap gap-1">
               {medicalConditions && medicalConditions.length > 0 ? (
                 medicalConditions.map((cond: string, idx: number) => (
                   <span
                     key={idx}
-                    className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-white text-slate-800 border border-slate-200 shadow-2xs"
+                    className="px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-medium bg-white text-slate-800 border border-slate-200 shadow-2xs"
                   >
                     {cond}
                   </span>
                 ))
               ) : (
-                <span className="text-xs text-slate-400 font-medium">None reported / Healthy</span>
+                <span className="text-[11px] text-slate-400 font-medium">None / Healthy</span>
               )}
             </div>
           </div>
 
           {/* Current Medications */}
-          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl p-3">
+          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl p-2.5 sm:p-3">
             <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-              <Pill size={12} className="text-purple-600" />
-              <span>Current Medications</span>
+              <Pill size={12} className="text-purple-600 shrink-0" />
+              <span className="truncate">Medications</span>
             </div>
             <div className="flex flex-wrap gap-1">
               {currentMedications && currentMedications.length > 0 ? (
                 currentMedications.map((med: string, idx: number) => (
                   <span
                     key={idx}
-                    className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-white text-purple-900 border border-purple-200 shadow-2xs"
+                    className="px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-medium bg-white text-purple-900 border border-purple-200 shadow-2xs"
                   >
                     {med}
                   </span>
                 ))
               ) : (
-                <span className="text-xs text-slate-400 font-medium">No routine medications</span>
+                <span className="text-[11px] text-slate-400 font-medium">No routine meds</span>
               )}
             </div>
           </div>
 
           {/* Known Allergies */}
-          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl p-3">
+          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl p-2.5 sm:p-3">
             <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-              <AlertCircle size={12} className="text-amber-600" />
-              <span>Known Allergies</span>
+              <AlertCircle size={12} className="text-amber-600 shrink-0" />
+              <span className="truncate">Allergies</span>
             </div>
             <div className="flex flex-wrap gap-1">
               {allergies && allergies.length > 0 ? (
                 allergies.map((all: string, idx: number) => (
                   <span
                     key={idx}
-                    className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-white text-amber-900 border border-amber-200 shadow-2xs"
+                    className="px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-medium bg-white text-amber-900 border border-amber-200 shadow-2xs"
                   >
                     {all}
                   </span>
                 ))
               ) : (
-                <span className="text-xs text-slate-400 font-medium">No known drug allergies</span>
+                <span className="text-[11px] text-slate-400 font-medium">No known allergies</span>
               )}
             </div>
           </div>
 
           {/* Emergency Contact */}
-          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl p-3">
+          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl p-2.5 sm:p-3">
             <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-              <Phone size={12} className="text-emerald-600" />
-              <span>Emergency Contact</span>
+              <Phone size={12} className="text-emerald-600 shrink-0" />
+              <span className="truncate">Emergency</span>
             </div>
             {emergencyContactName ? (
-              <div className="text-xs font-semibold text-slate-800">
-                <div>{emergencyContactName}</div>
+              <div className="text-[11px] sm:text-xs font-semibold text-slate-800">
+                <div className="truncate">{emergencyContactName}</div>
                 {emergencyContactPhone && (
-                  <div className="text-[11px] text-slate-500 font-normal">{emergencyContactPhone}</div>
+                  <div className="text-[10px] sm:text-[11px] text-slate-500 font-normal truncate">{emergencyContactPhone}</div>
                 )}
               </div>
             ) : (
-              <span className="text-xs text-slate-400 font-medium">Contact not provided</span>
+              <span className="text-[11px] text-slate-400 font-medium">Not provided</span>
             )}
           </div>
         </div>
@@ -463,19 +481,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
       )}
 
       {/* 🌟 2. Four Clean Glass Metric Cards (Minimal & High Signal) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
         
         {/* Card 1: Policy Health */}
         <div 
           onClick={() => onNavigate('insurance')}
-          className="bg-white/85 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer group flex flex-col justify-between"
+          className="bg-white/85 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-3 sm:p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer group flex flex-col justify-between"
         >
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
             <div className="flex items-center gap-1.5">
-              <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center">
-                <ShieldCheck size={17} strokeWidth={2} />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                <ShieldCheck size={16} strokeWidth={2} />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Insurance
               </span>
             </div>
@@ -493,26 +511,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   { label: 'Co-Payment', value: `${copayPercentage}%` }
                 ]}
               />
-              <ArrowUpRight size={14} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
+              <ArrowUpRight size={13} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
             </div>
           </div>
           {policy ? (
             <div>
-              <h3 className="text-sm font-bold text-slate-900 truncate">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
                 {policyName}
               </h3>
-              <div className="flex items-baseline justify-between mt-1 text-xs">
-                <span className="text-slate-400 text-[11px]">Remaining Sum:</span>
-                <strong className="text-blue-600 font-bold text-sm">₹{(remainingSum / 100000).toFixed(1)}L</strong>
+              <div className="flex items-baseline justify-between mt-1 text-[11px] sm:text-xs">
+                <span className="text-slate-400 text-[10px] sm:text-[11px]">Remaining:</span>
+                <strong className="text-blue-600 font-bold text-xs sm:text-sm">₹{(remainingSum / 100000).toFixed(1)}L</strong>
               </div>
             </div>
           ) : (
             <div>
               <h3 className="text-xs font-bold text-blue-900 truncate">
-                + Add Health Policy
+                + Add Policy
               </h3>
-              <div className="flex items-baseline justify-between mt-1 text-[11px] text-slate-500">
-                <span>Unlock cashless coverage</span>
+              <div className="flex items-baseline justify-between mt-1 text-[10px] sm:text-[11px] text-slate-500">
+                <span>Unlock coverage</span>
                 <strong className="text-blue-600 font-bold">Setup →</strong>
               </div>
             </div>
@@ -522,14 +540,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Card 2: Hospital Network */}
         <div 
           onClick={() => onNavigate('hospitals')}
-          className="bg-white/85 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-teal-300 transition-all duration-200 cursor-pointer group flex flex-col justify-between"
+          className="bg-white/85 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-3 sm:p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-teal-300 transition-all duration-200 cursor-pointer group flex flex-col justify-between"
         >
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
             <div className="flex items-center gap-1.5">
-              <div className="w-8 h-8 rounded-xl bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center">
-                <Building2 size={17} strokeWidth={2} />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center shrink-0">
+                <Building2 size={16} strokeWidth={2} />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Hospital
               </span>
             </div>
@@ -546,17 +564,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   { label: 'Location', value: patientCity }
                 ]}
               />
-              <ArrowUpRight size={14} className="text-slate-400 group-hover:text-teal-600 transition-colors" />
+              <ArrowUpRight size={13} className="text-slate-400 group-hover:text-teal-600 transition-colors" />
             </div>
           </div>
           {activeHospital ? (
             <div>
-              <h3 className="text-sm font-bold text-slate-900 truncate">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
                 {activeHospital.name}
               </h3>
-              <div className="flex items-baseline justify-between mt-1 text-xs">
-                <span className="text-slate-400 text-[11px]">Network Fit:</span>
-                <strong className="text-teal-700 font-bold text-sm">
+              <div className="flex items-baseline justify-between mt-1 text-[11px] sm:text-xs">
+                <span className="text-slate-400 text-[10px] sm:text-[11px]">Network:</span>
+                <strong className="text-teal-700 font-bold text-xs sm:text-sm">
                   {isHospitalCashless ? '100% Cashless' : 'Reimburse'}
                 </strong>
               </div>
@@ -564,10 +582,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           ) : (
             <div>
               <h3 className="text-xs font-bold text-teal-900 truncate">
-                + Select Hospital
+                + Find Hospital
               </h3>
-              <div className="flex items-baseline justify-between mt-1 text-[11px] text-slate-500">
-                <span>Compare network tariffs</span>
+              <div className="flex items-baseline justify-between mt-1 text-[10px] sm:text-[11px] text-slate-500">
+                <span>Compare tariffs</span>
                 <strong className="text-teal-700 font-bold">Find →</strong>
               </div>
             </div>
@@ -577,15 +595,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Card 3: Indicative Out-of-Pocket */}
         <div 
           onClick={() => onNavigate('cost')}
-          className="bg-white/85 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-amber-300 transition-all duration-200 cursor-pointer group flex flex-col justify-between"
+          className="bg-white/85 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-3 sm:p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-amber-300 transition-all duration-200 cursor-pointer group flex flex-col justify-between"
         >
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
             <div className="flex items-center gap-1.5">
-              <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center">
-                <IndianRupee size={17} strokeWidth={2} />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                <IndianRupee size={16} strokeWidth={2} />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Out-of-Pocket
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Liability
               </span>
             </div>
             <div className="flex items-center gap-1">
@@ -601,53 +619,54 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   { label: 'Total Est. Liability', value: policy ? `₹${estimatedExposure.toLocaleString()}` : '₹0' }
                 ]}
               />
-              <ArrowUpRight size={14} className="text-slate-400 group-hover:text-amber-600 transition-colors" />
+              <ArrowUpRight size={13} className="text-slate-400 group-hover:text-amber-600 transition-colors" />
             </div>
           </div>
           {policy ? (
             <div>
-              <h3 className="text-sm font-bold text-slate-900 truncate flex items-baseline gap-1">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate flex items-baseline gap-1">
                 ₹{estimatedExposure.toLocaleString()}
               </h3>
-              <div className="flex items-baseline justify-between mt-1 text-xs">
-                <span className="text-slate-400 text-[11px]">Room Penalty:</span>
-                <strong className={`font-bold text-sm ${roomPenalty > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
-                  {roomPenalty > 0 ? `₹${roomPenalty.toLocaleString()} Mismatch` : '₹0 (Within Cap)'}
+              <div className="flex items-baseline justify-between mt-1 text-[11px] sm:text-xs">
+                <span className="text-slate-400 text-[10px] sm:text-[11px]">Room Gap:</span>
+                <strong className={`font-bold text-xs sm:text-sm ${roomPenalty > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
+                  {roomPenalty > 0 ? `₹${roomPenalty.toLocaleString()}` : '₹0'}
                 </strong>
               </div>
             </div>
           ) : (
             <div>
               <h3 className="text-xs font-bold text-amber-900 truncate">
-                + Calculate Estimate
+                + Estimate Cost
               </h3>
-              <div className="flex items-baseline justify-between mt-1 text-[11px] text-slate-500">
-                <span>Select hospital & procedure</span>
-                <strong className="text-amber-700 font-bold">Estimate →</strong>
+              <div className="flex items-baseline justify-between mt-1 text-[10px] sm:text-[11px] text-slate-500">
+                <span>Tariff math</span>
+                <strong className="text-amber-700 font-bold">Calc →</strong>
               </div>
             </div>
           )}
         </div>
 
+        {/* Card 4: Verification */}
         <div 
           onClick={() => onNavigate('verification')}
-          className="bg-white/85 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-rose-300 transition-all duration-200 cursor-pointer group flex flex-col justify-between"
+          className="bg-white/85 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-3 sm:p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-rose-300 transition-all duration-200 cursor-pointer group flex flex-col justify-between"
         >
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
             <div className="flex items-center gap-1.5">
-              <div className={`w-8 h-8 rounded-xl border flex items-center justify-center ${
+              <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl border flex items-center justify-center shrink-0 ${
                 pendingVerifications.length > 0
                   ? 'bg-rose-50 border-rose-100 text-rose-600'
                   : 'bg-emerald-50 border-emerald-100 text-emerald-600'
               }`}>
                 {pendingVerifications.length > 0 ? (
-                  <Clock size={17} strokeWidth={2} />
+                  <Clock size={16} strokeWidth={2} />
                 ) : (
-                  <CheckCircle2 size={17} strokeWidth={2} />
+                  <CheckCircle2 size={16} strokeWidth={2} />
                 )}
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Verification
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Checklist
               </span>
             </div>
             <div className="flex items-center gap-1">
@@ -662,16 +681,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   { label: 'Certainty Rating', value: `${confidenceScore}%` }
                 ]}
               />
-              <ArrowUpRight size={14} className="text-slate-400 group-hover:text-rose-600 transition-colors" />
+              <ArrowUpRight size={13} className="text-slate-400 group-hover:text-rose-600 transition-colors" />
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 truncate">
-              {pendingVerifications.length > 0 ? `${pendingVerifications.length} Pending Actions` : 'All Clear'}
+            <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+              {pendingVerifications.length > 0 ? `${pendingVerifications.length} Pending` : 'All Clear'}
             </h3>
-            <div className="flex items-baseline justify-between mt-1 text-xs">
-              <span className="text-slate-400 text-[11px]">Confirmed:</span>
-              <strong className="text-emerald-700 font-bold text-sm">{verifiedCount} / {totalItems}</strong>
+            <div className="flex items-baseline justify-between mt-1 text-[11px] sm:text-xs">
+              <span className="text-slate-400 text-[10px] sm:text-[11px]">Checked:</span>
+              <strong className="text-emerald-700 font-bold text-xs sm:text-sm">{verifiedCount} / {totalItems}</strong>
             </div>
           </div>
         </div>
@@ -679,18 +698,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* 🌟 3. Care Journey Progress & Stepper Tracker */}
-      <div className="bg-linear-to-br from-white to-teal-50/60 border border-teal-200/90 rounded-2xl p-5 sm:p-6 shadow-xs">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+      <div className="bg-linear-to-br from-white to-teal-50/60 border border-teal-200/90 rounded-2xl p-4 sm:p-6 shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 mb-4 sm:mb-5">
           <div>
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800 uppercase tracking-wider">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-teal-100 text-teal-800 uppercase tracking-wider">
                 Care Stage
               </span>
-              <h2 className="text-base sm:text-lg md:text-xl font-extrabold text-slate-900 tracking-tight">
+              <h2 className="text-sm sm:text-lg md:text-xl font-extrabold text-slate-900 tracking-tight">
                 Hospital Care Progress
               </h2>
             </div>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">
+            <p className="text-[11px] sm:text-xs text-slate-400 font-medium mt-0.5">
               {stageResolution.hasJourney ? (
                 <>Active: <strong className="text-slate-700 capitalize">{(currentStage || 'ADMISSION').toLowerCase()}</strong> • Stage {stageIndex + 1} of {stages.length}</>
               ) : (
@@ -702,15 +721,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <button
             type="button"
             onClick={() => onNavigate(stageResolution.hasJourney ? 'journey' : 'hospitals')}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-teal-800 bg-white hover:bg-teal-50 border border-teal-200/90 shadow-2xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-teal-800 bg-white hover:bg-teal-50 border border-teal-200/90 shadow-2xs transition-all cursor-pointer"
           >
-            <span>{stageResolution.hasJourney ? 'More details' : '+ Start Journey'}</span>
+            <span>{stageResolution.hasJourney ? 'Details' : '+ Start Journey'}</span>
             <span>→</span>
           </button>
         </div>
 
         {/* Multi-Stage Step Progress Bar */}
-        <div className="flex items-center justify-between relative mt-4 pt-2">
+        <div className="flex items-center justify-between relative mt-3 sm:mt-4 pt-2 px-1 sm:px-2">
           <div className="absolute top-5 left-5 right-5 h-1 bg-slate-200 z-1" />
           <div
             className="absolute top-5 left-5 h-1 bg-teal-600 z-2 transition-all duration-300"
@@ -720,16 +739,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {stages.map((stageName, idx) => {
             const isCompleted = stageResolution.hasJourney && idx < stageIndex;
             const isCurrent = stageResolution.hasJourney && idx === stageIndex;
+            const labelMap: Record<string, string> = {
+              ADMISSION: 'Admission',
+              PRE_AUTH: 'Pre-Auth',
+              INPATIENT: 'Inpatient',
+              DISCHARGE: 'Discharge',
+              REIMBURSEMENT: 'Claims'
+            };
+            const displayLabel = labelMap[stageName] || stageName.toLowerCase();
 
             return (
               <button
                 key={stageName}
                 type="button"
                 onClick={() => onNavigate('journey')}
-                className="flex flex-col items-center relative z-3 cursor-pointer group"
+                className="flex flex-col items-center relative z-3 cursor-pointer group px-0.5"
               >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold transition-all ${
                     isCurrent
                       ? 'bg-indigo-600 text-white ring-4 ring-indigo-500/20 scale-110 shadow-sm'
                       : isCompleted
@@ -737,16 +764,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       : 'bg-slate-100 border-2 border-slate-300 text-slate-400 group-hover:border-slate-400'
                   }`}
                 >
-                  {isCompleted ? <CheckCircle2 size={18} /> : idx + 1}
+                  {isCompleted ? <CheckCircle2 size={16} className="text-white" /> : idx + 1}
                 </div>
                 <span
-                  className={`text-[11px] mt-1.5 capitalize transition-colors ${
+                  className={`text-[9px] sm:text-[11px] mt-1.5 capitalize transition-colors truncate max-w-14 sm:max-w-none text-center ${
                     isCurrent
                       ? 'font-black text-indigo-700 underline underline-offset-2'
                       : 'font-medium text-slate-500 group-hover:text-slate-700'
                   }`}
                 >
-                  {stageName.toLowerCase()}
+                  {displayLabel}
                 </span>
               </button>
             );
@@ -952,10 +979,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             {policy ? (
               /* Prominent Radial Dial & 4 Itemized Progress Rows */
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-1">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 pt-1">
                 
-                {/* Extra-Large Glowing Radial Meter Dial */}
-                <div className="relative w-40 h-40 sm:w-44 sm:h-44 shrink-0 flex items-center justify-center">
+                {/* Responsive Glowing Radial Meter Dial */}
+                <div className="relative w-32 h-32 sm:w-44 sm:h-44 shrink-0 flex items-center justify-center">
                   <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
                     {/* Background Track */}
                     <circle
@@ -983,13 +1010,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </svg>
 
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span className="text-3xl sm:text-4xl font-black text-white leading-none tracking-tight">
+                    <span className="text-2xl sm:text-4xl font-black text-white leading-none tracking-tight">
                       {utilizedPercent}%
                     </span>
-                    <span className="text-[10px] font-bold text-blue-200 uppercase mt-1">
+                    <span className="text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase mt-0.5 sm:mt-1">
                       Utilized
                     </span>
-                    <span className="text-[10px] font-semibold text-blue-300 mt-0.5">
+                    <span className="text-[9px] sm:text-[10px] font-semibold text-blue-300">
                       ₹{(utilizedSum / 100000).toFixed(2)}L Used
                     </span>
                   </div>
@@ -1173,8 +1200,80 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* Checklist Table */}
-        <div className="overflow-x-auto">
+        {/* Mobile Checkpoint Card List (< sm screens) */}
+        <div className="sm:hidden space-y-2.5">
+          {filteredItems.length === 0 ? (
+            <div className="py-6 px-3 text-center bg-slate-50 rounded-xl border border-slate-200/80">
+              <div className="text-xs font-bold text-slate-800">No verification items for this profile</div>
+              <div className="text-[11px] text-slate-500 mt-1">
+                Start a care journey or add a verification item to populate this section.
+              </div>
+            </div>
+          ) : (
+            filteredItems.map((item: any) => {
+              const isPending = item.status === 'PENDING';
+              const isHigh = item.priority === 'HIGH';
+
+              return (
+                <div key={item.id} className="bg-slate-50/90 border border-slate-200/80 rounded-xl p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                      isHigh ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-700 border border-slate-200'
+                    }`}>
+                      {item.priority || 'NORMAL'}
+                    </span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white text-slate-700 border border-slate-200">
+                      {item.category === 'ROOM' ? 'Admission Desk' : item.category === 'PREAUTH' ? 'TPA Cashless' : 'Billing & OT'}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      isPending
+                        ? isHigh 
+                          ? 'bg-rose-100 text-rose-800' 
+                          : 'bg-amber-100 text-amber-800'
+                        : 'bg-emerald-100 text-emerald-800'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${isPending ? (isHigh ? 'bg-rose-500' : 'bg-amber-500') : 'bg-emerald-500'}`} />
+                      {isPending ? 'Action Required' : 'Verified'}
+                    </span>
+                  </div>
+
+                  <div className="font-bold text-xs text-slate-900 leading-snug">
+                    {item.title}
+                  </div>
+
+                  {item.reason && (
+                    <p className="text-[11px] text-slate-500 line-clamp-2">
+                      {item.reason}
+                    </p>
+                  )}
+
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-2">
+                    <span className="text-[10px] text-slate-400">
+                      {item.category === 'ROOM' ? 'Admission Desk' : 'TPA Desk'}
+                    </span>
+                    {isPending ? (
+                      <button
+                        type="button"
+                        onClick={() => onOpenQuestionsModal(hospitalName, hasRoomMismatch)}
+                        className="py-1 px-3 rounded-lg text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+                      >
+                        Ask Desk →
+                      </button>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                        <Check size={13} />
+                        Confirmed
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Checklist Table (>= sm screens) */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-100 text-slate-400 uppercase text-[10px] font-bold tracking-wider">
@@ -1303,7 +1402,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <button
             type="button"
             onClick={onOpenChatbot}
-            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs cursor-pointer transition-colors shrink-0 self-start sm:self-auto"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs cursor-pointer transition-colors shrink-0"
           >
             <Sparkles size={13} />
             <span>Ask Copilot</span>

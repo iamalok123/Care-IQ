@@ -26,6 +26,7 @@ import {
   ShieldAlert,
   Sparkles
 } from 'lucide-react';
+import { Loader } from '../common/Loader';
 import { api, ApiError } from '../../services/api';
 import { JOURNEY_STAGES, STAGE_LABELS } from '../../lib/journey';
 import type {
@@ -173,12 +174,8 @@ export const StageGuidanceCard: React.FC<StageGuidanceCardProps> = ({
       )}
 
       {loading && !guidance && (
-        <div className="space-y-3" aria-hidden="true">
-          <div className="h-20 rounded-xl bg-slate-100 animate-pulse" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="h-32 rounded-xl bg-slate-100 animate-pulse" />
-            <div className="h-32 rounded-xl bg-slate-100 animate-pulse" />
-          </div>
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-12 flex items-center justify-center">
+          <Loader size="sm" />
         </div>
       )}
 

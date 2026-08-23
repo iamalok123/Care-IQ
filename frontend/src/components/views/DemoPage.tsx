@@ -6,12 +6,12 @@ import {
   ArrowLeft,
   ArrowRight,
   LayoutDashboard,
-  Loader2,
   PlayCircle,
   RotateCw
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { DEMO_PROFILES } from '../../lib/demoProfiles';
+import { Loader } from '../common/Loader';
 
 /**
  * A rejected fetch() carries browser-specific jargon — "Failed to fetch",
@@ -169,15 +169,14 @@ export const DemoPage: React.FC = () => {
                 }}
                 whileHover={reduceMotion || busy ? undefined : { y: -3 }}
                 onClick={() => handleSelect(profile.id)}
-                className={`group relative overflow-hidden flex flex-col rounded-2xl border bg-white p-5 transition-all duration-200 ${
-                  isDimmed
+                className={`group relative overflow-hidden flex flex-col rounded-2xl border bg-white p-5 transition-all duration-200 ${isDimmed
                     ? 'opacity-40 pointer-events-none border-slate-200'
                     : `cursor-pointer border-slate-200/90 shadow-xs hover:shadow-lg ${profile.accentBorder}`
-                } focus-within:ring-2 focus-within:outline-none ${profile.accentRing}`}
+                  } focus-within:ring-2 focus-within:outline-none ${profile.accentRing}`}
               >
                 {/* Indeterminate load bar */}
                 {isLoading && (
-                  <span className="absolute inset-x-0 top-0 h-[3px] overflow-hidden bg-slate-100">
+                  <span className="absolute inset-x-0 top-0 h-0.75 overflow-hidden bg-slate-100">
                     {reduceMotion ? (
                       <span className="block h-full w-full bg-slate-900" />
                     ) : (
@@ -238,10 +237,9 @@ export const DemoPage: React.FC = () => {
                   className="mt-5 w-full py-2.5 px-4 rounded-xl bg-slate-950 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors group-hover:bg-slate-800 disabled:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 cursor-pointer"
                 >
                   {isLoading ? (
-                    <>
-                      <Loader2 size={13} className="animate-spin" />
-                      <span>Loading data…</span>
-                    </>
+                    <div className="flex items-center justify-center py-0.5">
+                      <Loader size="xs" whiteBg={false} />
+                    </div>
                   ) : (
                     <>
                       <span>Load data</span>

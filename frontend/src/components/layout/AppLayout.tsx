@@ -6,7 +6,8 @@ import { AiQuestionsModal } from '../modals/AiQuestionsModal';
 import { PolicyRagAssistant } from '../widgets/PolicyRagAssistant';
 import { useCareIQ } from '../../context/CareIQContext';
 import { useAuth } from '../../context/AuthContext';
-import { Sparkles, CheckCircle2, Menu } from 'lucide-react';
+import { CheckCircle2, Menu, Sparkles } from 'lucide-react';
+import { Loader } from '../common/Loader';
 
 export const AppLayout: React.FC = () => {
   const location = useLocation();
@@ -23,10 +24,10 @@ export const AppLayout: React.FC = () => {
   } = useCareIQ();
   const { isAuthenticated, isDemoMode, loading: authLoading } = useAuth();
 
-  // Auth Guard: redirect unauthenticated non-demo users to /get-started
+  // Route protection
   useEffect(() => {
     if (!authLoading && !isAuthenticated && !isDemoMode) {
-      navigate('/get-started', { replace: true });
+      navigate('/login');
     }
   }, [authLoading, isAuthenticated, isDemoMode, navigate]);
 
@@ -36,14 +37,7 @@ export const AppLayout: React.FC = () => {
     location.pathname === '/hospital-matcher';
 
   if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
-        <div className="text-center">
-          <Sparkles size={32} className="text-cyan-400 mx-auto animate-spin" />
-          <p className="text-xs text-slate-400 mt-3 font-medium">Initializing CareIQ Session...</p>
-        </div>
-      </div>
-    );
+    return <Loader fullScreen size="lg" />;
   }
 
   return (
@@ -64,7 +58,7 @@ export const AppLayout: React.FC = () => {
       {/* Main Right Area Container (Offset by lg:pl-64) */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen lg:pl-64">
         {/* Main View Content Canvas */}
-        <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-7 max-w-350 w-full mx-auto pb-16">
+        <main className="flex-1 px-3 sm:px-5 md:px-6 lg:px-7 pt-14 sm:pt-5 md:pt-6 lg:pt-7 max-w-350 w-full mx-auto pb-24 sm:pb-16">
           {/* Feedback Alert Toast */}
           {feedbackBanner && (
             <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200 shadow-xs mb-3.5 animate-fade-in">
@@ -74,14 +68,8 @@ export const AppLayout: React.FC = () => {
           )}
 
           {careiqLoading ? (
-            <div className="text-center py-20 px-4">
-              <Sparkles size={36} className="text-teal-600 mx-auto animate-spin" />
-              <h3 className="text-lg font-bold text-slate-900 mt-3">
-                Loading CareIQ Decision Engine...
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Connecting policy models and hospital networks
-              </p>
+            <div className="bg-white rounded-3xl p-16 border border-slate-200/80 shadow-xs flex items-center justify-center my-6">
+              <Loader size="md" />
             </div>
           ) : (
             <Outlet />
@@ -89,7 +77,7 @@ export const AppLayout: React.FC = () => {
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-slate-200/80 bg-white py-3.5 px-6 text-center text-xs text-slate-500">
+        <footer className="border-t border-slate-200/80 bg-white py-3.5 px-6 text-center text-xs text-slate-500 mb-16 lg:mb-0">
           <p>
             <strong>CareIQ</strong> — Decision-Support Platform for Precision Care Challenge 2026. Non-clinical & non-diagnostic. Coverage estimates are indicative.
           </p>
@@ -99,7 +87,7 @@ export const AppLayout: React.FC = () => {
       {/* 🚀 Bottom-Right Floating Action Button (FAB) for Policy Copilot */}
       {showFloatingAssistant && (
         <>
-          <div className="fixed bottom-16 sm:bottom-5 right-4 sm:right-5 z-40">
+          <div className="fixed bottom-20 sm:bottom-5 right-3.5 sm:right-5 z-40">
             <button
               type="button"
               onClick={() => setIsChatbotOpen(!isChatbotOpen)}

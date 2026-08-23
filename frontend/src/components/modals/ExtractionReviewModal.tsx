@@ -10,6 +10,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { api } from '../../services/api';
+import { Loader } from '../common/Loader';
 
 interface ExtractionReviewModalProps {
   isOpen: boolean;
@@ -303,10 +304,12 @@ export const ExtractionReviewModal: React.FC<ExtractionReviewModalProps> = ({
             type="submit"
             form="extraction-form"
             disabled={isSubmitting}
-            className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl shadow-xs flex items-center gap-1.5 transition-colors"
+            className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             {isSubmitting ? (
-              'Confirming...'
+              <div className="flex items-center justify-center py-0.5 px-4">
+                <Loader size="xs" whiteBg={false} />
+              </div>
             ) : (
               <>
                 <CheckCircle2 className="w-4 h-4" /> Confirm & Add Policy

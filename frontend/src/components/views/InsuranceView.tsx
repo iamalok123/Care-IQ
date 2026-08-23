@@ -6,7 +6,6 @@ import {
   ChevronDown,
   ChevronUp,
   UploadCloud,
-  Loader2,
   ShieldCheck,
   ShieldAlert,
   Building2,
@@ -20,6 +19,7 @@ import {
 import { api } from '../../services/api';
 import { ExtractionReviewModal } from '../modals/ExtractionReviewModal';
 import { useCareIQ } from '../../context/CareIQContext';
+import { Loader } from '../common/Loader';
 
 import type {
   EnrichedInsurancePolicy,
@@ -235,7 +235,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
   const totalRemaining = policies.reduce((acc, p) => acc + (p.remaining_sum_insured ?? p.sum_insured ?? 0), 0);
 
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in duration-300">
+    <div className="flex flex-col gap-6 pb-20 sm:pb-8 animate-in fade-in duration-300">
       
       {/* 🌟 Header & Action Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs">
@@ -270,10 +270,9 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
           {/* Upload Policy PDF Button */}
           <label className="relative inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-extrabold bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-sm shadow-indigo-500/25 hover:shadow-md hover:shadow-indigo-500/35 transition-all duration-200 cursor-pointer group">
             {uploading ? (
-              <>
-                <Loader2 size={16} className="animate-spin text-white" />
-                <span>Extracting Clauses...</span>
-              </>
+              <div className="flex items-center justify-center py-0.5 px-3">
+                <Loader size="xs" whiteBg={false} />
+              </div>
             ) : (
               <>
                 <UploadCloud size={16} className="text-indigo-200 group-hover:scale-110 transition-transform" />
@@ -607,7 +606,12 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 transition-colors cursor-pointer"
                     >
                       {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                      {isExpanded ? 'Hide Policy Rules & Exclusions' : 'Inspect Rules, Exclusions & TPA Guidelines'}
+                      <span className="hidden sm:inline">
+                        {isExpanded ? 'Hide Policy Rules & Exclusions' : 'Inspect Rules, Exclusions & TPA Guidelines'}
+                      </span>
+                      <span className="sm:hidden">
+                        {isExpanded ? 'Hide Rules' : 'Inspect Rules'}
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -992,9 +996,9 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                   className="px-5 py-2.5 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-sm shadow-teal-600/30 transition-all cursor-pointer flex items-center gap-1.5"
                 >
                   {submitting ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin" /> Saving...
-                    </>
+                    <div className="flex items-center justify-center py-0.5 px-4">
+                      <Loader size="xs" whiteBg={false} />
+                    </div>
                   ) : (
                     <>
                       <Check size={14} /> Save & Normalize Policy

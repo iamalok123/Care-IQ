@@ -71,7 +71,7 @@ export const VerificationCenter: React.FC<VerificationCenterProps> = ({
   const resolvedCount = verificationItems.filter((v) => v.status === 'RESOLVED' || v.status === 'VERIFIED').length;
 
   return (
-    <div className="flex flex-col gap-6 max-w-360 mx-auto pb-8">
+    <div className="flex flex-col gap-6 max-w-360 mx-auto pb-20 sm:pb-8">
       
       {/* 1. Header & Summary Banner */}
       <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">

@@ -159,7 +159,7 @@ export const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
   const selectorsReady = Boolean(hospitalId && procedureId && policy?.id);
 
   return (
-    <div className="flex flex-col gap-6 max-w-360 mx-auto pb-6">
+    <div className="flex flex-col gap-6 max-w-360 mx-auto pb-20 sm:pb-6">
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs">
         <div>

@@ -17,6 +17,7 @@ import {
 
 import { api } from '../../services/api';
 import { HospitalCompare } from '../widgets/HospitalCompare';
+import { Loader } from '../common/Loader';
 
 import { useCareIQ } from '../../context/CareIQContext';
 
@@ -232,9 +233,8 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
 
       {/* 3. Hospital Cards List */}
       {loading ? (
-        <div className="text-center py-12">
-          <Activity size={32} className="text-teal-600 mx-auto animate-spin" />
-          <p className="mt-2 text-xs font-semibold text-slate-500">Evaluating hospital network constraints...</p>
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-16 flex items-center justify-center shadow-xs">
+          <Loader size="md" />
         </div>
       ) : matches.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-xs">
@@ -511,31 +511,31 @@ export const HospitalMatchView: React.FC<HospitalMatchViewProps> = ({
 
       {/* Floating Side-by-Side Comparison Action Bar */}
       {selectedForCompare.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-4 border border-slate-700 animate-fade-in">
+        <div className="fixed bottom-20 sm:bottom-6 left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-40 bg-slate-900 text-white p-3 sm:px-5 sm:py-3.5 rounded-2xl shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-slate-700 animate-fade-in max-w-xl">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-indigo-600 rounded-xl">
+            <div className="p-2 bg-indigo-600 rounded-xl shrink-0">
               <ArrowLeftRight size={16} className="text-white" />
             </div>
-            <div>
-              <span className="text-xs font-bold block">
+            <div className="min-w-0">
+              <span className="text-xs font-bold block truncate">
                 {selectedForCompare.length === 1
                   ? '1 hospital selected. Pick 1 more to compare.'
                   : '2 hospitals ready for side-by-side comparison.'}
               </span>
-              <span className="text-[10px] text-slate-400">
+              <span className="text-[10px] text-slate-400 block truncate">
                 {selectedForCompare.map((id) => matches.find((m) => (m.hospital?.id || m.id) === id)?.hospital?.name || id).join(' vs ')}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
             {selectedForCompare.length === 2 && (
               <button
                 type="button"
                 onClick={() => setIsCompareModalOpen(true)}
-                className="px-4 py-2 rounded-xl text-xs font-extrabold bg-linear-to-r from-teal-500 to-indigo-500 hover:opacity-95 text-white shadow-md cursor-pointer transition-all"
+                className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-extrabold bg-linear-to-r from-teal-500 to-indigo-500 hover:opacity-95 text-white shadow-md cursor-pointer transition-all"
               >
-                Compare Side-by-Side ⚡
+                Compare ⚡
               </button>
             )}
             <button

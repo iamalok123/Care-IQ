@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
+import { Loader } from '../common/Loader';
 
 import type {
   AccountType,
@@ -876,9 +877,8 @@ export const OnboardingPage: React.FC = () => {
                 className="py-2.5 px-6 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Saving Profile & Matching Hospitals...</span>
+                  <div className="flex items-center justify-center py-0.5">
+                    <Loader size="xs" whiteBg={false} />
                   </div>
                 ) : (
                   <>

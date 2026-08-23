@@ -14,6 +14,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { Loader } from '../common/Loader';
 
 export const AuthPage: React.FC = () => {
   const navigate = useNavigate();
@@ -257,9 +258,8 @@ export const AuthPage: React.FC = () => {
                 className="w-full mt-2 py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Signing In...</span>
+                  <div className="flex items-center justify-center py-0.5">
+                    <Loader size="xs" whiteBg={false} />
                   </div>
                 ) : (
                   <>
@@ -353,9 +353,8 @@ export const AuthPage: React.FC = () => {
                 className="w-full mt-2 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Creating Account...</span>
+                  <div className="flex items-center justify-center py-0.5">
+                    <Loader size="xs" whiteBg={false} />
                   </div>
                 ) : (
                   <>
