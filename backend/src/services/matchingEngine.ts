@@ -36,11 +36,6 @@ export class MatchingEngine {
       return hCity.includes(targetCity) || targetCity.includes(hCity);
     });
 
-    // If no exact city match found in dataset, fallback to all hospitals rather than returning 0
-    if (candidates.length === 0) {
-      candidates = allHospitals;
-    }
-
     // 2. Specialty & Service Filters
     if (params.specialtyCode) {
       const specFilter = params.specialtyCode.toLowerCase().trim();

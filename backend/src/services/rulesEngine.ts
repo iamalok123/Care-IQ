@@ -36,18 +36,19 @@ export class RulesEngine {
    * and calculates proportionate deduction ratio if entitlement is exceeded.
    */
   public evaluateRoomCategory(
-    policy: InsurancePolicy,
+    policy: InsurancePolicy | undefined,
     selectedCategoryCode: RoomCategoryCode,
     eligibleRoomTariff: number,
     selectedRoomTariff: number
   ): RoomEvaluationResult {
-    const policyRank = ROOM_RANK_MAP[policy.room_eligibility] || 3;
+    const policyRoom = policy?.room_eligibility || RoomCategoryCode.PRIVATE_AC;
+    const policyRank = ROOM_RANK_MAP[policyRoom] || 3;
     const selectedRank = ROOM_RANK_MAP[selectedCategoryCode] || 3;
 
-    if (policy.room_eligibility === RoomCategoryCode.ANY_ROOM || selectedRank <= policyRank) {
+    if (!policy || policyRoom === RoomCategoryCode.ANY_ROOM || selectedRank <= policyRank) {
       return {
         isCompatible: true,
-        policyAllowedCategory: policy.room_eligibility,
+        policyAllowedCategory: policyRoom,
         selectedCategory: selectedCategoryCode,
         proportionatePenaltyRatio: 1.0
       };

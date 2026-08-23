@@ -332,7 +332,12 @@ export class CostController {
       };
     }
 
-    const requestedCode = body[roomCategoryKey];
+    const requestedCode =
+      body[roomCategoryKey] ??
+      body.preferred_room_category ??
+      body.base_room_category ??
+      body.current_room_category ??
+      body.selected_room_category;
     const eligible = getEligibleRoomTariff(hospitalId, policy.room_eligibility);
     if (!eligible) {
       return {
@@ -457,7 +462,7 @@ export class CostController {
     }
 
     const published = getPublishedRoomTariffs(context.hospitalId);
-    const requestedAlt = req.body?.alternative_room_category as RoomCategoryCode | undefined;
+    const requestedAlt = (req.body?.alternative_room_category ?? req.body?.comparison_room_category) as RoomCategoryCode | undefined;
 
     // Default alternative: the next room up from the current one that this
     // hospital actually publishes. "DELUXE" was hardcoded before, and four of

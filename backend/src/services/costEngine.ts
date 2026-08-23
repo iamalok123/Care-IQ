@@ -9,13 +9,25 @@ import { rulesEngine } from './rulesEngine';
 
 export class CostEngine {
   public calculateEstimate(
-    policy: InsurancePolicy,
-    procedureCost: ProcedureCost,
-    components: CostComponent[],
+    policy?: InsurancePolicy,
+    procedureCost?: ProcedureCost,
+    components: CostComponent[] = [],
     selectedRoomCategory: RoomCategoryCode = RoomCategoryCode.PRIVATE_AC,
     eligibleRoomTariff: number = 6500,
     selectedRoomTariff: number = 6500
   ): CostEstimateResult {
+    const procCost = procedureCost || {
+      id: 'proc-default',
+      hospital_id: 'hosp-default',
+      procedure_id: 'proc-default',
+      typical_cost: 150000,
+      min_cost: 100000,
+      max_cost: 200000,
+      decision_support_only: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
     // 1. Room evaluation
     const roomEval = rulesEngine.evaluateRoomCategory(
       policy,
@@ -47,7 +59,7 @@ export class CostEngine {
     });
 
     const componentSum = candidateAmount + nonCoveredAmount;
-    const typicalGrossCost = componentSum > 0 ? componentSum : procedureCost.typical_cost;
+    const typicalGrossCost = componentSum > 0 ? componentSum : procCost.typical_cost;
 
     if (components.length === 0) {
       // Fallback distribution if no itemized components exist
@@ -56,23 +68,23 @@ export class CostEngine {
     }
 
     // 3. Deductible application
-    const deductibleAmount = Math.min(candidateAmount, policy.deductible_amount || 0);
+    const deductibleAmount = Math.min(candidateAmount, policy?.deductible_amount || 0);
     const amountAfterDeductible = Math.max(0, candidateAmount - deductibleAmount);
 
     // 4. Copay application
-    const copayPercentage = policy.copay_percentage || 0;
+    const copayPercentage = policy?.copay_percentage || 0;
     const copayAmount = Math.round(amountAfterDeductible * (copayPercentage / 100));
     const netAdmissibleClaim = amountAfterDeductible - copayAmount;
 
     // 5. Apply Sum Insured Cap and Gross Cost Cap
-    const remainingCover = policy.remaining_sum_insured ?? policy.sum_insured;
-    const coveredAmount = Math.min(netAdmissibleClaim, remainingCover, typicalGrossCost);
+    const remainingCover = policy ? (policy.remaining_sum_insured ?? policy.sum_insured) : 0;
+    const coveredAmount = policy ? Math.min(netAdmissibleClaim, remainingCover, typicalGrossCost) : 0;
 
     // 6. Patient exposure = Gross Cost - Insurer Covered
     const indicativePatientExposure = Math.max(0, typicalGrossCost - coveredAmount);
 
     return {
-      procedureName: procedureCost.procedure_id,
+      procedureName: procCost.procedure_id,
       typicalGrossCost,
       estimatedCoveredAmount: coveredAmount,
       estimatedCopayAmount: copayAmount,
