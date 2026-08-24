@@ -4,13 +4,13 @@ import { supabase } from '../config/supabase';
 import { DemoProfile } from '../types/domain';
 
 function resolveDataDir(): string {
-  const candidate1 = path.resolve(__dirname, '../../../../data');
+  const candidate1 = path.resolve(__dirname, '../../data');
   if (fs.existsSync(candidate1)) return candidate1;
-  const candidate2 = path.resolve(__dirname, '../../../data');
+  const candidate2 = path.resolve(__dirname, '../data');
   if (fs.existsSync(candidate2)) return candidate2;
-  const candidate3 = path.resolve(__dirname, '../../data');
+  const candidate3 = path.resolve(process.cwd(), 'backend/data');
   if (fs.existsSync(candidate3)) return candidate3;
-  return path.resolve(process.cwd(), 'data');
+  return path.resolve(__dirname, '../../data');
 }
 
 const ROOT_DATA_DIR = resolveDataDir();

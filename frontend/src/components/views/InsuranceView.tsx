@@ -20,7 +20,7 @@ import {
 import { api } from '../../services/api';
 import { ExtractionReviewModal } from '../modals/ExtractionReviewModal';
 import { useCareIQ } from '../../context/CareIQContext';
-import { Loader } from '../common/Loader';
+import { Spinner } from '../common/Spinner';
 
 import type {
   EnrichedInsurancePolicy,
@@ -335,8 +335,9 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
           {/* Upload Policy PDF Button */}
           <label className="relative inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-extrabold bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-sm shadow-indigo-500/25 hover:shadow-md hover:shadow-indigo-500/35 transition-all duration-200 cursor-pointer group">
             {uploading ? (
-              <div className="flex items-center justify-center py-0.5 px-3">
-                <Loader size="xs" whiteBg={false} />
+              <div className="flex items-center justify-center gap-2 py-0.5 px-3">
+                <Spinner size="xs" className="text-white" />
+                <span>Processing PDF...</span>
               </div>
             ) : (
               <>
@@ -1128,8 +1129,9 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                   className="px-5 py-2.5 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-sm shadow-teal-600/30 transition-all cursor-pointer flex items-center gap-1.5"
                 >
                   {submitting ? (
-                    <div className="flex items-center justify-center py-0.5 px-4">
-                      <Loader size="xs" whiteBg={false} />
+                    <div className="flex items-center justify-center gap-2 py-0.5 px-3">
+                      <Spinner size="xs" className="text-white" />
+                      <span>Saving...</span>
                     </div>
                   ) : (
                     <>

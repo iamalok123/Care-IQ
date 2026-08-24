@@ -10,7 +10,7 @@ import { RoomCategoryCode } from '../types/domain';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const ROOT_DATA_DIR = path.resolve(__dirname, '../../../data');
+const ROOT_DATA_DIR = path.resolve(__dirname, '../../data');
 const CLEANED_DIR = path.join(ROOT_DATA_DIR, 'cleaned');
 const SYNTHETIC_DIR = path.join(ROOT_DATA_DIR, 'synthetic');
 

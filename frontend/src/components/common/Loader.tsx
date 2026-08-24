@@ -1,19 +1,28 @@
 import React from 'react';
 import './Loader.css';
+import { Spinner } from './Spinner';
+
+export { Spinner } from './Spinner';
 
 export interface LoaderProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | number;
   fullScreen?: boolean;
   className?: string;
   whiteBg?: boolean;
+  variant?: 'boxes' | 'spinner';
 }
 
 export const Loader: React.FC<LoaderProps> = ({
   size = 'md',
   fullScreen = false,
   className = '',
-  whiteBg = true
+  whiteBg = true,
+  variant = 'boxes'
 }) => {
+  if (variant === 'spinner') {
+    return <Spinner size={size} className={className} />;
+  }
+
   const sizePx =
     typeof size === 'number'
       ? size

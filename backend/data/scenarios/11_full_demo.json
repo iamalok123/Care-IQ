@@ -1,0 +1,9 @@
+{
+  "id": "11_full_demo",
+  "name": "Persona 11 — Complete End-to-End CareIQ Hackathon Story",
+  "patientId": "pat-01-ananya",
+  "hospitalId": "hosp-manipal-old-airport",
+  "policyId": "pol-syn-ananya",
+  "procedureId": "proc-knee-replacement",
+  "journeyId": "jrn-01-ananya"
+}

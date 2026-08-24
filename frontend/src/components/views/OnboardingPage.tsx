@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
-import { Loader } from '../common/Loader';
+import { Spinner } from '../common/Spinner';
 
 import type {
   AccountType,
@@ -944,11 +944,12 @@ export const OnboardingPage: React.FC = () => {
                 type="button"
                 disabled={loading}
                 onClick={handleCompleteOnboarding}
-                className="py-2.5 px-6 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+                className="py-2.5 px-6 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-all disabled:opacity-80 cursor-pointer"
               >
                 {loading ? (
-                  <div className="flex items-center justify-center py-0.5">
-                    <Loader size="xs" whiteBg={false} />
+                  <div className="flex items-center justify-center gap-2 py-0.5">
+                    <Spinner size="sm" className="text-white" />
+                    <span>Setting up your dashboard...</span>
                   </div>
                 ) : (
                   <>

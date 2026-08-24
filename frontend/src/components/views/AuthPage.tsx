@@ -14,7 +14,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { Loader } from '../common/Loader';
+import { Spinner } from '../common/Spinner';
 
 export const AuthPage: React.FC = () => {
   const navigate = useNavigate();
@@ -255,11 +255,12 @@ export const AuthPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+                className="w-full mt-2 py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all disabled:opacity-80 cursor-pointer"
               >
                 {loading ? (
-                  <div className="flex items-center justify-center py-0.5">
-                    <Loader size="xs" whiteBg={false} />
+                  <div className="flex items-center justify-center gap-2 py-0.5">
+                    <Spinner size="sm" className="text-white" />
+                    <span>Signing in...</span>
                   </div>
                 ) : (
                   <>
@@ -350,11 +351,12 @@ export const AuthPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+                className="w-full mt-2 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all disabled:opacity-80 cursor-pointer"
               >
                 {loading ? (
-                  <div className="flex items-center justify-center py-0.5">
-                    <Loader size="xs" whiteBg={false} />
+                  <div className="flex items-center justify-center gap-2 py-0.5">
+                    <Spinner size="sm" className="text-white" />
+                    <span>Creating account...</span>
                   </div>
                 ) : (
                   <>

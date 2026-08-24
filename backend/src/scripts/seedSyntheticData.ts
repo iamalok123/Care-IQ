@@ -22,7 +22,7 @@ import {
   Recommendation
 } from '../types/domain';
 
-const ROOT_DATA_DIR = path.resolve(__dirname, '../../../data');
+const ROOT_DATA_DIR = path.resolve(__dirname, '../../data');
 const SYNTHETIC_DIR = path.join(ROOT_DATA_DIR, 'synthetic');
 const SCENARIOS_DIR = path.join(ROOT_DATA_DIR, 'scenarios');
 

@@ -1,0 +1,18 @@
+{
+  "id": "01_simple_match",
+  "name": "Persona 01 — Simple Compatible Admission",
+  "patientId": "pat-01-ananya",
+  "hospitalId": "hosp-manipal-old-airport",
+  "policyId": "pol-syn-ananya",
+  "procedureId": "proc-knee-replacement",
+  "roomCategory": "PRIVATE_AC",
+  "expectedResult": {
+    "status": "COMPATIBLE",
+    "networkStatus": "IN_NETWORK",
+    "cashlessSupported": true,
+    "roomMatch": true,
+    "estimatedGrossCost": 240000,
+    "estimatedPatientExposure": 14000,
+    "confidence": "HIGH"
+  }
+}

@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { DEMO_PROFILES } from '../../lib/demoProfiles';
-import { Loader } from '../common/Loader';
+import { Spinner } from '../common/Spinner';
 
 /**
  * A rejected fetch() carries browser-specific jargon — "Failed to fetch",
@@ -234,11 +234,12 @@ export const DemoPage: React.FC = () => {
                   type="button"
                   disabled={busy}
                   aria-label={`Load the ${profile.name} demo profile`}
-                  className="mt-5 w-full py-2.5 px-4 rounded-xl bg-slate-950 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors group-hover:bg-slate-800 disabled:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 cursor-pointer"
+                  className="mt-5 w-full py-2.5 px-4 rounded-xl bg-slate-950 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors group-hover:bg-slate-800 disabled:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 cursor-pointer"
                 >
                   {isLoading ? (
-                    <div className="flex items-center justify-center py-0.5">
-                      <Loader size="xs" whiteBg={false} />
+                    <div className="flex items-center justify-center gap-2 py-0.5">
+                      <Spinner size="sm" className="text-white" />
+                      <span>Loading persona...</span>
                     </div>
                   ) : (
                     <>

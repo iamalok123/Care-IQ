@@ -1,0 +1,12 @@
+{
+  "id": "04_preauth_pending",
+  "name": "Persona 04 — Preauthorization Pending at Admission",
+  "patientId": "pat-04-suresh",
+  "hospitalId": "hosp-manipal-old-airport",
+  "procedureId": "proc-angioplasty",
+  "expectedResult": {
+    "status": "ATTENTION_REQUIRED",
+    "preauthStatus": "PENDING",
+    "actionItem": "Follow up with TPA desk for differential sanction approval."
+  }
+}

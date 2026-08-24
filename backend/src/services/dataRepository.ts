@@ -38,8 +38,6 @@ function resolveDataDir(): string {
   const candidates = [
     path.resolve(__dirname, '../../data'),
     path.resolve(__dirname, '../data'),
-    path.resolve(__dirname, '../../../data'),
-    path.resolve(__dirname, '../../../../data'),
     path.resolve(process.cwd(), 'backend/data'),
     path.resolve(process.cwd(), 'data'),
     path.resolve(__dirname, 'data')
@@ -55,7 +53,7 @@ function resolveDataDir(): string {
       return c;
     }
   }
-  return path.resolve(process.cwd(), 'data');
+  return path.resolve(__dirname, '../../data');
 }
 
 const BASELINE_INSURERS: Insurer[] = [

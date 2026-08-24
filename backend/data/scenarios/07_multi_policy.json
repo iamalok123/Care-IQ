@@ -1,0 +1,11 @@
+{
+  "id": "07_multi_policy",
+  "name": "Persona 07 — Dual Policy Coordination",
+  "patientId": "pat-07-kavita",
+  "primaryPolicyId": "pol-new-india-mediclaim-3l",
+  "secondaryPolicyId": "pol-care-supreme-7l",
+  "expectedResult": {
+    "status": "COORDINATION_GUIDANCE",
+    "guidance": "Utilize Primary Corporate Policy first; claim balance under Super Top-up with hospital settlement summary."
+  }
+}

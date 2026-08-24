@@ -21,6 +21,7 @@ import type { RagCitation } from '../../types/domain';
 import { InfoPopover } from '../common/InfoPopover';
 import { AiMarkdown } from '../common/AiMarkdown';
 import { Loader } from '../common/Loader';
+import { Spinner } from '../common/Spinner';
 
 export interface PolicyRagAssistantProps {
   selectedPolicyId?: string;
@@ -536,7 +537,7 @@ export const PolicyRagAssistant: React.FC<PolicyRagAssistantProps> = ({
             title="Send prompt"
           >
             {loading ? (
-              <Loader size="xs" whiteBg={false} />
+              <Spinner size="xs" className="text-white" />
             ) : (
               <Send className="w-3.5 h-3.5 text-white" />
             )}
