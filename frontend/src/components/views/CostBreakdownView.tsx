@@ -401,18 +401,21 @@ export const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
               </div>
 
               <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between">
-                <span className="text-xs font-bold text-amber-800">Not covered</span>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-xs font-bold text-amber-800">Not covered</span>
+                  <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 uppercase">
+                    IRDAI Schedule 1
+                  </span>
+                </div>
                 <div className="text-2xl font-extrabold text-amber-600 mt-1">
                   {formatINR(estimate.potentialNonCoveredAmount)}
                 </div>
                 <span className="text-[11px] text-amber-700 mt-1">
-                  {/* Named from the components themselves, not a fixed caption
-                      that claimed gloves and PPE kits every time. */}
                   {estimate.costComponents
                     .filter((c) => !c.coverage_candidate)
                     .map((c) => c.component_name)
                     .slice(0, 3)
-                    .join(', ') || 'Itemised in the table below'}
+                    .join(', ') || 'Non-payable consumables (gloves, surgical packs, PPE)'}
                 </span>
               </div>
 

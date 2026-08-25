@@ -7,7 +7,11 @@ import {
   ShieldCheck,
   Search,
   Filter,
-  Sparkles
+  Sparkles,
+  FileText,
+  Share2,
+  Printer,
+  AlertTriangle
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useCareIQ } from '../../context/CareIQContext';
@@ -16,6 +20,44 @@ interface VerificationCenterProps {
   verificationItems?: any[];
   onItemResolved?: () => void;
 }
+
+export const PRE_ADMISSION_QUESTIONS = [
+  {
+    num: 1,
+    title: 'Initial TPA Pre-Auth Sanction',
+    desk: 'Hospital TPA Cashless Desk',
+    question: 'Has the initial cashless pre-authorization sanction letter been issued by our insurer/TPA, and what is the sanctioned initial amount?',
+    reason: 'Signing admission before cashless pre-auth is approved risks turning the entire hospital stay into an upfront out-of-pocket reimbursement case.'
+  },
+  {
+    num: 2,
+    title: 'Room Rent & Proportionate Deduction Rule',
+    desk: 'Admission & Bed Allocation Desk',
+    question: 'Does the assigned room stay strictly within my policy room eligibility (e.g., Single Private AC) with ZERO proportionate deduction on doctor and OT fees?',
+    reason: 'Upgrading even by ₹2,000/day triggers a 30-50% proportionate deduction penalty across surgeon, OT, and nursing charges.'
+  },
+  {
+    num: 3,
+    title: 'Written Non-Payable Consumables Estimate',
+    desk: 'Inpatient Billing Desk',
+    question: 'What is the hospital’s written estimate for non-payable consumables (IRDAI Schedule 1 items like gloves, surgical packs, and hygiene kits)?',
+    reason: 'Non-medical consumables are excluded by default. Knowing this in advance prevents unexpected cash demands at discharge.'
+  },
+  {
+    num: 4,
+    title: 'Tariff Package & Surgeon Surcharge Check',
+    desk: 'Billing & Insurance Coordinator',
+    question: 'Are surgeon visits, anesthesia fees, and OT charges billed strictly as per the agreed insurer network tariff package without extra surcharges?',
+    reason: 'Prevents excess doctor charges above agreed TPA rates from being passed on to the patient.'
+  },
+  {
+    num: 5,
+    title: 'Modern Treatments & Robotic Surgery Sub-Limits',
+    desk: 'Surgical Billing Coordinator',
+    question: 'Are any robotic surgery, advanced implants, or modern treatment components subject to policy sub-limits, and has prior approval been confirmed?',
+    reason: 'Robotic knee replacements and advanced technologies often carry specific sub-limits (e.g., ₹1,50,000) under standard policy clauses.'
+  }
+];
 
 export const VerificationCenter: React.FC<VerificationCenterProps> = ({
   verificationItems: propVerificationItems,
@@ -31,6 +73,8 @@ export const VerificationCenter: React.FC<VerificationCenterProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedItemForGuidance, setSelectedItemForGuidance] = useState<any | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [showPreAdmissionModal, setShowPreAdmissionModal] = useState<boolean>(false);
+  const [copiedAll, setCopiedAll] = useState<boolean>(false);
 
   // Filter items based on status, category, and search query
   const filteredItems = verificationItems.filter((item) => {
@@ -67,6 +111,23 @@ export const VerificationCenter: React.FC<VerificationCenterProps> = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleCopyAllQuestions = () => {
+    const text = PRE_ADMISSION_QUESTIONS.map(
+      (q) => `Q${q.num}. [${q.title} - ${q.desk}]\n"${q.question}"\nReason: ${q.reason}\n`
+    ).join('\n');
+    navigator.clipboard.writeText(`🏥 CareIQ — 5 Questions to Ask Before Signing Admission Form:\n\n${text}\nGenerated via CareIQ Decision Support.`);
+    setCopiedAll(true);
+    setTimeout(() => setCopiedAll(false), 2500);
+  };
+
+  const handleWhatsAppShare = () => {
+    const text = PRE_ADMISSION_QUESTIONS.map(
+      (q) => `*${q.num}. ${q.title}* (${q.desk})\n_"${q.question}"_\n💡 _Why:_ ${q.reason}\n`
+    ).join('\n');
+    const fullMessage = encodeURIComponent(`🏥 *CareIQ — Pre-Admission Hospital Checklist*\n_5 Critical Questions Before Signing Admission Form:_\n\n${text}\n_Shared from CareIQ Patient Intelligence_`);
+    window.open(`https://wa.me/?text=${fullMessage}`, '_blank');
+  };
+
   const pendingCount = verificationItems.filter((v) => v.status === 'PENDING').length;
   const resolvedCount = verificationItems.filter((v) => v.status === 'RESOLVED' || v.status === 'VERIFIED').length;
 
@@ -74,9 +135,9 @@ export const VerificationCenter: React.FC<VerificationCenterProps> = ({
     <div className="flex flex-col gap-6 max-w-360 mx-auto pb-20 sm:pb-8">
       
       {/* 1. Header & Summary Banner */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
               <ShieldCheck size={12} />
               <span>Verify Before You Rely</span>
@@ -93,17 +154,26 @@ export const VerificationCenter: React.FC<VerificationCenterProps> = ({
           </p>
         </div>
 
-        {/* Counter Badges */}
-        <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto">
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-center min-w-24">
-            <div className="text-2xl font-extrabold text-slate-900">{verificationItems.length}</div>
-            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Items</div>
+        {/* Counter Badges & Pre-Admission Modal Trigger */}
+        <div className="flex items-center gap-3 shrink-0 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setShowPreAdmissionModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-xs hover:shadow-md transition-all cursor-pointer"
+          >
+            <FileText size={15} />
+            <span>📋 Pre-Admission Checklist</span>
+          </button>
+
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2 text-center min-w-20">
+            <div className="text-xl font-extrabold text-slate-900">{verificationItems.length}</div>
+            <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Total Items</div>
           </div>
-          <div className={`border rounded-2xl px-4 py-3 text-center min-w-24 ${
+          <div className={`border rounded-2xl px-3.5 py-2 text-center min-w-20 ${
             pendingCount > 0 ? 'bg-rose-50/70 border-rose-200 text-rose-700' : 'bg-emerald-50/70 border-emerald-200 text-emerald-700'
           }`}>
-            <div className="text-2xl font-extrabold">{pendingCount}</div>
-            <div className="text-[10px] font-bold uppercase tracking-wider">Pending Checks</div>
+            <div className="text-xl font-extrabold">{pendingCount}</div>
+            <div className="text-[9px] font-bold uppercase tracking-wider">Pending Checks</div>
           </div>
         </div>
       </div>
@@ -400,6 +470,107 @@ export const VerificationCenter: React.FC<VerificationCenterProps> = ({
               >
                 Mark Verified
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pre-Admission "Red Flag" Checklist Modal */}
+      {showPreAdmissionModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-blue-600 text-white rounded-2xl shadow-xs">
+                  <FileText size={22} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-extrabold text-slate-900 leading-tight">
+                    5 Questions Before Signing the Admission Form
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Essential patient decision-support checklist to prevent surprise discharge deductions
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPreAdmissionModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-2 rounded-xl text-sm font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Questions Scrollable List */}
+            <div className="overflow-y-auto pr-1 flex-1 flex flex-col gap-3.5 text-xs">
+              <div className="bg-blue-50/70 p-3.5 rounded-2xl border border-blue-200 text-blue-950 flex items-start gap-2.5">
+                <ShieldCheck size={18} className="text-blue-600 shrink-0 mt-0.5" />
+                <p className="leading-relaxed">
+                  <strong>Golden Rule for Hospital Admission:</strong> Never sign the financial undertaking or consent form until you have asked these 5 questions at the TPA and billing desks.
+                </p>
+              </div>
+
+              {PRE_ADMISSION_QUESTIONS.map((q) => (
+                <div
+                  key={q.num}
+                  className="bg-slate-50 hover:bg-slate-50/80 p-4 rounded-2xl border border-slate-200/90 transition-all"
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
+                      Question {q.num} • {q.desk}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                      {q.title}
+                    </span>
+                  </div>
+
+                  <p className="text-xs font-bold text-slate-900 leading-relaxed mb-2">
+                    "{q.question}"
+                  </p>
+
+                  <div className="flex items-start gap-1.5 text-[11px] text-slate-600 bg-white/90 p-2.5 rounded-xl border border-slate-200">
+                    <AlertTriangle size={13} className="text-amber-600 shrink-0 mt-0.5" />
+                    <span>
+                      <strong className="text-slate-800">Why ask this:</strong> {q.reason}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Modal Actions Footer */}
+            <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 shrink-0">
+              <div className="text-[11px] text-slate-500">
+                CareIQ Patient Decision-Support • Powered by AI Policy Engine
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleWhatsAppShare}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors cursor-pointer"
+                >
+                  <Share2 size={13} />
+                  <span>Share on WhatsApp</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopyAllQuestions}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors cursor-pointer"
+                >
+                  {copiedAll ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+                  <span>{copiedAll ? 'Copied Full Checklist!' : 'Copy 5 Questions'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white transition-colors cursor-pointer"
+                >
+                  <Printer size={13} />
+                  <span>Print Checklist</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

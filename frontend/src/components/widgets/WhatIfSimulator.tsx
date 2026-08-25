@@ -255,6 +255,50 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
             </div>
           </div>
 
+          {/* Proportionate Deduction Penalty Breakdown Card */}
+          {delta.penaltyApplies && (
+            <div className="mb-4 p-4 rounded-xl bg-amber-50/90 border border-amber-200/90">
+              <div className="flex items-start gap-2.5">
+                <div className="p-1.5 bg-amber-600 text-white rounded-lg shrink-0 mt-0.5">
+                  <ShieldAlert size={16} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <h4 className="text-xs font-bold text-amber-950 uppercase tracking-wide">
+                      Proportionate Deduction Penalty Breakdown
+                    </h4>
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-600 text-white uppercase">
+                      {delta.penaltyPercent}% Penalty Slashed
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-900 mt-1 leading-relaxed">
+                    Because this room exceeds your policy limit ({humanizeCode(policy.room_eligibility)}), the insurer enforces a <strong>{delta.penaltyPercent}% proportionate deduction</strong>. The insurer reduces coverage across surgeon charges, OT fees, and anesthesia proportionally — not just the room rent delta.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-3 pt-3 border-t border-amber-200 text-xs">
+                    <div className="bg-white/90 p-2.5 rounded-lg border border-amber-100 shadow-2xs">
+                      <span className="text-[10px] font-bold text-slate-500 block uppercase tracking-wide">Room Rent Delta</span>
+                      <span className="font-bold text-slate-900 text-xs">
+                        +{formatPerDay(Math.max(0, comparison.alternativeRoom.tariff - comparison.currentRoom.tariff))}
+                      </span>
+                    </div>
+                    <div className="bg-white/90 p-2.5 rounded-lg border border-amber-100 shadow-2xs">
+                      <span className="text-[10px] font-bold text-slate-500 block uppercase tracking-wide">Doctor / OT Charge Penalty</span>
+                      <span className="font-bold text-rose-600 text-xs">
+                        {delta.penaltyPercent}% Slashed ({formatINR(Math.max(0, oopDelta - (comparison.alternativeRoom.tariff - comparison.currentRoom.tariff)))})
+                      </span>
+                    </div>
+                    <div className="bg-white/90 p-2.5 rounded-lg border border-amber-100 shadow-2xs">
+                      <span className="text-[10px] font-bold text-slate-500 block uppercase tracking-wide">Total Out-of-Pocket Jump</span>
+                      <span className="font-bold text-rose-700 text-xs">
+                        +{formatINR(oopDelta)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <EstimateCard
               icon={<BedDouble size={16} className="text-teal-700" />}
