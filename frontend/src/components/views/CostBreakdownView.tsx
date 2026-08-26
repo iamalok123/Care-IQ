@@ -102,13 +102,22 @@ export const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
     };
   }, [hospitalId, policy?.insurer_id]);
 
-  // Default the room to what the policy entitles, but only if the hospital
-  // actually publishes that category.
+  // Default procedure from hospital's priced procedures if none is selected yet
   useEffect(() => {
-    if (roomCategory || !hospitalDetail || !policy?.room_eligibility) return;
-    const entitled = hospitalDetail.rooms.find((r) => r.code === policy.room_eligibility);
-    if (entitled) setRoomCategory(entitled.code);
+    if (!procedureId && hospitalDetail?.procedures && hospitalDetail.procedures.length > 0) {
+      setProcedureId(hospitalDetail.procedures[0].id);
+    }
+  }, [hospitalDetail, procedureId]);
+
+  // Default the room to what the policy entitles, or hospital's first room category
+  useEffect(() => {
+    if (roomCategory || !hospitalDetail || hospitalDetail.rooms.length === 0) return;
+    const entitled = policy?.room_eligibility
+      ? hospitalDetail.rooms.find((r) => r.code === policy.room_eligibility)
+      : null;
+    setRoomCategory(entitled ? entitled.code : hospitalDetail.rooms[0].code);
   }, [hospitalDetail, policy?.room_eligibility, roomCategory]);
+
 
   const fetchEstimate = useCallback(async () => {
     // All three ids are required. Previously two of them were guessed, so the

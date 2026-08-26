@@ -150,13 +150,20 @@ export class DataRepository {
     // Master Reference Policies
     this.policies = this.readJsonFile<InsurancePolicy[]>(path.join(this.cleanedDir, 'policies.json'), []);
 
-    // Runtime state starts empty and is populated from Supabase
-    this.patients = [];
-    this.journeys = [];
-    this.verificationItems = [];
+    // Load Demo Profiles Baseline
+    const demoProfiles = this.readJsonFile<any[]>(path.join(this.baseDataDir, 'demo_profiles.json'), []);
+    demoProfiles.forEach((dp) => {
+      if (dp.patient) this.addPatient(dp.patient);
+      if (dp.policy) this.addPolicy(dp.policy);
+      if (dp.journey) this.addJourney(dp.journey);
+      if (dp.verification_items) {
+        dp.verification_items.forEach((vi: any) => this.addVerificationItem(vi));
+      }
+    });
   }
 
   public async ensureDataLoaded(): Promise<void> {
+
     if (this.hospitals.length === 0) {
       this.loadAllData();
       if (this.hospitals.length === 0) {

@@ -5,7 +5,7 @@
     "procedure_id": "proc-knee-replacement",
     "min_cost": 210000,
     "max_cost": 280000,
-    "typical_cost": 240000,
+    "typical_cost": 255500,
     "currency": "INR",
     "data_status": "SYNTHETIC",
     "confidence": "HIGH"
