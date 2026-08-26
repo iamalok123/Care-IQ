@@ -20,7 +20,6 @@ import { api, ApiError } from '../../services/api';
 import type { RagCitation } from '../../types/domain';
 import { InfoPopover } from '../common/InfoPopover';
 import { AiMarkdown } from '../common/AiMarkdown';
-import { Loader } from '../common/Loader';
 import { Spinner } from '../common/Spinner';
 
 export interface PolicyRagAssistantProps {
@@ -400,7 +399,16 @@ export const PolicyRagAssistant: React.FC<PolicyRagAssistantProps> = ({
 
                   {/* Main Answer Content */}
                   <div className="text-slate-800 leading-relaxed">
-                    <AiMarkdown content={msg.content} />
+                    {msg.content ? (
+                      <AiMarkdown content={msg.content} />
+                    ) : (
+                      <div className="flex items-center gap-2 py-1.5 text-slate-500 font-medium">
+                        <span className="w-2 h-2 rounded-full bg-teal-600 animate-bounce [animation-delay:-0.3s]" />
+                        <span className="w-2 h-2 rounded-full bg-teal-600 animate-bounce [animation-delay:-0.15s]" />
+                        <span className="w-2 h-2 rounded-full bg-teal-600 animate-bounce" />
+                        <span className="text-[11px] text-slate-400 ml-1">Analyzing policy clauses & IRDAI rules...</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Uncertainty notes if any */}
@@ -476,18 +484,6 @@ export const PolicyRagAssistant: React.FC<PolicyRagAssistantProps> = ({
             )}
           </div>
         ))}
-
-        {/* ⏳ Assistant Thinking Animation */}
-        {loading && (
-          <div className="flex items-start gap-2.5 animate-in fade-in duration-200">
-            <div className="w-7 h-7 rounded-xl bg-linear-to-br from-indigo-600 to-teal-500 text-white flex items-center justify-center shadow-md shadow-indigo-500/20 shrink-0">
-              <Sparkles className="w-3.5 h-3.5 text-white" />
-            </div>
-            <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-xs p-3 shadow-xs flex items-center justify-center">
-              <Loader size="xs" />
-            </div>
-          </div>
-        )}
 
         <div ref={chatEndRef} />
       </div>

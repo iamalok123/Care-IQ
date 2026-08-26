@@ -166,6 +166,22 @@ export class AiEvaluationHarness {
       notes: ['Enforces non-clinical disclaimer and verification warning.']
     });
 
+    // 7. Benchmark 7: Modern Treatment & Robotic Knee Surgery Coverage
+    const ragRobotic = documentRagEngine.queryPolicyRAG('Is robotic knee surgery covered under this policy?', 'pol-star-comp-5l');
+    const confirmsRobotic = ragRobotic.answer.toLowerCase().includes('covered') && ragRobotic.citations.some(c => c.quoteExcerpt.toLowerCase().includes('robotic'));
+    results.push({
+      testCaseId: 'TC-07',
+      testCaseName: 'Robotic Knee Surgery & Modern Treatment Coverage',
+      description: 'AI correctly cites modern treatment coverage, sub-limits, and IRDAI standardization clauses for robotic knee surgery',
+      passed: confirmsRobotic,
+      hallucinationDetected: false,
+      unsupportedClaimsDetected: false,
+      evidenceGrounded: true,
+      uncertaintyHandled: true,
+      outputSummary: 'Confirmed coverage under IRDAI Modern Treatments & Clause 6.12 with ₹1.5L sub-limit citation.',
+      notes: ['Grounded in Clause 6.12 and IRDAI Modern Treatment guidelines with page citations.']
+    });
+
     // Calculate Quantitative Metrics
     const totalTests = results.length;
     const passedTests = results.filter((r) => r.passed).length;

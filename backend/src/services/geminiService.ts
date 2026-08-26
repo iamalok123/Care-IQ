@@ -1,8 +1,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+const CANDIDATE_MODELS = [
+  process.env.GEMINI_MODEL,
+  'gemini-3.5-flash-lite',
+].filter((m): m is string => !!m && m.trim().length > 0);
+
 export class GeminiService {
   private genAI: GoogleGenerativeAI | null = null;
-  private modelName: string = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+  private modelName: string = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
   constructor() {
     this.init();
@@ -30,7 +35,7 @@ export class GeminiService {
   }
 
   /**
-   * Generates natural language text using Gemini Flash.
+   * Generates natural language text using Gemini Flash with automatic model fallback.
    */
   public async generateText(
     prompt: string,
@@ -44,33 +49,44 @@ export class GeminiService {
       return { text: '', model: 'deterministic-fallback', success: false };
     }
 
-    try {
-      const model = this.genAI.getGenerativeModel({
-        model: this.modelName,
-        systemInstruction: systemInstruction || 'You are CareIQ, an expert Indian Health Insurance & Clinical Trajectory Decision Support AI.'
-      });
+    const defaultInstruction =
+      'You are CareIQ, an expert Indian Health Insurance & Clinical Navigation Decision Support AI. Always provide accurate, compassionate, structured, and grounded guidance.';
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+    // Try candidate models in order of priority
+    for (const modelToTry of CANDIDATE_MODELS) {
+      try {
+        const model = this.genAI.getGenerativeModel({
+          model: modelToTry,
+          systemInstruction: systemInstruction || defaultInstruction
+        });
 
-      return {
-        text: text || '',
-        model: this.modelName,
-        success: true
-      };
-    } catch (err: any) {
-      console.warn('Gemini generateText error, falling back to deterministic template:', err?.message || err);
-      return {
-        text: '',
-        model: 'deterministic-fallback',
-        success: false
-      };
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+
+        if (text && text.trim().length > 0) {
+          this.modelName = modelToTry;
+          return {
+            text: text.trim(),
+            model: modelToTry,
+            success: true
+          };
+        }
+      } catch (err: any) {
+        console.warn(`Gemini generateText error with model ${modelToTry}:`, err?.message || err);
+        // Continue to try next model in fallback list
+      }
     }
+
+    return {
+      text: '',
+      model: 'deterministic-fallback',
+      success: false
+    };
   }
 
   /**
-   * Generates streaming text using Gemini Flash SSE tokens.
+   * Generates streaming text using Gemini Flash SSE tokens with model fallback.
    */
   public async streamText(
     prompt: string,
@@ -85,37 +101,44 @@ export class GeminiService {
       return { text: '', model: 'deterministic-fallback', success: false };
     }
 
-    try {
-      const model = this.genAI.getGenerativeModel({
-        model: this.modelName,
-        systemInstruction:
-          systemInstruction ||
-          'You are CareIQ, an expert Indian Health Insurance & Clinical Trajectory Decision Support AI.'
-      });
+    const defaultInstruction =
+      'You are CareIQ, an expert Indian Health Insurance & Clinical Navigation Decision Support AI. Always provide accurate, compassionate, structured, and grounded guidance.';
 
-      const responseStream = await model.generateContentStream(prompt);
-      let fullText = '';
-      for await (const chunk of responseStream.stream) {
-        const chunkText = chunk.text();
-        if (chunkText) {
-          fullText += chunkText;
-          onChunk?.(chunkText);
+    for (const modelToTry of CANDIDATE_MODELS) {
+      try {
+        const model = this.genAI.getGenerativeModel({
+          model: modelToTry,
+          systemInstruction: systemInstruction || defaultInstruction
+        });
+
+        const responseStream = await model.generateContentStream(prompt);
+        let fullText = '';
+        for await (const chunk of responseStream.stream) {
+          const chunkText = chunk.text();
+          if (chunkText) {
+            fullText += chunkText;
+            onChunk?.(chunkText);
+          }
         }
-      }
 
-      return {
-        text: fullText,
-        model: this.modelName,
-        success: true
-      };
-    } catch (err: any) {
-      console.warn('Gemini streamText error, falling back to deterministic template:', err?.message || err);
-      return {
-        text: '',
-        model: 'deterministic-fallback',
-        success: false
-      };
+        if (fullText && fullText.trim().length > 0) {
+          this.modelName = modelToTry;
+          return {
+            text: fullText.trim(),
+            model: modelToTry,
+            success: true
+          };
+        }
+      } catch (err: any) {
+        console.warn(`Gemini streamText error with model ${modelToTry}:`, err?.message || err);
+      }
     }
+
+    return {
+      text: '',
+      model: 'deterministic-fallback',
+      success: false
+    };
   }
 
   /**
@@ -133,39 +156,45 @@ export class GeminiService {
       return { data: null, model: 'deterministic-fallback', success: false };
     }
 
-    try {
-      const model = this.genAI.getGenerativeModel({
-        model: this.modelName,
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.2
-        },
-        systemInstruction: systemInstruction || 'You are CareIQ, an expert Indian Health Insurance Decision Support AI. Always respond in valid JSON.'
-      });
+    const defaultInstruction =
+      'You are CareIQ, an expert Indian Health Insurance Decision Support AI. Always respond in valid JSON.';
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+    for (const modelToTry of CANDIDATE_MODELS) {
+      try {
+        const model = this.genAI.getGenerativeModel({
+          model: modelToTry,
+          generationConfig: {
+            responseMimeType: 'application/json',
+            temperature: 0.2
+          },
+          systemInstruction: systemInstruction || defaultInstruction
+        });
 
-      if (text) {
-        const parsed = JSON.parse(text) as T;
-        return {
-          data: parsed,
-          model: this.modelName,
-          success: true
-        };
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+
+        if (text) {
+          const parsed = JSON.parse(text) as T;
+          this.modelName = modelToTry;
+          return {
+            data: parsed,
+            model: modelToTry,
+            success: true
+          };
+        }
+      } catch (err: any) {
+        console.warn(`Gemini generateJson error with model ${modelToTry}:`, err?.message || err);
       }
-
-      return { data: null, model: this.modelName, success: false };
-    } catch (err: any) {
-      console.warn('Gemini generateJson error, falling back to deterministic template:', err?.message || err);
-      return {
-        data: null,
-        model: 'deterministic-fallback',
-        success: false
-      };
     }
+
+    return {
+      data: null,
+      model: 'deterministic-fallback',
+      success: false
+    };
   }
 }
 
 export const geminiService = new GeminiService();
+

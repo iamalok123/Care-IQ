@@ -328,9 +328,13 @@ export const api = {
     try {
       const response = await fetch(`${API_BASE}/ai/rag/query/stream`, {
         method: 'POST',
-        headers: getAuthHeaders(),
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
         body: JSON.stringify({ query, policy_id: policyId })
       });
+
       if (!response.ok || !response.body) {
         return api.queryPolicyRag(query, policyId);
       }
@@ -339,6 +343,8 @@ export const api = {
       let accumulatedText = '';
       let citations: any[] = [];
       let confidence: any = 'MEDIUM';
+      let uncertaintyNotes: string[] = [];
+      let disclaimer: string = 'CareIQ grounded policy interpretation.';
 
       while (true) {
         const { done, value } = await reader.read();
@@ -357,6 +363,8 @@ export const api = {
                 if (data.answer) accumulatedText = data.answer;
                 if (data.citations) citations = data.citations;
                 if (data.confidence) confidence = data.confidence;
+                if (data.uncertaintyNotes) uncertaintyNotes = data.uncertaintyNotes;
+                if (data.disclaimer) disclaimer = data.disclaimer;
               }
             } catch {
               // chunk parse handling
@@ -369,13 +377,14 @@ export const api = {
         answer: accumulatedText,
         confidence: (confidence as 'HIGH' | 'MEDIUM' | 'LOW') || 'MEDIUM',
         citations,
-        uncertaintyNotes: [],
-        disclaimer: 'CareIQ grounded policy interpretation.'
+        uncertaintyNotes,
+        disclaimer
       };
     } catch {
       return api.queryPolicyRag(query, policyId);
     }
   },
+
 
   // ---- Documents ----
   getDocuments: () => fetchApi<UploadedDocument[]>('/documents'),

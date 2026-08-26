@@ -54,7 +54,9 @@ export class AiController {
 
   // POST /api/ai/rag/query
   public async queryRag(req: Request, res: Response): Promise<void> {
-    const { query, policy_id } = req.body;
+    const body = req.body || {};
+    const query = body.query || req.query.query;
+    const policy_id = body.policy_id || req.query.policy_id;
 
     if (!query || typeof query !== 'string') {
       res.status(400).json({
@@ -64,7 +66,7 @@ export class AiController {
       return;
     }
 
-    const ragResponse = await documentRagEngine.queryPolicyRAGAsync(query, policy_id);
+    const ragResponse = await documentRagEngine.queryPolicyRAGAsync(query, typeof policy_id === 'string' ? policy_id : undefined);
 
     res.json({
       success: true,
@@ -74,7 +76,9 @@ export class AiController {
 
   // POST /api/ai/rag/query/stream (SSE)
   public async streamRag(req: Request, res: Response): Promise<void> {
-    const { query, policy_id } = req.body;
+    const body = req.body || {};
+    const query = body.query || req.query.query;
+    const policy_id = body.policy_id || req.query.policy_id;
 
     if (!query || typeof query !== 'string') {
       res.status(400).json({
@@ -83,6 +87,7 @@ export class AiController {
       });
       return;
     }
+
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
