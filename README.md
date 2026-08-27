@@ -5,144 +5,101 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.2-646cff.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4.3-38bdf8.svg?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express 5](https://img.shields.io/badge/Express-5.2-000000.svg?logo=express&logoColor=white)](https://expressjs.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ecf8e.svg?logo=supabase&logoColor=white)](https://supabase.com/)
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-2.0%20Flash-4285f4.svg?logo=google&logoColor=white)](https://ai.google.dev/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 > **GE HealthCare Precision Care Challenge 2026** — *Hospitality: Holistic Optimization System for Policy-Integrated Admission & Treatment Intelligence*  
-> Transforming health insurance from a source of post-discharge financial shock into an active, protective navigator throughout the hospital care journey.
+> An India-specific decision-support platform bridging health insurance constraints with hospital capabilities and real-time treatment tracking.
 
 ---
 
-## 📌 Problem & Executive Summary
+## 📌 Problem & Solution Overview
 
-In India, over **70% of urban families** hold health insurance or government scheme cover (*Ayushman Bharat PM-JAY*), yet **fewer than 15% understand policy limits prior to hospitalization**. Critical financial surprises emerge at the billing desk:
-- **Room Rent Proportionate Deduction**: Exceeding a 1% room cap triggers up to 50% penalties across surgeon, OT, and diagnostic charges.
-- **Cashless vs. Reimbursement Ambiguity**: Unconfirmed network status causes emergency out-of-pocket payment shocks.
-- **Consumable & PED Exclusions**: Unclear limits on surgical disposables, implants, and pre-existing disease waiting periods.
+In India, over **70% of urban families** hold private health insurance or government schemes (*PM-JAY, ESI, State Schemes*), yet **fewer than 15% understand policy limits prior to hospitalization**. This leads to severe billing shocks:
+- **Proportionate Deductions**: Exceeding room caps triggers up to 50% penalties on doctor fees, OT charges, and diagnostics.
+- **Cashless vs. Reimbursement Ambiguity**: Unconfirmed network empanelment forces unexpected out-of-pocket expenses.
+- **Consumables & PED Clauses**: Undisclosed non-payable items and hidden pre-existing disease waiting periods.
 
-**CareIQ** solves this with a **deterministic calculation engine** paired with **grounded, zero-hallucination AI** for Indian hospital admissions.
+**CareIQ** eliminates surprises through a **deterministic calculation engine** combined with **verifiable, zero-hallucination AI** for stress-free hospital navigation.
 
 ---
 
-## 🌟 Core System Architecture
+## 🚀 Key Features & Capabilities
+
+### 1. 📊 Executive Care Dashboard & Patient Hub (`/` or `/dashboard`)
+- **Real-Time Patient Context**: Switch between multiple patient profiles, track blood group, PED history, vitals, and active prescriptions.
+- **Financial Metric Cards**: Live telemetry on Base Cover, Cashless Status, Estimated Out-of-Pocket, and Room Rent Caps.
+- **Coverage Allocation Dial & Progress Tracker**: Visual sum-insured utilization and interactive 5-stage care progress checkpoints.
+
+### 2. 🏥 5-Factor Hospital Matching Engine (`/hospital-matcher`)
+- **Weighted Multi-Factor Scoring**: Evaluates Cashless Network Status (35%), Room Tariff Fit (25%), Department Specialty (15%), 24x7 Critical Care/NABH (10%), and Cost Headroom (15%).
+- **Side-by-Side Comparison**: Compare infrastructure, room tiers, and tariffs across candidate hospitals.
+- **"What to Ask Desk" Tool**: Generates tailored pre-admission inquiry scripts for TPA & billing counters.
+
+### 3. 📄 Policy OCR & Extraction Engine (`/insurance`)
+- **Multi-Format Ingestion**: Upload PDF, PNG, JPG, or TXT policy documents with SHA-256 integrity verification.
+- **Grounded Clause Extraction**: Gemini 2.0 Flash extracts Sum Insured, Room/ICU caps, Copay, PED waiting windows, and sub-limits.
+- **Human-in-the-Loop Verification**: Review extracted data with side-by-side verbatim clause evidence before saving.
+
+### 4. 🗺️ 5-Stage Trajectory & Stage Guidance (`/care-journey`)
+- **Full Admission Lifecycle**: Step-by-step guidance across `ADMISSION` ➔ `INVESTIGATION` ➔ `PROCEDURE` ➔ `RECOVERY` ➔ `DISCHARGE`.
+- **Phase Kits & Action Items**: Context-aware checklists, required document packets, and proactive claim alerts at each milestone.
+
+### 5. 💰 Cost Calculator & Room Upgrade Simulator (`/costs`)
+- **Itemized Billing Engine**: Predicts room rent, surgeon/OT fees, anesthetist charges, pharmacy, consumables, and labs.
+- **Proportionate Deduction Formula**:
+  $$\text{Eligible Medical Expense} = \text{Billed Charge} \times \min\left(1, \frac{\text{Eligible Room Limit}}{\text{Actual Room Rent}}\right)$$
+- **"What-If" Room Upgrade Simulator**: Visualizes out-of-pocket exposure across Twin Sharing, Single Private, and Deluxe Suites.
+
+### 6. 🛡️ Verification Center & Policy Copilot (`/verification-center`)
+- **Pre-Admission Checkpoints**: Systematic pre-authorization codes, network validation, and PED clause verification.
+- **Floating Policy Copilot**: Grounded vector RAG assistant answering policy queries with direct clause citations and fallback to `UNKNOWN` on missing data.
+
+### 7. 🎭 Preloaded Demonstration Personas (`/demo`)
+- **Rajesh Verma (55 M, Mumbai)**: Ayushman Bharat PM-JAY (₹5L) — Total Knee Replacement at KEM Hospital.
+- **Ananya Sharma (34 F, Bengaluru)**: Star Health Optima (₹10L) — Emergency Laparoscopic Appendectomy.
+- **Vikram Malhotra (62 M, Delhi NCR)**: HDFC ERGO Optima Restore (₹15L) — Coronary Angioplasty (PTCA).
+
+---
+
+## 🏗️ Architecture & Tech Stack
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                    FRONTEND LAYER                                      │
-│  React 19 • Vite 8 • Tailwind CSS v4 • Plus Jakarta Sans / Inter / JetBrains Mono      │
-│  Dashboard • Hospital Matcher • Insurance Vault • Care Journey • Cost Calculator • RAG │
+│ FRONTEND: React 19 • Vite 8 • Tailwind CSS v4 • Lucide Icons • 3D CSS Loader           │
+│ Views: Dashboard • Hospital Matcher • Insurance Vault • Care Journey • Costs • Copilot │
 └───────────────────────────────────────────┬────────────────────────────────────────────┘
                                             │ REST API (JSON / HTTP)
 ┌───────────────────────────────────────────▼────────────────────────────────────────────┐
-│                                    BACKEND LAYER                                       │
-│  Node.js • Express 5 • TypeScript • Zod • Google Gemini 2.0 Flash • Supabase Postgres  │
-│  ┌───────────────────────────┐ ┌──────────────────────────┐ ┌────────────────────────┐ │
-│  │ Deterministic Math Engine │ │ AI Vector RAG (Semantic) │ │ Dual Repository Layer  │ │
-│  │ (Tariffs, Caps & Deduct)  │ │ (Citations, Zero-Halluc) │ │ (Supabase + In-Memory) │ │
-│  └───────────────────────────┘ └──────────────────────────┘ └────────────────────────┘ │
+│ BACKEND: Node.js • Express 5 • TypeScript • Zod Validation • Google Gemini 2.0 Flash   │
+│ Services: Matching Engine • Cost & Deduction Engine • Policy OCR • Vector RAG Engine   │
+│ Database: Supabase PostgreSQL (Dual-mode: Cloud Database + In-Memory Fallback)         │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🚀 Key Modules & Capabilities
-
-### 1. 📊 Executive Care Dashboard (`/` or `/dashboard`)
-- **Patient Context & Health Profile**: Real-time context switching, blood group, PED conditions, active medications, and allergies in responsive 2×2 mobile cards.
-- **Financial Metric Cards**: Real-time Base Cover, In-Network Cashless status, Estimated Out-of-Pocket, and Policy Room Rent limit.
-- **Coverage Allocation Dial & 5-Stage Stepper**: Visual radial indicator of utilized sum insured and hospitalization progression.
-- **Care Checkpoint System**: Interactive action checklists with status toggles (`PENDING`, `IN_PROGRESS`, `COMPLETED`, `FLAGGED`).
-
-### 2. 🏥 5-Factor Hospital Matching Engine (`/hospital-matcher`)
-Deterministic scoring model ranking network hospitals:
-- **Network Cashless Status (35%)**: In-network cashless empanelment confirmation.
-- **Room Tariff Match (25%)**: Alignment with room entitlement to avoid proportionate deductions.
-- **Clinical Department Match (15%)**: Specialized surgical infrastructure and cath lab availability.
-- **24x7 Critical Care (10%)**: Level-1 ICU beds and NABH accreditation.
-- **Cost Headroom (15%)**: Estimated procedure tariff vs. remaining sum insured.
-- **Compare & Desk Tool**: Side-by-side hospital comparison and 1-tap "What to Ask Desk" question generator.
-
-### 3. 📄 Policy OCR & Extraction Engine (`/insurance`)
-- Multi-format ingestion (PDF, PNG, JPG, TXT) with SHA-256 cryptographic verification.
-- Extracts Base Sum Insured, Room Caps, ICU Limits, Copay, PED waiting windows, and sub-limits.
-- Interactive human verification modal with exact clause evidence citations before saving.
-
-### 4. 🗺️ 5-Stage Trajectory & Stage Guidance (`/care-journey`)
-- Guided hospitalization phases: `ADMISSION` ➔ `INVESTIGATION` ➔ `PROCEDURE` ➔ `RECOVERY` ➔ `DISCHARGE`.
-- Contextual checklist cards, milestone alerts, and required document kits per phase.
-
-### 5. 💰 Itemized Cost Breakdown & Proportionate Deduction Simulator (`/costs`)
-- Complete financial breakdown: Room Rent, Surgeon/OT, Anesthesia, Labs, and Consumables.
-- Proportionate deduction penalty engine calculating out-of-pocket variance for room upgrades.
-- "What-If" admission simulator visualizing real-time financial impact across room categories.
-
-### 6. 🛡️ Verification Center & Policy Copilot (`/verification-center`)
-- Pre-admission checklist (*"Verify Before You Rely"*): Pre-auth codes, PED clauses, and network status.
-- Floating Policy AI Copilot with semantic vector search, clause citations, and TPA question prompts.
-
----
-
-## 🧮 Proportionate Deduction Formula Engine
-
-$$\text{Eligible Associate Medical Expense} = \text{Billed Charge} \times \left(\frac{\text{Eligible Room Rent Limit}}{\text{Actual Room Rent Incurred}}\right)$$
-
-CareIQ automatically evaluates this formula against surgeon charges, OT expenses, anesthetist fees, and nursing charges to predict out-of-pocket exposure prior to room category selection.
-
----
-
-## 🎭 Preloaded Demonstration Personas (`/demo`)
-
-| Persona | Demographics | Insurance Cover | Clinical Context & Procedure |
-| :--- | :--- | :--- | :--- |
-| **Rajesh Verma** | 55 M, Mumbai | Ayushman Bharat PM-JAY (₹5L) | Total Knee Replacement at KEM Hospital |
-| **Ananya Sharma** | 34 F, Bengaluru | Star Health Optima (₹10L) | Emergency Laparoscopic Appendectomy |
-| **Vikram Malhotra**| 62 M, Delhi NCR | HDFC ERGO Optima Restore (₹15L)| Coronary Angioplasty (PTCA) with Stenting |
-
----
-
-## 🛡️ AI Grounding & Safety Benchmark Suite
-
-CareIQ enforces strict safety guardrails evaluated through an automated test harness (`aiEvaluationHarness.ts`):
-- **100% Citation Grounding**: Every AI copilot response is backed by exact clause citations from policy documents.
-- **Zero Hallucination on Missing Data**: Missing coverage terms default to `UNKNOWN` with actionable verification steps.
-- **Strict Non-Clinical Boundary**: Non-medical advice guardrails redirect all clinical triage questions to licensed doctors.
-
----
-
-## 🎨 UI/UX Excellence & Typography
-
-- **Medical & Insurance Typography**: Plus Jakarta Sans (headings), Inter (clinical body), and JetBrains Mono with tabular numbers (`tnum`) for monetary figures.
-- **3D Isometric Moving Boxes Loader**: Zero-dependency CSS 3D loader on pure white background across all loading states.
-- **Mobile-First Responsive Layout**: Native mobile tab navigation, 2×2 metric grids, touch-friendly touch targets (`min-h-11`), and full desktop fidelity.
-
----
-
-## 📊 Evaluation & Verification Metrics
-
-| Metric | Target | Verified Score | Method |
-| :--- | :--- | :--- | :--- |
-| **Math Accuracy** | 100% | **100%** | Deterministic rule engine simulation |
-| **AI Grounding** | >95% | **100%** | Verbatim clause citation extraction |
-| **Hallucination Rate** | 0.0% | **0.0%** | Strict fallback to `UNKNOWN` |
-| **Frontend Build** | 0 Errors | **0 Errors** | `tsc -b && vite build` in 2.33s |
-
----
-
-## 📡 REST API Surface
+## 📡 REST API Reference
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `POST` | `/api/auth/register` & `/api/auth/login` | Caregiver JWT authentication & profile session |
-| `GET` | `/api/auth/me` | Current authenticated user & patient payload |
-| `GET` | `/api/hospitals/match` | 5-factor hospital match scoring & tariff estimation |
-| `POST` | `/api/documents/upload` | Multi-format policy upload & Gemini OCR parsing |
-| `POST` | `/api/documents/confirm-extraction` | Human-verified policy normalization & storage |
-| `POST` | `/api/costs/breakdown` | Itemized bill & proportionate deduction calculation |
-| `POST` | `/api/ai/policy-query` | Grounded vector RAG with verbatim clause citations |
-| `GET` | `/api/journeys/active` | Active hospitalization stage, checklists & guidance |
+| `POST` | `/api/auth/register` & `/api/auth/login` | User registration and JWT authentication |
+| `GET` | `/api/auth/me` | Retrieve current user profile and patient context |
+| `GET` | `/api/hospitals/match` | Compute 5-factor hospital rankings and cost estimates |
+| `POST` | `/api/documents/upload` | Upload insurance policy and run Gemini OCR extraction |
+| `POST` | `/api/documents/confirm-extraction` | Save human-verified policy limits and clauses |
+| `POST` | `/api/costs/breakdown` | Calculate itemized expenses and proportionate deductions |
+| `POST` | `/api/ai/policy-query` | Query vector RAG with verbatim clause citations |
+| `GET` | `/api/journeys/active` | Fetch active care stage, checklists, and guidance kits |
+
+---
+
+## 🛡️ AI Grounding & Guardrails
+
+- **Zero Hallucination**: AI responses strictly reference extracted policy clauses. Missing terms default to `UNKNOWN`.
+- **Non-Clinical Boundary**: Non-medical advisory guardrail blocks diagnostic advice and redirects to qualified practitioners.
+- **Deterministic Math**: Financial computations and proportionate deductions run on explicit mathematical rules, not LLM guesses.
 
 ---
 
@@ -150,36 +107,35 @@ CareIQ enforces strict safety guardrails evaluated through an automated test har
 
 ```text
 CareIQ/
-├── frontend/                     # React 19 + Vite + Tailwind v4 Single-Page Application
+├── frontend/                     # React 19 + Vite 8 SPA
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── common/           # Loader (3D isometric), Badges, Metric Cards
+│   │   │   ├── common/           # 3D Isometric Loader, Badges, Stat Cards
 │   │   │   ├── layout/           # AppLayout, Sidebar, MobileTabBar, Floating Copilot
 │   │   │   ├── modals/           # ExtractionReviewModal, AiQuestionsModal, CompareModal
-│   │   │   ├── views/            # Dashboard, HospitalMatchView, InsuranceView, CareJourneyView...
+│   │   │   ├── views/            # Dashboard, HospitalMatch, Insurance, CareJourney, Costs...
 │   │   │   └── widgets/          # PolicyRagAssistant, StageGuidanceCard, CostBreakdown
-│   │   ├── context/              # AuthContext, CareIqContext (State Machine)
-│   │   └── services/             # api.ts (Typed HTTP Client)
-├── backend/                      # Node.js + Express 5 + TypeScript Server
+│   │   ├── context/              # AuthContext, CareIqContext (Global State)
+│   │   └── services/             # Typed API Client
+├── backend/                      # Node.js + Express 5 + TypeScript API
 │   ├── src/
 │   │   ├── controllers/          # authController, hospitalController, costController...
-│   │   ├── routes/               # Express API endpoints (/api/*)
-│   │   ├── services/             # costEngine, matchingEngine, geminiService, documentRagEngine
-│   │   ├── db/                   # supabaseClient, migrator, seeder, dbCli
-│   │   └── scripts/              # seedProductionData, benchmarkHarness
-└── supabase/migrations/          # PostgreSQL Schema (23 tables, RLS policies, indexes)
+│   │   ├── services/             # matchingEngine, costEngine, geminiService, documentRagEngine
+│   │   ├── db/                   # supabaseClient, migrations, seedProductionData
+│   │   └── scripts/              # testScenarioMatrix, benchmarkHarness
+└── supabase/migrations/          # PostgreSQL schemas, RLS security policies, and indexes
 ```
 
 ---
 
-## 🛠️ Quickstart & Local Setup
+## ⚡ Quickstart & Local Setup
 
 ### 1. Prerequisites
-- Node.js 18+ & npm
-- Free Supabase project (PostgreSQL) or run in-memory mode
-- Google Gemini API Key (for policy OCR & RAG copilot)
+- **Node.js 18+** & **npm**
+- **Google Gemini API Key** (for OCR and Policy RAG Assistant)
+- **Supabase Account** (optional — runs with built-in in-memory repository if not configured)
 
-### 2. Environment Configuration
+### 2. Environment Setup
 
 **Backend (`backend/.env`):**
 ```env
@@ -199,41 +155,27 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your_anon_key
 ```
 
-### 3. Installation & Startup
+### 3. Installation & Run
 
 ```bash
 # 1. Install dependencies
 cd backend && npm install
 cd ../frontend && npm install
 
-# 2. Apply Supabase database migrations & seed production data
-cd ../backend
-npx tsx src/scripts/seedProductionData.ts
+# 2. Seed database (optional if using Supabase)
+cd ../backend && npx tsx src/scripts/seedProductionData.ts
 
 # 3. Start development servers
 # Terminal 1 (Backend - Port 5000):
 npm run dev
 
 # Terminal 2 (Frontend - Port 5173):
-cd ../frontend
-npm run dev
+cd ../frontend && npm run dev
 ```
 
 ---
 
-## 🧪 Verification & Production Testing
-
-```bash
-# Run backend TypeScript checks
-cd backend && npx tsc --noEmit
-
-# Run frontend production build
-cd ../frontend && npm run build
-```
-
----
-
-## 📜 License & Acknowledgments
+## 📜 License & Compliance
 
 Built for the **GE HealthCare Precision Care Challenge 2026**.  
 Licensed under the [MIT License](LICENSE).
