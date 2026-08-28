@@ -9,8 +9,9 @@
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ecf8e.svg?logo=supabase&logoColor=white)](https://supabase.com/)
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-2.0%20Flash-4285f4.svg?logo=google&logoColor=white)](https://ai.google.dev/)
 
-> **GE HealthCare Precision Care Challenge 2026** — *Hospitality: Holistic Optimization System for Policy-Integrated Admission & Treatment Intelligence*  
+> **GE HealthCare - Precision Care Challenge 2026** — *Hospitality: Holistic Optimization System for Policy-Integrated Admission & Treatment Intelligence*  
 > An India-specific decision-support platform bridging health insurance constraints with hospital capabilities and real-time treatment tracking.
+
 
 ---
 
